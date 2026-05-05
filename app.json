@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "Nvmcars",
+    "slug": "nvmcars",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "scheme": "nvmcars",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.nvmcars.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Nvmcars usa la tua posizione per trovare le officine più vicine a te."
+      }
+    },
+    "android": {
+      "package": "com.nvmcars.app",
+      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Nvmcars usa la tua posizione per trovare le officine più vicine a te."
+        }
+      ]
+    ]
+  }
+}

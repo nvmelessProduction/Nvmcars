@@ -1,0 +1,15 @@
+export const colors = {
+  ink900: "#0F172A",
+  ink800: "#1E293B",
+  ink700: "#334155",
+  ink500: "#64748B",
+  ink300: "#CBD5E1",
+  ink100: "#F1F5F9",
+  white: "#FFFFFF",
+  accent400: "#22D3EE",
+  accent500: "#06B6D4",
+  accent600: "#0891B2",
+  success: "#10B981",
+  danger: "#EF4444",
+  warning: "#F59E0B",
+} as const;
