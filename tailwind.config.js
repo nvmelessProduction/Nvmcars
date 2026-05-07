@@ -1,7 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./App.tsx", "./src/**/*.{js,jsx,ts,tsx}"],
-  presets: [require("nativewind/preset")],
+  content: ["./App.{js,jsx,ts,tsx}", "./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
       colors: {
@@ -17,12 +16,11 @@ module.exports = {
           400: "#22D3EE",
           500: "#06B6D4",
           600: "#0891B2",
+          soft: "rgba(6, 182, 212, 0.1)",
         },
         success: "#10B981",
         danger: "#EF4444",
-      },
-      fontFamily: {
-        sans: ["System"],
+        warning: "#F59E0B",
       },
     },
   },

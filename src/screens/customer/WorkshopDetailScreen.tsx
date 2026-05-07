@@ -79,7 +79,7 @@ export function WorkshopDetailScreen() {
                       key={s.key}
                       className={`flex-row items-center justify-between py-2 ${
                         isHighlighted
-                          ? "bg-accent-500/10 -mx-2 px-2 rounded-xl"
+                          ? "bg-accent-soft -mx-2 px-2 rounded-xl"
                           : ""
                       }`}
                     >

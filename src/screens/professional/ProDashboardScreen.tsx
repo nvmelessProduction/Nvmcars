@@ -44,7 +44,7 @@ export function ProDashboardScreen() {
             onPress={() => navigation.navigate("ProProfile")}
           />
 
-          <View className="bg-accent-500/10 border border-accent-400 rounded-2xl p-4 mt-2">
+          <View className="bg-accent-soft border border-accent-400 rounded-2xl p-4 mt-2">
             <Text className="text-sm font-semibold text-ink-900 mb-1">
               💡 Versione MVP
             </Text>

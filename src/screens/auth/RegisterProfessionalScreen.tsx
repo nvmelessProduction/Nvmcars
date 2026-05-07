@@ -50,11 +50,11 @@ export function RegisterProfessionalScreen() {
               Per registrare la tua officina ti serve un codice invito Nvmcars.
             </Text>
 
-            <View className="bg-accent-500/10 border border-accent-400 rounded-2xl p-4 mb-2">
+            <View className="bg-accent-soft border border-accent-400 rounded-2xl p-4 mb-2">
               <Text className="text-sm text-ink-900">
                 💡 Per il test MVP usa uno di questi codici:
               </Text>
-              <Text className="text-xs text-ink-700 mt-1 font-mono">
+              <Text className="text-xs text-ink-700 mt-1">
                 NVM-CRV-A4F9 · NVM-LAD-D33M
               </Text>
             </View>

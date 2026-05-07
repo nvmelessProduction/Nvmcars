@@ -55,7 +55,7 @@ export function WorkshopListScreen() {
     <ScreenContainer>
       <View className="px-4 pt-4">
         {service ? (
-          <View className="bg-accent-500/10 border border-accent-400 rounded-2xl px-4 py-3 mb-3">
+          <View className="bg-accent-soft border border-accent-400 rounded-2xl px-4 py-3 mb-3">
             <Text className="text-sm text-ink-700">
               Servizio cercato:{" "}
               <Text className="font-bold text-ink-900">

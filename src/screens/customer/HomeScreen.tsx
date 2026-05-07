@@ -18,7 +18,7 @@ export function HomeScreen() {
   return (
     <ScreenContainer>
       <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
-        <View className="bg-ink-900 px-6 pt-12 pb-10 rounded-b-[40px]">
+        <View className="bg-ink-900 px-6 pt-12 pb-10" style={{ borderBottomLeftRadius: 40, borderBottomRightRadius: 40 }}>
           <View className="flex-row items-center justify-between">
             <View>
               <Text className="text-ink-300 text-sm">Ciao,</Text>
@@ -42,17 +42,21 @@ export function HomeScreen() {
           </View>
         </View>
 
-        <View className="px-6 mt-8 gap-4">
+        <View className="px-6 mt-8" style={{ gap: 16 }}>
           <Text className="text-lg font-bold text-ink-900">Cosa ti serve oggi?</Text>
-          <View className="flex-row flex-wrap gap-3">
-            {SERVICES.map((service) => (
-              <ServiceChip
-                key={service.key}
-                service={service}
-                onPress={() =>
-                  navigation.navigate("WorkshopList", { service: service.key })
-                }
-              />
+          <View style={{ gap: 12 }}>
+            {[0, 2, 4].map((start) => (
+              <View key={start} className="flex-row" style={{ gap: 12 }}>
+                {SERVICES.slice(start, start + 2).map((service) => (
+                  <ServiceChip
+                    key={service.key}
+                    service={service}
+                    onPress={() =>
+                      navigation.navigate("WorkshopList", { service: service.key })
+                    }
+                  />
+                ))}
+              </View>
             ))}
           </View>
 
