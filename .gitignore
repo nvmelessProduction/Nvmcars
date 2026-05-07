@@ -39,6 +39,9 @@ yarn-error.*
 *.swp
 *.swo
 
+# EAS
+.easignore
+
 # Logs
 *.log
 
