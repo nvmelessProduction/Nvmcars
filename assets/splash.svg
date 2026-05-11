@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1242 2688" width="1242" height="2688">
+  <rect width="1242" height="2688" fill="#0F172A"/>
+  <g transform="translate(371, 1144)">
+    <rect width="500" height="500" rx="113" fill="#06B6D4"/>
+    <text x="250" y="250"
+          font-family="Manrope, Inter, -apple-system, system-ui, sans-serif"
+          font-weight="900"
+          font-size="360"
+          fill="#FFFFFF"
+          text-anchor="middle"
+          dominant-baseline="central"
+          letter-spacing="-24">n.</text>
+  </g>
+  <text x="621" y="1820"
+        font-family="Manrope, Inter, -apple-system, system-ui, sans-serif"
+        font-weight="900"
+        font-size="120"
+        fill="#FFFFFF"
+        text-anchor="middle"
+        letter-spacing="-6">nvmcars</text>
+  <text x="621" y="1900"
+        font-family="Manrope, Inter, -apple-system, system-ui, sans-serif"
+        font-weight="500"
+        font-size="42"
+        fill="#94A3B8"
+        text-anchor="middle"
+        letter-spacing="-1">officine senza stress</text>
+</svg>

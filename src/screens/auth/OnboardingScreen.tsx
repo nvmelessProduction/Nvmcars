@@ -13,6 +13,7 @@ import {
 import Animated, { FadeIn } from "react-native-reanimated";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { PrimaryButton } from "@/components/PrimaryButton";
+import { Logo } from "@/components/Logo";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useT } from "@/i18n";
 import type { AuthStackParamList } from "@/navigation/types";
@@ -63,7 +64,15 @@ export function OnboardingScreen() {
   return (
     <ScreenContainer dark>
       <View style={{ flex: 1, paddingTop: 8 }}>
-        <View style={{ flexDirection: "row", justifyContent: "flex-end", paddingHorizontal: 20 }}>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            paddingHorizontal: 20,
+          }}
+        >
+          <Logo size={36} tone="light" />
           <Pressable onPress={skip} hitSlop={8}>
             <Text style={{ color: "#CBD5E1", fontSize: 15, fontWeight: "600" }}>
               {t.onboarding.skip}

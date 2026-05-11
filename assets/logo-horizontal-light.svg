@@ -1,21 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 80" width="300" height="80">
-  <!-- Mark on dark background, white wordmark -->
-  <g transform="translate(8, 8)">
-    <circle
-      cx="32" cy="32" r="24"
-      fill="none"
-      stroke="#22D3EE"
-      stroke-width="6"
-      stroke-linecap="round"
-      stroke-dasharray="113 38"
-      transform="rotate(-115 32 32)" />
-    <circle cx="32" cy="32" r="10" fill="#22D3EE" />
-  </g>
-  <text
-    x="84" y="51"
-    font-family="Manrope, Inter, -apple-system, system-ui, sans-serif"
-    font-weight="800"
-    font-size="34"
-    letter-spacing="-1.4"
-    fill="#FFFFFF">nvmcars</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 96" width="340" height="96">
+  <rect x="8" y="8" width="80" height="80" rx="18" fill="#06B6D4"/>
+  <text x="48" y="48"
+        font-family="Manrope, Inter, -apple-system, system-ui, sans-serif"
+        font-weight="900"
+        font-size="60"
+        fill="#FFFFFF"
+        text-anchor="middle"
+        dominant-baseline="central"
+        letter-spacing="-4">n.</text>
+  <text x="104" y="56"
+        font-family="Manrope, Inter, -apple-system, system-ui, sans-serif"
+        font-weight="900"
+        font-size="44"
+        fill="#FFFFFF"
+        dominant-baseline="alphabetic"
+        letter-spacing="-2">nvmcars</text>
 </svg>

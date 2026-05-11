@@ -5,6 +5,7 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { Card } from "@/components/Card";
+import { Logo } from "@/components/Logo";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
 import type { AuthStackParamList } from "@/navigation/types";
@@ -18,7 +19,10 @@ export function RoleSelectionScreen() {
 
   return (
     <ScreenContainer>
-      <View style={{ flex: 1, paddingHorizontal: 22, paddingTop: 28 }}>
+      <View style={{ flex: 1, paddingHorizontal: 22, paddingTop: 16 }}>
+        <View style={{ alignItems: "center", marginTop: 8, marginBottom: 24 }}>
+          <Logo size={44} />
+        </View>
         <Animated.View entering={FadeInDown.duration(350)}>
           <Text style={{ fontSize: 28, fontWeight: "800", color: colors.text }}>
             {t.auth.welcome}

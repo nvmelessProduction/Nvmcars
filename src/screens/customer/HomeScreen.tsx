@@ -5,6 +5,7 @@ import Animated, { FadeInDown, FadeIn } from "react-native-reanimated";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { ServiceChip } from "@/components/ServiceChip";
 import { PrimaryButton } from "@/components/PrimaryButton";
+import { Logo } from "@/components/Logo";
 import { Card } from "@/components/Card";
 import { HOME_SERVICES } from "@/data/services";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -36,7 +37,16 @@ export function HomeScreen() {
             borderBottomRightRadius: 36,
           }}
         >
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+          <Logo size={32} tone="light" />
+
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginTop: 20,
+            }}
+          >
             <View>
               <Text style={{ color: "#CBD5E1", fontSize: 13 }}>{t.home.hello},</Text>
               <Text style={{ color: "#FFF", fontSize: 24, fontWeight: "800" }}>
