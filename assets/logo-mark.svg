@@ -1,11 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
-  <rect width="128" height="128" rx="29" fill="#06B6D4"/>
-  <text x="64" y="64"
-        font-family="Manrope, Inter, -apple-system, system-ui, sans-serif"
-        font-weight="900"
-        font-size="92"
-        fill="#FFFFFF"
-        text-anchor="middle"
-        dominant-baseline="central"
-        letter-spacing="-6">n.</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="128" height="128">
+  <path
+    d="M 18 78 C 18 22, 82 22, 82 78"
+    stroke="#06B6D4"
+    stroke-width="16"
+    stroke-linecap="round"
+    fill="none" />
 </svg>

@@ -1,15 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1242 2688" width="1242" height="2688">
   <rect width="1242" height="2688" fill="#0F172A"/>
+  <!-- Centered mark, cyan on dark splash -->
   <g transform="translate(371, 1144)">
     <rect width="500" height="500" rx="113" fill="#06B6D4"/>
-    <text x="250" y="250"
-          font-family="Manrope, Inter, -apple-system, system-ui, sans-serif"
-          font-weight="900"
-          font-size="360"
-          fill="#FFFFFF"
-          text-anchor="middle"
-          dominant-baseline="central"
-          letter-spacing="-24">n.</text>
+    <path
+      d="M 125 370 C 125 130, 375 130, 375 370"
+      stroke="#FFFFFF"
+      stroke-width="58"
+      stroke-linecap="round"
+      fill="none"
+      transform="translate(0, 0)" />
   </g>
   <text x="621" y="1820"
         font-family="Manrope, Inter, -apple-system, system-ui, sans-serif"
