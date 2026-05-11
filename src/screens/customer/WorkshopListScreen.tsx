@@ -2,100 +2,199 @@ import { useMemo, useState } from "react";
 import { useNavigation, useRoute, type RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ActivityIndicator, FlatList, Pressable, Text, View } from "react-native";
+import MapView, { Marker, PROVIDER_DEFAULT } from "react-native-maps";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { WorkshopCard } from "@/components/WorkshopCard";
+import { EmptyState } from "@/components/EmptyState";
 import { WORKSHOPS } from "@/data/workshops";
 import { getServiceLabel } from "@/data/services";
 import { haversineKm } from "@/utils/distance";
 import { useUserLocation } from "@/hooks/useUserLocation";
-import type { CustomerStackParamList } from "@/navigation/types";
+import { useActiveCar } from "@/store/useCarStore";
+import { useColors } from "@/store/useThemeStore";
+import { useT } from "@/i18n";
+import { pricingForCar } from "@/data/carBrands";
+import type { HomeStackParamList } from "@/navigation/types";
 
-type Nav = NativeStackNavigationProp<CustomerStackParamList, "WorkshopList">;
-type Route = RouteProp<CustomerStackParamList, "WorkshopList">;
+type Nav = NativeStackNavigationProp<HomeStackParamList, "WorkshopList">;
+type Route = RouteProp<HomeStackParamList, "WorkshopList">;
 
 type SortKey = "distance" | "price" | "rating";
+type CityFilter = "all" | "Cerveteri" | "Ladispoli";
 
 export function WorkshopListScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
   const service = route.params?.service;
+  const colors = useColors();
+  const t = useT();
+  const car = useActiveCar();
   const { location, loading } = useUserLocation();
   const [sort, setSort] = useState<SortKey>("distance");
+  const [city, setCity] = useState<CityFilter>("all");
+  const [view, setView] = useState<"list" | "map">("list");
 
   const items = useMemo(() => {
-    const filtered = service
-      ? WORKSHOPS.filter((w) => w.services[service] !== undefined)
-      : WORKSHOPS;
+    const filtered = WORKSHOPS.filter((w) => {
+      if (service && w.services[service] === undefined) return false;
+      if (city !== "all" && w.city !== city) return false;
+      return true;
+    });
 
-    const withDistance = filtered.map((w) => ({
-      workshop: w,
-      distanceKm: location ? haversineKm(location.lat, location.lng, w.lat, w.lng) : 0,
-      price: service ? w.services[service] ?? Infinity : Math.min(...Object.values(w.services)),
-    }));
+    const withMeta = filtered.map((w) => {
+      const basePrice = service
+        ? w.services[service] ?? Infinity
+        : Math.min(...Object.values(w.services));
+      const price = car && basePrice !== Infinity ? pricingForCar(basePrice, car.category) : basePrice;
+      return {
+        workshop: w,
+        distanceKm: location ? haversineKm(location.lat, location.lng, w.lat, w.lng) : 0,
+        price,
+      };
+    });
 
-    return withDistance.sort((a, b) => {
+    return withMeta.sort((a, b) => {
       if (sort === "distance") return a.distanceKm - b.distanceKm;
       if (sort === "price") return a.price - b.price;
       return b.workshop.rating - a.workshop.rating;
     });
-  }, [service, location, sort]);
+  }, [service, location, sort, city, car]);
 
   if (loading) {
     return (
       <ScreenContainer>
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator />
-          <Text className="text-ink-500 mt-3">Cerco officine vicine...</Text>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+          <ActivityIndicator color={colors.accent} />
+          <Text style={{ color: colors.textMuted, marginTop: 12 }}>{t.common.loading}</Text>
         </View>
       </ScreenContainer>
     );
   }
 
+  const mapRegion = location
+    ? { latitude: location.lat, longitude: location.lng, latitudeDelta: 0.08, longitudeDelta: 0.08 }
+    : { latitude: 41.97, longitude: 12.09, latitudeDelta: 0.1, longitudeDelta: 0.1 };
+
   return (
     <ScreenContainer>
-      <View className="px-4 pt-4">
+      <View style={{ paddingHorizontal: 16, paddingTop: 12, gap: 10 }}>
         {service ? (
-          <View className="bg-accent-soft border border-accent-400 rounded-2xl px-4 py-3 mb-3">
-            <Text className="text-sm text-ink-700">
+          <View
+            style={{
+              backgroundColor: colors.accentSoft,
+              borderWidth: 1,
+              borderColor: colors.accent,
+              borderRadius: 12,
+              paddingHorizontal: 12,
+              paddingVertical: 10,
+            }}
+          >
+            <Text style={{ fontSize: 12, color: colors.textMuted }}>
               Servizio cercato:{" "}
-              <Text className="font-bold text-ink-900">
+              <Text style={{ fontWeight: "800", color: colors.text }}>
                 {getServiceLabel(service)}
               </Text>
             </Text>
+            {car ? (
+              <Text style={{ fontSize: 11, color: colors.textMuted, marginTop: 2 }}>
+                Prezzi adattati per la tua {car.make} {car.model}
+              </Text>
+            ) : null}
           </View>
         ) : null}
 
-        <View className="flex-row gap-2 mb-4">
-          <SortChip label="📍 Distanza" active={sort === "distance"} onPress={() => setSort("distance")} />
-          <SortChip label="💶 Prezzo" active={sort === "price"} onPress={() => setSort("price")} />
-          <SortChip label="⭐ Rating" active={sort === "rating"} onPress={() => setSort("rating")} />
+        <View
+          style={{
+            flexDirection: "row",
+            backgroundColor: colors.bgElevated,
+            borderRadius: 12,
+            padding: 4,
+            borderWidth: 1,
+            borderColor: colors.border,
+          }}
+        >
+          {(["list", "map"] as const).map((v) => (
+            <Pressable
+              key={v}
+              onPress={() => setView(v)}
+              style={{
+                flex: 1,
+                paddingVertical: 8,
+                borderRadius: 8,
+                backgroundColor: view === v ? colors.accent : "transparent",
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ color: view === v ? "#FFF" : colors.text, fontWeight: "700", fontSize: 13 }}>
+                {v === "list" ? `📋 ${t.workshop.list}` : `🗺️ ${t.workshop.map}`}
+              </Text>
+            </Pressable>
+          ))}
         </View>
+
+        {view === "list" ? (
+          <View style={{ gap: 8 }}>
+            <View style={{ flexDirection: "row", gap: 6 }}>
+              <SortChip label={`📍 ${t.workshop.distance}`} active={sort === "distance"} onPress={() => setSort("distance")} />
+              <SortChip label={`💶 ${t.workshop.price}`} active={sort === "price"} onPress={() => setSort("price")} />
+              <SortChip label={`⭐ ${t.workshop.rating}`} active={sort === "rating"} onPress={() => setSort("rating")} />
+            </View>
+            <View style={{ flexDirection: "row", gap: 6 }}>
+              <SortChip label="Tutte" active={city === "all"} onPress={() => setCity("all")} />
+              <SortChip label="Cerveteri" active={city === "Cerveteri"} onPress={() => setCity("Cerveteri")} />
+              <SortChip label="Ladispoli" active={city === "Ladispoli"} onPress={() => setCity("Ladispoli")} />
+            </View>
+          </View>
+        ) : null}
       </View>
 
-      <FlatList
-        data={items}
-        keyExtractor={(item) => item.workshop.id}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32 }}
-        renderItem={({ item }) => (
-          <WorkshopCard
-            workshop={item.workshop}
-            distanceKm={item.distanceKm}
-            highlightedService={service}
-            onPress={() =>
-              navigation.navigate("WorkshopDetail", {
-                workshopId: item.workshop.id,
-                service,
-              })
-            }
-          />
-        )}
-        ListEmptyComponent={
-          <View className="items-center py-16 gap-2">
-            <Text className="text-4xl">🔍</Text>
-            <Text className="text-ink-500">Nessuna officina trovata.</Text>
-          </View>
-        }
-      />
+      {view === "list" ? (
+        <FlatList
+          data={items}
+          keyExtractor={(item) => item.workshop.id}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 32 }}
+          renderItem={({ item, index }) => (
+            <WorkshopCard
+              workshop={item.workshop}
+              distanceKm={item.distanceKm}
+              highlightedService={service}
+              priceOverride={item.price === Infinity ? undefined : item.price}
+              index={index}
+              onPress={() =>
+                navigation.navigate("WorkshopDetail", {
+                  workshopId: item.workshop.id,
+                  service,
+                })
+              }
+            />
+          )}
+          ListEmptyComponent={<EmptyState emoji="🔍" title={t.common.empty} />}
+        />
+      ) : (
+        <View style={{ flex: 1, marginTop: 12 }}>
+          <MapView
+            provider={PROVIDER_DEFAULT}
+            style={{ flex: 1 }}
+            initialRegion={mapRegion}
+            showsUserLocation
+          >
+            {items.map(({ workshop, price }) => (
+              <Marker
+                key={workshop.id}
+                coordinate={{ latitude: workshop.lat, longitude: workshop.lng }}
+                title={workshop.name}
+                description={`€${price} · ⭐ ${workshop.rating.toFixed(1)}`}
+                onCalloutPress={() =>
+                  navigation.navigate("WorkshopDetail", {
+                    workshopId: workshop.id,
+                    service,
+                  })
+                }
+              />
+            ))}
+          </MapView>
+        </View>
+      )}
     </ScreenContainer>
   );
 }
@@ -109,15 +208,25 @@ function SortChip({
   active: boolean;
   onPress: () => void;
 }) {
+  const colors = useColors();
   return (
     <Pressable
       onPress={onPress}
-      className={`px-3 py-2 rounded-full border ${
-        active ? "bg-ink-900 border-ink-900" : "bg-white border-ink-300"
-      }`}
+      style={{
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 999,
+        borderWidth: 1,
+        borderColor: active ? colors.text : colors.border,
+        backgroundColor: active ? colors.text : colors.bgElevated,
+      }}
     >
       <Text
-        className={`text-xs font-semibold ${active ? "text-white" : "text-ink-700"}`}
+        style={{
+          fontSize: 12,
+          fontWeight: "700",
+          color: active ? colors.bg : colors.text,
+        }}
       >
         {label}
       </Text>

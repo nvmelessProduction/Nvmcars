@@ -1,43 +1,113 @@
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { HomeScreen } from "@/screens/customer/HomeScreen";
-import { WorkshopListScreen } from "@/screens/customer/WorkshopListScreen";
-import { WorkshopDetailScreen } from "@/screens/customer/WorkshopDetailScreen";
-import { CustomerProfileScreen } from "@/screens/customer/CustomerProfileScreen";
-import { colors } from "@/theme/colors";
-import type { CustomerStackParamList } from "./types";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { Text, View } from "react-native";
+import { HomeStack } from "./stacks/HomeStack";
+import { BookingsStack } from "./stacks/BookingsStack";
+import { FavoritesStack } from "./stacks/FavoritesStack";
+import { NotificationsStack } from "./stacks/NotificationsStack";
+import { ProfileStack } from "./stacks/ProfileStack";
+import { useColors } from "@/store/useThemeStore";
+import { useNotificationsStore } from "@/store/useNotificationsStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useT } from "@/i18n";
+import type { CustomerTabParamList } from "./types";
 
-const Stack = createNativeStackNavigator<CustomerStackParamList>();
+const Tab = createBottomTabNavigator<CustomerTabParamList>();
+
+function TabIcon({ emoji, focused, badge }: { emoji: string; focused: boolean; badge?: number }) {
+  return (
+    <View style={{ width: 40, alignItems: "center", justifyContent: "center", paddingTop: 4 }}>
+      <Text style={{ fontSize: focused ? 26 : 22 }}>{emoji}</Text>
+      {badge && badge > 0 ? (
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            backgroundColor: "#EF4444",
+            borderRadius: 9,
+            minWidth: 18,
+            height: 18,
+            alignItems: "center",
+            justifyContent: "center",
+            paddingHorizontal: 4,
+          }}
+        >
+          <Text style={{ color: "#FFF", fontSize: 11, fontWeight: "700" }}>
+            {badge > 9 ? "9+" : badge}
+          </Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
 
 export function CustomerNavigator() {
+  const colors = useColors();
+  const t = useT();
+  const user = useAuthStore((s) => s.user);
+  const allNotifications = useNotificationsStore((s) => s.notifications);
+  const unread = user
+    ? allNotifications.filter((n) => n.userId === user.id && !n.read).length
+    : 0;
+
   return (
-    <Stack.Navigator
+    <Tab.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: colors.ink900 },
-        headerTitleStyle: { color: colors.white, fontWeight: "700" },
-        headerTintColor: colors.white,
-        contentStyle: { backgroundColor: colors.ink100 },
+        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: colors.bgElevated,
+          borderTopColor: colors.border,
+          height: 64,
+          paddingBottom: 8,
+          paddingTop: 4,
+        },
+        tabBarActiveTintColor: colors.accent,
+        tabBarInactiveTintColor: colors.textMuted,
+        tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
       }}
     >
-      <Stack.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{ headerShown: false }}
+      <Tab.Screen
+        name="HomeTab"
+        component={HomeStack}
+        options={{
+          title: t.tabs.home,
+          tabBarIcon: ({ focused }) => <TabIcon emoji="🏠" focused={focused} />,
+        }}
       />
-      <Stack.Screen
-        name="WorkshopList"
-        component={WorkshopListScreen}
-        options={{ title: "Officine vicine" }}
+      <Tab.Screen
+        name="BookingsTab"
+        component={BookingsStack}
+        options={{
+          title: t.tabs.bookings,
+          tabBarIcon: ({ focused }) => <TabIcon emoji="📅" focused={focused} />,
+        }}
       />
-      <Stack.Screen
-        name="WorkshopDetail"
-        component={WorkshopDetailScreen}
-        options={{ title: "Dettaglio officina" }}
+      <Tab.Screen
+        name="FavoritesTab"
+        component={FavoritesStack}
+        options={{
+          title: t.tabs.favorites,
+          tabBarIcon: ({ focused }) => <TabIcon emoji="❤️" focused={focused} />,
+        }}
       />
-      <Stack.Screen
-        name="CustomerProfile"
-        component={CustomerProfileScreen}
-        options={{ title: "Il tuo profilo" }}
+      <Tab.Screen
+        name="NotificationsTab"
+        component={NotificationsStack}
+        options={{
+          title: t.tabs.notifications,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon emoji="🔔" focused={focused} badge={unread} />
+          ),
+        }}
       />
-    </Stack.Navigator>
+      <Tab.Screen
+        name="ProfileTab"
+        component={ProfileStack}
+        options={{
+          title: t.tabs.profile,
+          tabBarIcon: ({ focused }) => <TabIcon emoji="👤" focused={focused} />,
+        }}
+      />
+    </Tab.Navigator>
   );
 }

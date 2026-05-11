@@ -1,5 +1,9 @@
 import { Pressable, Text, View } from "react-native";
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import type { Service } from "@/types";
+import { useColors } from "@/store/useThemeStore";
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 type Props = {
   service: Service;
@@ -8,25 +12,44 @@ type Props = {
 };
 
 export function ServiceChip({ service, onPress, selected }: Props) {
+  const colors = useColors();
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+
   return (
-    <Pressable
+    <AnimatedPressable
       onPress={onPress}
-      className={`flex-1 rounded-2xl p-5 border ${
-        selected
-          ? "bg-accent-500 border-accent-500"
-          : "bg-white border-ink-300"
-      }`}
+      onPressIn={() => {
+        scale.value = withSpring(0.96, { stiffness: 250, damping: 18 });
+      }}
+      onPressOut={() => {
+        scale.value = withSpring(1, { stiffness: 250, damping: 18 });
+      }}
+      style={[
+        {
+          flex: 1,
+          borderRadius: 16,
+          padding: 16,
+          borderWidth: 1,
+          backgroundColor: selected ? colors.accent : colors.bgElevated,
+          borderColor: selected ? colors.accent : colors.border,
+        },
+        animatedStyle,
+      ]}
     >
-      <View className="items-center" style={{ gap: 8 }}>
-        <Text className="text-3xl">{service.emoji}</Text>
+      <View style={{ alignItems: "center", gap: 8 }}>
+        <Text style={{ fontSize: 28 }}>{service.emoji}</Text>
         <Text
-          className={`text-base font-semibold ${
-            selected ? "text-white" : "text-ink-900"
-          }`}
+          style={{
+            fontSize: 14,
+            fontWeight: "600",
+            color: selected ? "#FFFFFF" : colors.text,
+            textAlign: "center",
+          }}
         >
           {service.label}
         </Text>
       </View>
-    </Pressable>
+    </AnimatedPressable>
   );
 }

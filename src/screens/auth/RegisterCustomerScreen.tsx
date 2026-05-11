@@ -1,9 +1,19 @@
 import { useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from "react-native";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { z } from "zod";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { PrimaryButton } from "@/components/PrimaryButton";
+import { TextField } from "@/components/TextField";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useColors } from "@/store/useThemeStore";
+import { useT } from "@/i18n";
 
 const schema = z.object({
   name: z.string().min(2, "Nome troppo corto."),
@@ -13,6 +23,8 @@ const schema = z.object({
 });
 
 export function RegisterCustomerScreen() {
+  const t = useT();
+  const colors = useColors();
   const registerCustomer = useAuthStore((s) => s.registerCustomer);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -22,7 +34,7 @@ export function RegisterCustomerScreen() {
   const handleSubmit = () => {
     const parsed = schema.safeParse({ name, email, phone, password });
     if (!parsed.success) {
-      Alert.alert("Dati non validi", parsed.error.issues[0].message);
+      Alert.alert(t.common.error, parsed.error.issues[0].message);
       return;
     }
     registerCustomer({ name, email, phone });
@@ -32,70 +44,55 @@ export function RegisterCustomerScreen() {
     <ScreenContainer>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        className="flex-1"
+        style={{ flex: 1 }}
       >
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
-          <View className="flex-1 px-6 py-8 gap-4">
-            <Text className="text-3xl font-bold text-ink-900 mt-4">
-              Registrati come Cliente
-            </Text>
-            <Text className="text-base text-ink-500 mb-2">
-              Crea il tuo account per cercare officine e prenotare servizi.
-            </Text>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 22, paddingTop: 28 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Text style={{ fontSize: 26, fontWeight: "800", color: colors.text }}>
+            {t.auth.iAmCustomer}
+          </Text>
+          <Text style={{ fontSize: 14, color: colors.textMuted, marginTop: 6, marginBottom: 22 }}>
+            Crea il tuo account in 30 secondi.
+          </Text>
 
-            <Field label="Nome e cognome" value={name} onChangeText={setName} placeholder="Mario Rossi" />
-            <Field
-              label="Email"
+          <View style={{ gap: 14 }}>
+            <TextField
+              label={t.auth.nameAndSurname}
+              value={name}
+              onChangeText={setName}
+              placeholder="Mario Rossi"
+            />
+            <TextField
+              label={t.auth.email}
               value={email}
               onChangeText={setEmail}
               placeholder="mario@esempio.it"
               keyboardType="email-address"
               autoCapitalize="none"
             />
-            <Field
-              label="Telefono"
+            <TextField
+              label={t.auth.phone}
               value={phone}
               onChangeText={setPhone}
               placeholder="+39 333 1234567"
               keyboardType="phone-pad"
             />
-            <Field
-              label="Password"
+            <TextField
+              label={t.auth.password}
               value={password}
               onChangeText={setPassword}
               placeholder="Min. 6 caratteri"
               secureTextEntry
             />
+          </View>
 
-            <View className="mt-6">
-              <PrimaryButton label="Crea account" onPress={handleSubmit} />
-            </View>
+          <View style={{ marginTop: 24 }}>
+            <PrimaryButton label={t.auth.createAccount} onPress={handleSubmit} />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </ScreenContainer>
-  );
-}
-
-type FieldProps = {
-  label: string;
-  value: string;
-  onChangeText: (v: string) => void;
-  placeholder?: string;
-  secureTextEntry?: boolean;
-  keyboardType?: "default" | "email-address" | "phone-pad" | "numeric";
-  autoCapitalize?: "none" | "sentences" | "words" | "characters";
-};
-
-function Field({ label, ...rest }: FieldProps) {
-  return (
-    <View className="gap-2">
-      <Text className="text-sm font-semibold text-ink-700">{label}</Text>
-      <TextInput
-        className="bg-white border border-ink-300 rounded-2xl px-4 py-3 text-base text-ink-900"
-        placeholderTextColor="#94A3B8"
-        {...rest}
-      />
-    </View>
   );
 }

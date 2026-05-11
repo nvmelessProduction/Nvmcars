@@ -1,9 +1,20 @@
 import { useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from "react-native";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { z } from "zod";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { PrimaryButton } from "@/components/PrimaryButton";
+import { TextField } from "@/components/TextField";
+import { Card } from "@/components/Card";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useColors } from "@/store/useThemeStore";
+import { useT } from "@/i18n";
 
 const schema = z.object({
   name: z.string().min(2, "Nome officina troppo corto."),
@@ -15,6 +26,8 @@ const schema = z.object({
 });
 
 export function RegisterProfessionalScreen() {
+  const t = useT();
+  const colors = useColors();
   const registerProfessional = useAuthStore((s) => s.registerProfessional);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -26,12 +39,12 @@ export function RegisterProfessionalScreen() {
   const handleSubmit = () => {
     const parsed = schema.safeParse({ name, email, phone, vatNumber, password, inviteCode });
     if (!parsed.success) {
-      Alert.alert("Dati non validi", parsed.error.issues[0].message);
+      Alert.alert(t.common.error, parsed.error.issues[0].message);
       return;
     }
     const result = registerProfessional({ name, email, phone, vatNumber, inviteCode });
     if (!result.ok) {
-      Alert.alert("Codice invito non valido", result.reason);
+      Alert.alert(t.auth.invalidInvite, result.reason);
     }
   };
 
@@ -39,93 +52,79 @@ export function RegisterProfessionalScreen() {
     <ScreenContainer>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        className="flex-1"
+        style={{ flex: 1 }}
       >
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
-          <View className="flex-1 px-6 py-8 gap-4">
-            <Text className="text-3xl font-bold text-ink-900 mt-4">
-              Registrati come Professionista
-            </Text>
-            <Text className="text-base text-ink-500 mb-2">
-              Per registrare la tua officina ti serve un codice invito Nvmcars.
-            </Text>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 22, paddingTop: 28 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Text style={{ fontSize: 26, fontWeight: "800", color: colors.text }}>
+            {t.auth.iAmPro}
+          </Text>
+          <Text style={{ fontSize: 14, color: colors.textMuted, marginTop: 6, marginBottom: 14 }}>
+            Per registrare la tua officina ti serve un codice invito Nvmcars.
+          </Text>
 
-            <View className="bg-accent-soft border border-accent-400 rounded-2xl p-4 mb-2">
-              <Text className="text-sm text-ink-900">
-                💡 Per il test MVP usa uno di questi codici:
-              </Text>
-              <Text className="text-xs text-ink-700 mt-1">
-                NVM-CRV-A4F9 · NVM-LAD-D33M
-              </Text>
-            </View>
+          <Card style={{ borderColor: colors.accent, marginBottom: 14 }}>
+            <Text style={{ fontSize: 13, color: colors.text }}>
+              💡 Per il test MVP usa uno di questi codici:
+            </Text>
+            <Text style={{ fontSize: 12, color: colors.textMuted, marginTop: 4 }}>
+              NVM-CRV-A4F9 · NVM-LAD-D33M
+            </Text>
+          </Card>
 
-            <Field
-              label="Codice invito"
+          <View style={{ gap: 14 }}>
+            <TextField
+              label={t.auth.inviteCode}
               value={inviteCode}
-              onChangeText={setInviteCode}
+              onChangeText={(v) => setInviteCode(v.toUpperCase())}
               placeholder="NVM-XXX-XXXX"
               autoCapitalize="characters"
             />
-            <Field label="Nome officina" value={name} onChangeText={setName} placeholder="Autofficina Rossi" />
-            <Field
-              label="Email"
+            <TextField
+              label={t.auth.workshopName}
+              value={name}
+              onChangeText={setName}
+              placeholder="Autofficina Rossi"
+            />
+            <TextField
+              label={t.auth.email}
               value={email}
               onChangeText={setEmail}
               placeholder="info@autofficina.it"
               keyboardType="email-address"
               autoCapitalize="none"
             />
-            <Field
-              label="Telefono"
+            <TextField
+              label={t.auth.phone}
               value={phone}
               onChangeText={setPhone}
               placeholder="+39 06 1234567"
               keyboardType="phone-pad"
             />
-            <Field
-              label="Partita IVA"
+            <TextField
+              label={t.auth.vatNumber}
               value={vatNumber}
               onChangeText={setVatNumber}
               placeholder="11 cifre"
               keyboardType="numeric"
+              maxLength={11}
             />
-            <Field
-              label="Password"
+            <TextField
+              label={t.auth.password}
               value={password}
               onChangeText={setPassword}
               placeholder="Min. 6 caratteri"
               secureTextEntry
             />
+          </View>
 
-            <View className="mt-6">
-              <PrimaryButton label="Verifica codice e registrati" onPress={handleSubmit} />
-            </View>
+          <View style={{ marginTop: 24 }}>
+            <PrimaryButton label="Verifica codice e registrati" onPress={handleSubmit} />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </ScreenContainer>
-  );
-}
-
-type FieldProps = {
-  label: string;
-  value: string;
-  onChangeText: (v: string) => void;
-  placeholder?: string;
-  secureTextEntry?: boolean;
-  keyboardType?: "default" | "email-address" | "phone-pad" | "numeric";
-  autoCapitalize?: "none" | "sentences" | "words" | "characters";
-};
-
-function Field({ label, ...rest }: FieldProps) {
-  return (
-    <View className="gap-2">
-      <Text className="text-sm font-semibold text-ink-700">{label}</Text>
-      <TextInput
-        className="bg-white border border-ink-300 rounded-2xl px-4 py-3 text-base text-ink-900"
-        placeholderTextColor="#94A3B8"
-        {...rest}
-      />
-    </View>
   );
 }

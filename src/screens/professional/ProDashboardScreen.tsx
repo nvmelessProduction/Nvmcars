@@ -1,113 +1,143 @@
+import { useMemo } from "react";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Pressable, ScrollView, Text, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { ScreenContainer } from "@/components/ScreenContainer";
+import { Card } from "@/components/Card";
+import { StatCard } from "@/components/StatCard";
 import { useAuthStore } from "@/store/useAuthStore";
-import type { ProStackParamList } from "@/navigation/types";
+import { useBookingsStore } from "@/store/useBookingsStore";
+import { useColors } from "@/store/useThemeStore";
+import { useReviewsStore } from "@/store/useReviewsStore";
+import { useT } from "@/i18n";
+import { WORKSHOPS } from "@/data/workshops";
+import type { ProDashboardStackParamList } from "@/navigation/types";
 
-type Nav = NativeStackNavigationProp<ProStackParamList, "ProDashboard">;
+type Nav = NativeStackNavigationProp<ProDashboardStackParamList, "ProDashboard">;
 
 export function ProDashboardScreen() {
   const navigation = useNavigation<Nav>();
+  const colors = useColors();
+  const t = useT();
   const user = useAuthStore((s) => s.user);
+  const allBookingsRaw = useBookingsStore((s) => s.bookings);
+  const allReviewsRaw = useReviewsStore((s) => s.reviews);
+  const workshopId = user && user.role === "professional" ? user.workshopId : null;
+
+  const allBookings = useMemo(
+    () => (workshopId ? allBookingsRaw.filter((b) => b.workshopId === workshopId) : []),
+    [allBookingsRaw, workshopId]
+  );
+  const reviews = useMemo(
+    () =>
+      workshopId
+        ? allReviewsRaw
+            .filter((r) => r.workshopId === workshopId)
+            .sort((a, b) => b.createdAt - a.createdAt)
+        : [],
+    [allReviewsRaw, workshopId]
+  );
+
+  const workshop = workshopId ? WORKSHOPS.find((w) => w.id === workshopId) : null;
+
+  const pending = allBookings.filter((b) => b.status === "pending").length;
+  const accepted = allBookings.filter((b) => b.status === "accepted").length;
+  const completed = allBookings.filter((b) => b.status === "completed").length;
+  const totalRevenue = allBookings
+    .filter((b) => b.status === "completed")
+    .reduce((s, b) => s + b.estimatedPrice, 0);
+
   if (!user || user.role !== "professional") return null;
 
   return (
     <ScreenContainer>
-      <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
-        <View className="px-6 pt-6 gap-4">
-          <View>
-            <Text className="text-sm text-ink-500">Benvenuto in Nvmcars</Text>
-            <Text className="text-2xl font-bold text-ink-900">{user.name}</Text>
-          </View>
+      <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 32 }}>
+        <Animated.View entering={FadeInDown.duration(300)}>
+          <Text style={{ fontSize: 13, color: colors.textMuted }}>Benvenuto in Nvmcars</Text>
+          <Text style={{ fontSize: 22, fontWeight: "800", color: colors.text }}>{user.name}</Text>
+        </Animated.View>
 
-          <View className="flex-row gap-3">
-            <StatCard label="Nuove richieste" value="3" emoji="📨" />
-            <StatCard label="Confermate" value="7" emoji="✅" />
-          </View>
-          <View className="flex-row gap-3">
-            <StatCard label="Rating medio" value="4.7" emoji="⭐" />
-            <StatCard label="Visite profilo" value="142" emoji="👀" />
-          </View>
-
-          <ActionRow
-            emoji="📨"
-            title="Richieste ricevute"
-            subtitle="Gestisci le richieste dei clienti"
-            badge="3"
-            onPress={() => navigation.navigate("ProRequests")}
-          />
-          <ActionRow
-            emoji="👤"
-            title="Il tuo profilo"
-            subtitle="Dati account e logout"
-            onPress={() => navigation.navigate("ProProfile")}
-          />
-
-          <View className="bg-accent-soft border border-accent-400 rounded-2xl p-4 mt-2">
-            <Text className="text-sm font-semibold text-ink-900 mb-1">
-              💡 Versione MVP
-            </Text>
-            <Text className="text-sm text-ink-700 leading-5">
-              Listino prezzi, gestione foto e statistiche reali arriveranno con
-              l'integrazione Firebase. Per ora l'obiettivo è validare il flusso con
-              le officine partner di Cerveteri e Ladispoli.
-            </Text>
-          </View>
+        <View style={{ flexDirection: "row", gap: 10 }}>
+          <StatCard label={t.pro.newRequests} value={`${pending}`} emoji="📨" delay={0} />
+          <StatCard label={t.pro.confirmed} value={`${accepted}`} emoji="✅" delay={80} />
         </View>
+        <View style={{ flexDirection: "row", gap: 10 }}>
+          <StatCard
+            label={t.pro.averageRating}
+            value={workshop ? workshop.rating.toFixed(1) : "—"}
+            emoji="⭐"
+            delay={160}
+          />
+          <StatCard
+            label={t.pro.revenue}
+            value={`€${totalRevenue}`}
+            emoji="💶"
+            delay={240}
+            trend={`+${completed} servizi`}
+          />
+        </View>
+
+        <Pressable onPress={() => navigation.navigate("ProStats")}>
+          <Card>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+              <View
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 14,
+                  backgroundColor: colors.accentSoft,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Text style={{ fontSize: 24 }}>📊</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 15, fontWeight: "700", color: colors.text }}>
+                  Vai a statistiche dettagliate
+                </Text>
+                <Text style={{ fontSize: 12, color: colors.textMuted, marginTop: 2 }}>
+                  Conversion rate, trend settimanale, top servizi
+                </Text>
+              </View>
+              <Text style={{ fontSize: 18, color: colors.textMuted }}>›</Text>
+            </View>
+          </Card>
+        </Pressable>
+
+        <Card>
+          <Text style={{ fontSize: 12, color: colors.textMuted, fontWeight: "700", letterSpacing: 0.6 }}>
+            ULTIME RECENSIONI
+          </Text>
+          {reviews.length === 0 ? (
+            <Text style={{ fontSize: 13, color: colors.textMuted, marginTop: 8 }}>
+              Ancora nessuna recensione.
+            </Text>
+          ) : (
+            <View style={{ gap: 10, marginTop: 8 }}>
+              {reviews.slice(0, 3).map((r) => (
+                <View key={r.id}>
+                  <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                    <Text style={{ fontSize: 14, fontWeight: "700", color: colors.text }}>
+                      {r.customerName}
+                    </Text>
+                    <Text style={{ fontSize: 12, color: colors.warning }}>
+                      {"★".repeat(r.rating)}
+                    </Text>
+                  </View>
+                  <Text
+                    style={{ fontSize: 13, color: colors.textMuted, marginTop: 2 }}
+                    numberOfLines={2}
+                  >
+                    {r.comment}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </Card>
       </ScrollView>
     </ScreenContainer>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  emoji,
-}: {
-  label: string;
-  value: string;
-  emoji: string;
-}) {
-  return (
-    <View className="flex-1 bg-white rounded-2xl p-4 border border-ink-100">
-      <Text className="text-2xl">{emoji}</Text>
-      <Text className="text-2xl font-bold text-ink-900 mt-1">{value}</Text>
-      <Text className="text-xs text-ink-500 mt-0.5">{label}</Text>
-    </View>
-  );
-}
-
-function ActionRow({
-  emoji,
-  title,
-  subtitle,
-  badge,
-  onPress,
-}: {
-  emoji: string;
-  title: string;
-  subtitle: string;
-  badge?: string;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      className="bg-white rounded-2xl p-4 border border-ink-100 flex-row items-center gap-4 active:opacity-80"
-    >
-      <View className="w-12 h-12 rounded-2xl bg-ink-100 items-center justify-center">
-        <Text className="text-2xl">{emoji}</Text>
-      </View>
-      <View className="flex-1">
-        <Text className="text-base font-bold text-ink-900">{title}</Text>
-        <Text className="text-sm text-ink-500 mt-0.5">{subtitle}</Text>
-      </View>
-      {badge ? (
-        <View className="bg-accent-500 w-7 h-7 rounded-full items-center justify-center">
-          <Text className="text-xs text-white font-bold">{badge}</Text>
-        </View>
-      ) : null}
-    </Pressable>
   );
 }

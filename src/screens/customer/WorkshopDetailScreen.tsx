@@ -1,121 +1,269 @@
-import { useMemo } from "react";
-import { useRoute, type RouteProp } from "@react-navigation/native";
-import { Image, ScrollView, Text, View } from "react-native";
+import { useLayoutEffect, useMemo } from "react";
+import { useNavigation, useRoute, type RouteProp } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { Image, Pressable, ScrollView, Text, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { PrimaryButton } from "@/components/PrimaryButton";
-import { WORKSHOPS } from "@/data/workshops";
+import { Card } from "@/components/Card";
+import { RatingStars } from "@/components/RatingStars";
+import { useReviewsStore } from "@/store/useReviewsStore";
+import { useFavoritesStore } from "@/store/useFavoritesStore";
+import { useActiveCar } from "@/store/useCarStore";
+import { useColors } from "@/store/useThemeStore";
+import { useT } from "@/i18n";
+import { WORKSHOPS, formatWeeklyHours, isOpenNow } from "@/data/workshops";
 import { SERVICES, getServiceLabel } from "@/data/services";
-import { openWhatsApp } from "@/utils/whatsapp";
-import type { CustomerStackParamList } from "@/navigation/types";
+import { pricingForCar } from "@/data/carBrands";
+import type { HomeStackParamList } from "@/navigation/types";
 
-type Route = RouteProp<CustomerStackParamList, "WorkshopDetail">;
+type Nav = NativeStackNavigationProp<HomeStackParamList, "WorkshopDetail">;
+type Route = RouteProp<HomeStackParamList, "WorkshopDetail">;
 
 export function WorkshopDetailScreen() {
+  const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
   const { workshopId, service } = route.params;
-  const workshop = useMemo(
-    () => WORKSHOPS.find((w) => w.id === workshopId),
-    [workshopId]
+  const colors = useColors();
+  const t = useT();
+  const car = useActiveCar();
+  const favoriteIds = useFavoritesStore((s) => s.ids);
+  const toggleFavorite = useFavoritesStore((s) => s.toggle);
+  const isFavorite = favoriteIds.includes(workshopId);
+  const allReviews = useReviewsStore((s) => s.reviews);
+
+  const reviews = useMemo(
+    () =>
+      allReviews
+        .filter((r) => r.workshopId === workshopId)
+        .sort((a, b) => b.createdAt - a.createdAt),
+    [allReviews, workshopId]
   );
+
+  const workshop = useMemo(() => WORKSHOPS.find((w) => w.id === workshopId), [workshopId]);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({ title: workshop?.name ?? "" });
+  }, [navigation, workshop]);
 
   if (!workshop) {
     return (
       <ScreenContainer>
-        <View className="flex-1 items-center justify-center">
-          <Text className="text-ink-500">Officina non trovata.</Text>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+          <Text style={{ color: colors.textMuted }}>{t.workshop.notFound}</Text>
         </View>
       </ScreenContainer>
     );
   }
 
-  const handleBook = () => {
-    const serviceLabel = service ? getServiceLabel(service) : "un servizio";
-    const message = `Ciao ${workshop.name}, ti scrivo da Nvmcars. Vorrei prenotare ${serviceLabel}. Quando posso passare?`;
-    openWhatsApp(workshop.phone, message);
-  };
+  const open = isOpenNow(workshop.hours);
 
   return (
     <ScreenContainer>
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-        <Image
-          source={{ uri: workshop.photo }}
-          className="w-full h-56 bg-ink-100"
-          resizeMode="cover"
-        />
+      <ScrollView contentContainerStyle={{ paddingBottom: 140 }}>
+        <View>
+          <Image
+            source={{ uri: workshop.photo }}
+            style={{ width: "100%", height: 220, backgroundColor: colors.border }}
+            resizeMode="cover"
+          />
+          <Pressable
+            onPress={() => toggleFavorite(workshopId)}
+            hitSlop={8}
+            style={{
+              position: "absolute",
+              top: 14,
+              right: 14,
+              width: 44,
+              height: 44,
+              borderRadius: 22,
+              backgroundColor: "rgba(15,23,42,0.6)",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text style={{ fontSize: 22 }}>{isFavorite ? "❤️" : "🤍"}</Text>
+          </Pressable>
+        </View>
 
-        <View className="px-6 pt-6 gap-4">
-          <View>
-            <Text className="text-2xl font-bold text-ink-900">{workshop.name}</Text>
-            <Text className="text-base text-ink-500 mt-1">{workshop.address}</Text>
-          </View>
-
-          <View className="flex-row items-center gap-4">
-            <View className="flex-row items-center gap-1">
-              <Text className="text-base">⭐</Text>
-              <Text className="text-base font-bold text-ink-900">
+        <View style={{ paddingHorizontal: 16, paddingTop: 16, gap: 12 }}>
+          <Animated.View entering={FadeInDown.duration(350)}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <Text style={{ fontSize: 24, fontWeight: "800", color: colors.text, flex: 1 }}>
+                {workshop.name}
+              </Text>
+              <View
+                style={{
+                  paddingHorizontal: 10,
+                  paddingVertical: 4,
+                  borderRadius: 999,
+                  backgroundColor: open ? colors.success : colors.danger,
+                }}
+              >
+                <Text style={{ color: "#FFF", fontSize: 11, fontWeight: "700" }}>
+                  {open ? t.workshop.openNow : t.workshop.closedNow}
+                </Text>
+              </View>
+            </View>
+            <Text style={{ fontSize: 14, color: colors.textMuted, marginTop: 4 }}>
+              {workshop.address}
+            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8 }}>
+              <RatingStars value={workshop.rating} size={14} />
+              <Text style={{ fontSize: 14, fontWeight: "700", color: colors.text }}>
                 {workshop.rating.toFixed(1)}
               </Text>
-              <Text className="text-sm text-ink-500">
-                ({workshop.reviewsCount} recensioni)
+              <Text style={{ fontSize: 12, color: colors.textMuted }}>
+                ({workshop.reviewsCount} {t.workshop.reviews})
               </Text>
             </View>
-          </View>
+          </Animated.View>
 
-          <View className="bg-white rounded-2xl p-4 border border-ink-100">
-            <Text className="text-sm font-semibold text-ink-700 mb-1">🕐 Orari</Text>
-            <Text className="text-base text-ink-900">{workshop.hours}</Text>
-          </View>
-
-          <View className="bg-white rounded-2xl p-4 border border-ink-100">
-            <Text className="text-sm font-semibold text-ink-700 mb-3">
-              💶 Listino servizi
+          <Card>
+            <Text style={{ fontSize: 13, color: colors.text, lineHeight: 20 }}>
+              {workshop.description}
             </Text>
-            <View className="gap-3">
-              {SERVICES.filter((s) => workshop.services[s.key] !== undefined).map(
-                (s) => {
-                  const isHighlighted = s.key === service;
-                  return (
-                    <View
-                      key={s.key}
-                      className={`flex-row items-center justify-between py-2 ${
-                        isHighlighted
-                          ? "bg-accent-soft -mx-2 px-2 rounded-xl"
-                          : ""
-                      }`}
-                    >
-                      <View className="flex-row items-center gap-2">
-                        <Text className="text-xl">{s.emoji}</Text>
-                        <Text
-                          className={`text-base ${
-                            isHighlighted ? "font-bold text-ink-900" : "text-ink-900"
-                          }`}
-                        >
-                          {s.label}
-                        </Text>
-                      </View>
-                      <Text className="text-base font-bold text-ink-900">
-                        €{workshop.services[s.key]}
+          </Card>
+
+          <Card>
+            <Text style={{ fontSize: 12, color: colors.textMuted, fontWeight: "700", letterSpacing: 0.6 }}>
+              🕐 {t.workshop.hours.toUpperCase()}
+            </Text>
+            <Text style={{ fontSize: 13, color: colors.text, marginTop: 6, lineHeight: 20 }}>
+              {formatWeeklyHours(workshop.hours)}
+            </Text>
+          </Card>
+
+          <Card>
+            <Text style={{ fontSize: 12, color: colors.textMuted, fontWeight: "700", letterSpacing: 0.6 }}>
+              💶 {t.workshop.priceListLabel.toUpperCase()}
+            </Text>
+            {car ? (
+              <Text style={{ fontSize: 11, color: colors.accent, marginTop: 4, fontWeight: "700" }}>
+                Prezzi adattati per la tua {car.make} {car.model}
+              </Text>
+            ) : null}
+            <View style={{ marginTop: 10, gap: 4 }}>
+              {SERVICES.filter((s) => workshop.services[s.key] !== undefined).map((s, idx) => {
+                const basePrice = workshop.services[s.key]!;
+                const finalPrice = car ? pricingForCar(basePrice, car.category) : basePrice;
+                const highlighted = s.key === service;
+                return (
+                  <Pressable
+                    key={s.key}
+                    onPress={() => navigation.navigate("BookingForm", { workshopId, service: s.key })}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      paddingVertical: 10,
+                      paddingHorizontal: 10,
+                      borderRadius: 12,
+                      backgroundColor: highlighted ? colors.accentSoft : "transparent",
+                      borderTopWidth: idx === 0 ? 0 : 1,
+                      borderTopColor: colors.border,
+                    }}
+                  >
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                      <Text style={{ fontSize: 22 }}>{s.emoji}</Text>
+                      <Text
+                        style={{
+                          fontSize: 15,
+                          color: colors.text,
+                          fontWeight: highlighted ? "800" : "600",
+                        }}
+                      >
+                        {s.label}
                       </Text>
                     </View>
-                  );
-                }
-              )}
+                    <View style={{ alignItems: "flex-end" }}>
+                      <Text style={{ fontSize: 16, fontWeight: "800", color: colors.text }}>
+                        €{finalPrice}
+                      </Text>
+                      {car && finalPrice !== basePrice ? (
+                        <Text style={{ fontSize: 11, color: colors.textMuted, textDecorationLine: "line-through" }}>
+                          €{basePrice}
+                        </Text>
+                      ) : null}
+                    </View>
+                  </Pressable>
+                );
+              })}
             </View>
-          </View>
+          </Card>
 
-          <View className="bg-white rounded-2xl p-4 border border-ink-100">
-            <Text className="text-sm font-semibold text-ink-700 mb-1">📞 Contatto</Text>
-            <Text className="text-base text-ink-900">{workshop.phone}</Text>
-          </View>
+          <Card>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+              <Text style={{ fontSize: 12, color: colors.textMuted, fontWeight: "700", letterSpacing: 0.6 }}>
+                ⭐ {t.reviews.allReviews.toUpperCase()}
+              </Text>
+              <Text style={{ fontSize: 11, color: colors.textMuted }}>
+                {reviews.length} {t.workshop.reviews}
+              </Text>
+            </View>
+            {reviews.length === 0 ? (
+              <Text style={{ fontSize: 13, color: colors.textMuted, marginTop: 10 }}>
+                {t.reviews.noReviews}
+              </Text>
+            ) : (
+              <View style={{ marginTop: 12, gap: 14 }}>
+                {reviews.slice(0, 5).map((r) => (
+                  <View key={r.id}>
+                    <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                      <Text style={{ fontSize: 14, fontWeight: "700", color: colors.text }}>
+                        {r.customerName}
+                      </Text>
+                      <RatingStars value={r.rating} size={14} />
+                    </View>
+                    <Text style={{ fontSize: 13, color: colors.text, marginTop: 4, lineHeight: 19 }}>
+                      {r.comment}
+                    </Text>
+                    <Text style={{ fontSize: 11, color: colors.textMuted, marginTop: 4 }}>
+                      {new Date(r.createdAt).toLocaleDateString("it-IT")}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </Card>
         </View>
       </ScrollView>
 
-      <View className="absolute left-0 right-0 bottom-0 px-6 py-4 bg-white border-t border-ink-100">
-        <PrimaryButton
-          label="Prenota su WhatsApp"
-          icon="💬"
-          onPress={handleBook}
-        />
+      <View
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: colors.bgElevated,
+          borderTopColor: colors.border,
+          borderTopWidth: 1,
+          padding: 14,
+          gap: 8,
+        }}
+      >
+        <View style={{ flexDirection: "row", gap: 8 }}>
+          <View style={{ flex: 1 }}>
+            <PrimaryButton
+              label={t.workshop.chatNow}
+              icon="💬"
+              variant="ghost"
+              onPress={() => navigation.navigate("Chat", { workshopId })}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <PrimaryButton
+              label="Prenota"
+              icon="✅"
+              onPress={() =>
+                navigation.navigate("BookingForm", {
+                  workshopId,
+                  service: service ?? SERVICES.find((s) => workshop.services[s.key])!.key,
+                })
+              }
+            />
+          </View>
+        </View>
       </View>
     </ScreenContainer>
   );

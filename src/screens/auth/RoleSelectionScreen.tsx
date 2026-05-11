@@ -1,43 +1,59 @@
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Pressable, Text, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { PrimaryButton } from "@/components/PrimaryButton";
+import { Card } from "@/components/Card";
+import { useColors } from "@/store/useThemeStore";
+import { useT } from "@/i18n";
 import type { AuthStackParamList } from "@/navigation/types";
 
 type Nav = NativeStackNavigationProp<AuthStackParamList, "RoleSelection">;
 
 export function RoleSelectionScreen() {
   const navigation = useNavigation<Nav>();
+  const colors = useColors();
+  const t = useT();
 
   return (
     <ScreenContainer>
-      <View className="flex-1 px-6 py-8">
-        <Text className="text-3xl font-bold text-ink-900 mt-4">Benvenuto</Text>
-        <Text className="text-base text-ink-500 mt-2 mb-8">
-          Come vuoi usare Nvmcars?
-        </Text>
+      <View style={{ flex: 1, paddingHorizontal: 22, paddingTop: 28 }}>
+        <Animated.View entering={FadeInDown.duration(350)}>
+          <Text style={{ fontSize: 28, fontWeight: "800", color: colors.text }}>
+            {t.auth.welcome}
+          </Text>
+          <Text style={{ fontSize: 14, color: colors.textMuted, marginTop: 6, marginBottom: 24 }}>
+            {t.auth.chooseRole}
+          </Text>
+        </Animated.View>
 
-        <View className="gap-4">
+        <View style={{ gap: 14 }}>
           <RoleCard
             emoji="🚗"
-            title="Sono un Cliente"
-            description="Cerco un'officina e prenoto un servizio per la mia auto."
+            title={t.auth.iAmCustomer}
+            description={t.auth.iAmCustomerDesc}
             onPress={() => navigation.navigate("RegisterCustomer")}
+            colors={colors}
+            delay={80}
           />
           <RoleCard
             emoji="🔧"
-            title="Sono un Professionista"
-            description="Gestisco un'officina e voglio ricevere richieste."
-            badge="Solo su invito"
+            title={t.auth.iAmPro}
+            description={t.auth.iAmProDesc}
+            badge={t.auth.onlyByInvite}
             onPress={() => navigation.navigate("RegisterProfessional")}
+            colors={colors}
+            delay={160}
           />
         </View>
 
-        <View className="flex-1 justify-end gap-3">
-          <Text className="text-center text-ink-500">Hai già un account?</Text>
+        <View style={{ flex: 1, justifyContent: "flex-end", paddingBottom: 24, gap: 10 }}>
+          <Text style={{ textAlign: "center", color: colors.textMuted }}>
+            {t.auth.alreadyAccount}
+          </Text>
           <PrimaryButton
-            label="Accedi"
+            label={t.auth.login}
             variant="ghost"
             onPress={() => navigation.navigate("Login")}
           />
@@ -53,34 +69,59 @@ function RoleCard({
   description,
   onPress,
   badge,
+  colors,
+  delay,
 }: {
   emoji: string;
   title: string;
   description: string;
   onPress: () => void;
   badge?: string;
+  colors: ReturnType<typeof useColors>;
+  delay: number;
 }) {
   return (
-    <Pressable
-      onPress={onPress}
-      className="bg-white rounded-3xl p-5 border border-ink-100 active:opacity-80"
-    >
-      <View className="flex-row items-center gap-4">
-        <View className="w-14 h-14 rounded-2xl bg-ink-100 items-center justify-center">
-          <Text className="text-3xl">{emoji}</Text>
-        </View>
-        <View className="flex-1">
-          <View className="flex-row items-center gap-2">
-            <Text className="text-lg font-bold text-ink-900">{title}</Text>
-            {badge ? (
-              <View className="bg-accent-500 px-2 py-0.5 rounded-full">
-                <Text className="text-xs text-white font-semibold">{badge}</Text>
+    <Animated.View entering={FadeInDown.delay(delay).duration(350)}>
+      <Pressable onPress={onPress}>
+        <Card padding={18}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
+            <View
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 16,
+                backgroundColor: colors.accentSoft,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text style={{ fontSize: 32 }}>{emoji}</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                <Text style={{ fontSize: 17, fontWeight: "800", color: colors.text }}>
+                  {title}
+                </Text>
+                {badge ? (
+                  <View
+                    style={{
+                      backgroundColor: colors.accent,
+                      paddingHorizontal: 8,
+                      paddingVertical: 2,
+                      borderRadius: 999,
+                    }}
+                  >
+                    <Text style={{ color: "#FFF", fontSize: 10, fontWeight: "800" }}>{badge}</Text>
+                  </View>
+                ) : null}
               </View>
-            ) : null}
+              <Text style={{ fontSize: 13, color: colors.textMuted, marginTop: 4 }}>
+                {description}
+              </Text>
+            </View>
           </View>
-          <Text className="text-sm text-ink-500 mt-1">{description}</Text>
-        </View>
-      </View>
-    </Pressable>
+        </Card>
+      </Pressable>
+    </Animated.View>
   );
 }

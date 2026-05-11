@@ -1,44 +1,153 @@
-import { Text, View } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { ScreenContainer } from "@/components/ScreenContainer";
+import { Card } from "@/components/Card";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useColors } from "@/store/useThemeStore";
+import { useT } from "@/i18n";
+import type { ProProfileStackParamList } from "@/navigation/types";
+
+type Nav = NativeStackNavigationProp<ProProfileStackParamList, "ProProfile">;
 
 export function ProProfileScreen() {
+  const navigation = useNavigation<Nav>();
+  const t = useT();
+  const colors = useColors();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
+
   if (!user || user.role !== "professional") return null;
 
   return (
     <ScreenContainer>
-      <View className="flex-1 px-6 py-6 gap-4">
-        <View className="bg-white rounded-3xl p-6 border border-ink-100 items-center gap-3">
-          <View className="w-20 h-20 rounded-full bg-accent-soft items-center justify-center">
-            <Text className="text-4xl">🔧</Text>
+      <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 32 }}>
+        <Card padding={20}>
+          <View style={{ alignItems: "center", gap: 8 }}>
+            <View
+              style={{
+                width: 80,
+                height: 80,
+                borderRadius: 40,
+                backgroundColor: colors.accentSoft,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text style={{ fontSize: 38 }}>🔧</Text>
+            </View>
+            <Text style={{ fontSize: 20, fontWeight: "800", color: colors.text }}>
+              {user.name}
+            </Text>
+            <Text style={{ fontSize: 13, color: colors.textMuted }}>{user.email}</Text>
+            <View
+              style={{
+                backgroundColor: colors.accent,
+                paddingHorizontal: 10,
+                paddingVertical: 3,
+                borderRadius: 999,
+                marginTop: 4,
+              }}
+            >
+              <Text style={{ color: "#FFF", fontSize: 10, fontWeight: "800", letterSpacing: 0.8 }}>
+                PROFESSIONISTA
+              </Text>
+            </View>
           </View>
-          <Text className="text-xl font-bold text-ink-900">{user.name}</Text>
-          <Text className="text-sm text-ink-500">{user.email}</Text>
-          <View className="bg-accent-500 px-3 py-1 rounded-full">
-            <Text className="text-xs font-semibold text-white">PROFESSIONISTA</Text>
-          </View>
-        </View>
+        </Card>
 
-        <InfoRow label="Telefono" value={user.phone} />
-        <InfoRow label="Partita IVA" value={user.vatNumber} />
-        <InfoRow label="Codice invito usato" value={user.inviteCode} />
+        <ActionRow
+          icon="🏢"
+          title={t.pro.editWorkshop}
+          subtitle="Nome, indirizzo, contatti, descrizione"
+          onPress={() => navigation.navigate("ProEditWorkshop")}
+          colors={colors}
+        />
+        <ActionRow
+          icon="⚙️"
+          title={t.settings.settings}
+          subtitle={`${t.settings.theme} · ${t.settings.language}`}
+          onPress={() => navigation.navigate("ProSettings")}
+          colors={colors}
+        />
 
-        <View className="flex-1 justify-end">
-          <PrimaryButton label="Esci" variant="ghost" onPress={logout} />
+        <Card>
+          <InfoRow label={t.auth.phone} value={user.phone} colors={colors} />
+          <InfoRow label={t.auth.vatNumber} value={user.vatNumber} colors={colors} />
+          <InfoRow label="Codice invito" value={user.inviteCode} colors={colors} />
+        </Card>
+
+        <View style={{ marginTop: 12 }}>
+          <PrimaryButton label={t.profile.logout} variant="ghost" icon="🚪" onPress={logout} />
         </View>
-      </View>
+      </ScrollView>
     </ScreenContainer>
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
+function ActionRow({
+  icon,
+  title,
+  subtitle,
+  onPress,
+  colors,
+}: {
+  icon: string;
+  title: string;
+  subtitle: string;
+  onPress: () => void;
+  colors: ReturnType<typeof useColors>;
+}) {
   return (
-    <View className="bg-white rounded-2xl p-4 border border-ink-100">
-      <Text className="text-xs text-ink-500 uppercase tracking-wide">{label}</Text>
-      <Text className="text-base text-ink-900 mt-1">{value}</Text>
+    <Pressable onPress={onPress}>
+      <Card>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+          <View
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 14,
+              backgroundColor: colors.accentSoft,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text style={{ fontSize: 22 }}>{icon}</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 15, fontWeight: "700", color: colors.text }}>{title}</Text>
+            <Text style={{ fontSize: 12, color: colors.textMuted, marginTop: 2 }}>
+              {subtitle}
+            </Text>
+          </View>
+          <Text style={{ fontSize: 18, color: colors.textMuted }}>›</Text>
+        </View>
+      </Card>
+    </Pressable>
+  );
+}
+
+function InfoRow({
+  label,
+  value,
+  colors,
+}: {
+  label: string;
+  value: string;
+  colors: ReturnType<typeof useColors>;
+}) {
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingVertical: 8,
+      }}
+    >
+      <Text style={{ fontSize: 13, color: colors.textMuted }}>{label}</Text>
+      <Text style={{ fontSize: 14, color: colors.text, fontWeight: "600" }}>{value}</Text>
     </View>
   );
 }
