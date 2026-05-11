@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import {
@@ -40,8 +40,14 @@ export function AddCarScreen() {
   const colors = useColors();
   const t = useT();
   const addCar = useCarStore((s) => s.addCar);
+  const canLookup = useCarStore((s) => s.canUsePlateLookup());
+  const consumeLookup = useCarStore((s) => s.consumePlateLookup);
 
-  const [mode, setMode] = useState<Mode>("plate");
+  const [mode, setMode] = useState<Mode>(canLookup ? "plate" : "manual");
+
+  useEffect(() => {
+    if (!canLookup && mode === "plate") setMode("manual");
+  }, [canLookup, mode]);
 
   const [plate, setPlate] = useState("");
   const [lookupBusy, setLookupBusy] = useState(false);
@@ -58,6 +64,14 @@ export function AddCarScreen() {
   const [modelOpen, setModelOpen] = useState(false);
 
   const handleLookup = () => {
+    if (!canLookup) {
+      Alert.alert(
+        "Ricerca targa già usata",
+        "Hai già usato la ricerca con targa. Per aggiungere altre auto inseriscile manualmente."
+      );
+      setMode("manual");
+      return;
+    }
     const p = plate.trim().toUpperCase().replace(/\s+/g, "");
     if (!isValidItalianPlate(p)) {
       Alert.alert(
@@ -72,6 +86,7 @@ export function AddCarScreen() {
       const r = lookupPlate(p);
       setLookupResult(r);
       if (r) {
+        consumeLookup();
         setMake(r.make);
         setModel(r.model);
         setYear(String(r.year));
@@ -149,7 +164,27 @@ export function AddCarScreen() {
             Scegli come vuoi inserire la tua auto.
           </Text>
 
-          <ModeToggle mode={mode} onChange={setMode} colors={colors} />
+          {canLookup ? (
+            <ModeToggle mode={mode} onChange={setMode} colors={colors} />
+          ) : (
+            <View
+              style={{
+                padding: 12,
+                borderRadius: 12,
+                backgroundColor: colors.accentSoft,
+                borderWidth: 1,
+                borderColor: colors.border,
+              }}
+            >
+              <Text style={{ fontSize: 13, fontWeight: "700", color: colors.text }}>
+                ℹ️ Ricerca targa già usata
+              </Text>
+              <Text style={{ fontSize: 12, color: colors.textMuted, marginTop: 4, lineHeight: 17 }}>
+                Hai già usato la tua ricerca automatica con targa. Inserisci le
+                eventuali altre auto manualmente.
+              </Text>
+            </View>
+          )}
 
           {mode === "plate" ? (
             <View style={{ gap: 14 }}>
