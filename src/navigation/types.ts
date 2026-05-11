@@ -15,6 +15,9 @@ export type HomeStackParamList = {
   BookingForm: { workshopId: string; service: ServiceKey };
   AddReview: { workshopId: string; bookingId?: string };
   Chat: { workshopId: string };
+  QuoteDetail: { quoteId: string };
+  Payment: { quoteId: string };
+  PaymentSuccess: { quoteId: string };
   MyCar: undefined;
   AddCar: undefined;
 };
@@ -57,6 +60,8 @@ export type ProDashboardStackParamList = {
 export type ProRequestsStackParamList = {
   ProRequests: undefined;
   ProChat: { conversationId: string };
+  CreateQuote: { conversationId: string };
+  QuoteDetail: { quoteId: string };
 };
 
 export type ProPriceListStackParamList = {

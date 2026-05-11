@@ -1,23 +1,25 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useLayoutEffect } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useNavigation, useRoute, type RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import {
   FlatList,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   Pressable,
   Text,
   TextInput,
   View,
 } from "react-native";
-import Animated, { FadeIn } from "react-native-reanimated";
 import { ScreenContainer } from "@/components/ScreenContainer";
+import { ChatBubble } from "@/components/ChatBubble";
+import { AttachSheet } from "@/components/AttachSheet";
 import { useChatStore } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
 import { WORKSHOPS } from "@/data/workshops";
+import { pickFromGallery, recordVideo, takePhoto } from "@/utils/mediaPicker";
 import type { HomeStackParamList } from "@/navigation/types";
 
 type Nav = NativeStackNavigationProp<HomeStackParamList, "Chat">;
@@ -35,6 +37,7 @@ export function ChatScreen() {
   const allMessages = useChatStore((s) => s.messages);
   const workshop = WORKSHOPS.find((w) => w.id === workshopId);
   const [text, setText] = useState("");
+  const [attachOpen, setAttachOpen] = useState(false);
   const listRef = useRef<FlatList>(null);
 
   useLayoutEffect(() => {
@@ -56,16 +59,39 @@ export function ChatScreen() {
 
   if (!user || !workshop) return null;
 
+  const scrollEnd = () =>
+    setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 50);
+
   const onSend = () => {
     const trimmed = text.trim();
     if (!trimmed) return;
-    send(convId, user.id, trimmed);
+    send({ conversationId: convId, senderId: user.id, kind: "text", text: trimmed });
     setText("");
-    setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 50);
+    scrollEnd();
     setTimeout(() => {
-      send(convId, workshopId, "Grazie del messaggio, ti risponderò appena possibile.");
-      setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 50);
+      send({
+        conversationId: convId,
+        senderId: workshopId,
+        kind: "text",
+        text: "Grazie del messaggio, ti risponderò appena possibile.",
+      });
+      scrollEnd();
     }, 900);
+  };
+
+  const handleAttach = async (a: "camera" | "gallery" | "video") => {
+    const picker = a === "camera" ? takePhoto : a === "gallery" ? pickFromGallery : recordVideo;
+    const r = await picker();
+    if (!r) return;
+    send({
+      conversationId: convId,
+      senderId: user.id,
+      kind: r.isVideo ? "video" : "image",
+      mediaUri: r.uri,
+      mediaWidth: r.width,
+      mediaHeight: r.height,
+    });
+    scrollEnd();
   };
 
   return (
@@ -79,43 +105,16 @@ export function ChatScreen() {
           data={messages}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ padding: 16, gap: 8 }}
-          renderItem={({ item }) => {
-            const mine = item.senderId === user.id;
-            return (
-              <Animated.View
-                entering={FadeIn.duration(250)}
-                style={{
-                  alignSelf: mine ? "flex-end" : "flex-start",
-                  maxWidth: "80%",
-                  backgroundColor: mine ? colors.accent : colors.bgElevated,
-                  borderRadius: 16,
-                  borderTopRightRadius: mine ? 4 : 16,
-                  borderTopLeftRadius: mine ? 16 : 4,
-                  paddingHorizontal: 14,
-                  paddingVertical: 10,
-                  borderWidth: mine ? 0 : 1,
-                  borderColor: colors.border,
-                }}
-              >
-                <Text style={{ color: mine ? "#FFF" : colors.text, fontSize: 15, lineHeight: 21 }}>
-                  {item.text}
-                </Text>
-                <Text
-                  style={{
-                    color: mine ? "rgba(255,255,255,0.7)" : colors.textMuted,
-                    fontSize: 10,
-                    marginTop: 4,
-                    textAlign: "right",
-                  }}
-                >
-                  {new Date(item.createdAt).toLocaleTimeString("it-IT", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </Text>
-              </Animated.View>
-            );
-          }}
+          renderItem={({ item }) => (
+            <ChatBubble
+              message={item}
+              mine={item.senderId === user.id}
+              onPressQuote={(qid) => navigation.navigate("QuoteDetail", { quoteId: qid })}
+              onPressMedia={(uri, isVideo) => {
+                if (isVideo) Linking.openURL(uri).catch(() => undefined);
+              }}
+            />
+          )}
           onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
         />
 
@@ -124,11 +123,28 @@ export function ChatScreen() {
             flexDirection: "row",
             padding: 12,
             gap: 8,
+            alignItems: "flex-end",
             backgroundColor: colors.bgElevated,
             borderTopWidth: 1,
             borderTopColor: colors.border,
           }}
         >
+          <Pressable
+            onPress={() => setAttachOpen(true)}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: colors.bg,
+              borderWidth: 1,
+              borderColor: colors.border,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text style={{ fontSize: 20, color: colors.text }}>＋</Text>
+          </Pressable>
+
           <TextInput
             value={text}
             onChangeText={setText}
@@ -148,8 +164,9 @@ export function ChatScreen() {
           />
           <Pressable
             onPress={onSend}
+            disabled={!text.trim()}
             style={{
-              backgroundColor: colors.accent,
+              backgroundColor: text.trim() ? colors.accent : colors.border,
               width: 44,
               height: 44,
               borderRadius: 22,
@@ -161,6 +178,12 @@ export function ChatScreen() {
           </Pressable>
         </View>
       </KeyboardAvoidingView>
+
+      <AttachSheet
+        visible={attachOpen}
+        onClose={() => setAttachOpen(false)}
+        onPick={handleAttach}
+      />
     </ScreenContainer>
   );
 }

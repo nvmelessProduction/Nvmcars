@@ -102,23 +102,32 @@ function RoleCard({
               <Text style={{ fontSize: 32 }}>{emoji}</Text>
             </View>
             <View style={{ flex: 1 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                <Text style={{ fontSize: 17, fontWeight: "800", color: colors.text }}>
-                  {title}
-                </Text>
-                {badge ? (
+              {badge ? (
+                <View style={{ flexDirection: "row", marginBottom: 6 }}>
                   <View
                     style={{
                       backgroundColor: colors.accent,
-                      paddingHorizontal: 8,
-                      paddingVertical: 2,
+                      paddingHorizontal: 9,
+                      paddingVertical: 3,
                       borderRadius: 999,
                     }}
                   >
-                    <Text style={{ color: "#FFF", fontSize: 10, fontWeight: "800" }}>{badge}</Text>
+                    <Text
+                      style={{
+                        color: "#FFF",
+                        fontSize: 10,
+                        fontWeight: "800",
+                        letterSpacing: 0.3,
+                      }}
+                    >
+                      {badge}
+                    </Text>
                   </View>
-                ) : null}
-              </View>
+                </View>
+              ) : null}
+              <Text style={{ fontSize: 17, fontWeight: "800", color: colors.text }}>
+                {title}
+              </Text>
               <Text style={{ fontSize: 13, color: colors.textMuted, marginTop: 4 }}>
                 {description}
               </Text>

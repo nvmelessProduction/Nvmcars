@@ -4,18 +4,21 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import {
   FlatList,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   Pressable,
   Text,
   TextInput,
   View,
 } from "react-native";
-import Animated, { FadeIn } from "react-native-reanimated";
 import { ScreenContainer } from "@/components/ScreenContainer";
+import { ChatBubble } from "@/components/ChatBubble";
+import { AttachSheet } from "@/components/AttachSheet";
 import { useChatStore } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
+import { pickFromGallery, recordVideo, takePhoto } from "@/utils/mediaPicker";
 import type { ProRequestsStackParamList } from "@/navigation/types";
 
 type Nav = NativeStackNavigationProp<ProRequestsStackParamList, "ProChat">;
@@ -39,6 +42,7 @@ export function ProChatScreen() {
     [allMessages, conversationId]
   );
   const [text, setText] = useState("");
+  const [attachOpen, setAttachOpen] = useState(false);
   const listRef = useRef<FlatList>(null);
   const conversation = conversations.find((c) => c.id === conversationId);
 
@@ -51,12 +55,32 @@ export function ProChatScreen() {
   }, [messages.length]);
 
   if (!user || user.role !== "professional") return null;
+  const senderId = user.workshopId;
+
+  const scrollEnd = () =>
+    setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 50);
 
   const onSend = () => {
     const trimmed = text.trim();
     if (!trimmed) return;
-    send(conversationId, user.workshopId, trimmed);
+    send({ conversationId, senderId, kind: "text", text: trimmed });
     setText("");
+    scrollEnd();
+  };
+
+  const handleAttach = async (a: "camera" | "gallery" | "video") => {
+    const picker = a === "camera" ? takePhoto : a === "gallery" ? pickFromGallery : recordVideo;
+    const r = await picker();
+    if (!r) return;
+    send({
+      conversationId,
+      senderId,
+      kind: r.isVideo ? "video" : "image",
+      mediaUri: r.uri,
+      mediaWidth: r.width,
+      mediaHeight: r.height,
+    });
+    scrollEnd();
   };
 
   return (
@@ -65,35 +89,50 @@ export function ProChatScreen() {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
       >
+        <View
+          style={{
+            paddingHorizontal: 12,
+            paddingVertical: 8,
+            backgroundColor: colors.bgElevated,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border,
+          }}
+        >
+          <Pressable
+            onPress={() => navigation.navigate("CreateQuote", { conversationId })}
+            style={{
+              backgroundColor: colors.accent,
+              borderRadius: 12,
+              paddingVertical: 10,
+              paddingHorizontal: 14,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+            }}
+          >
+            <Text style={{ fontSize: 18 }}>💶</Text>
+            <Text style={{ color: "#FFF", fontWeight: "800", fontSize: 14 }}>
+              {t.quote.createQuote}
+            </Text>
+          </Pressable>
+        </View>
+
         <FlatList
           ref={listRef}
           data={messages}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ padding: 16, gap: 8 }}
-          renderItem={({ item }) => {
-            const mine = item.senderId === user.workshopId;
-            return (
-              <Animated.View
-                entering={FadeIn.duration(250)}
-                style={{
-                  alignSelf: mine ? "flex-end" : "flex-start",
-                  maxWidth: "80%",
-                  backgroundColor: mine ? colors.accent : colors.bgElevated,
-                  borderRadius: 16,
-                  borderTopRightRadius: mine ? 4 : 16,
-                  borderTopLeftRadius: mine ? 16 : 4,
-                  paddingHorizontal: 14,
-                  paddingVertical: 10,
-                  borderWidth: mine ? 0 : 1,
-                  borderColor: colors.border,
-                }}
-              >
-                <Text style={{ color: mine ? "#FFF" : colors.text, fontSize: 15, lineHeight: 21 }}>
-                  {item.text}
-                </Text>
-              </Animated.View>
-            );
-          }}
+          renderItem={({ item }) => (
+            <ChatBubble
+              message={item}
+              mine={item.senderId === senderId}
+              onPressQuote={(qid) => navigation.navigate("QuoteDetail", { quoteId: qid })}
+              onPressMedia={(uri, isVideo) => {
+                if (isVideo) Linking.openURL(uri).catch(() => undefined);
+              }}
+            />
+          )}
         />
 
         <View
@@ -101,11 +140,28 @@ export function ProChatScreen() {
             flexDirection: "row",
             padding: 12,
             gap: 8,
+            alignItems: "flex-end",
             backgroundColor: colors.bgElevated,
             borderTopWidth: 1,
             borderTopColor: colors.border,
           }}
         >
+          <Pressable
+            onPress={() => setAttachOpen(true)}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: colors.bg,
+              borderWidth: 1,
+              borderColor: colors.border,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text style={{ fontSize: 20, color: colors.text }}>＋</Text>
+          </Pressable>
+
           <TextInput
             value={text}
             onChangeText={setText}
@@ -125,8 +181,9 @@ export function ProChatScreen() {
           />
           <Pressable
             onPress={onSend}
+            disabled={!text.trim()}
             style={{
-              backgroundColor: colors.accent,
+              backgroundColor: text.trim() ? colors.accent : colors.border,
               width: 44,
               height: 44,
               borderRadius: 22,
@@ -138,6 +195,12 @@ export function ProChatScreen() {
           </Pressable>
         </View>
       </KeyboardAvoidingView>
+
+      <AttachSheet
+        visible={attachOpen}
+        onClose={() => setAttachOpen(false)}
+        onPick={handleAttach}
+      />
     </ScreenContainer>
   );
 }

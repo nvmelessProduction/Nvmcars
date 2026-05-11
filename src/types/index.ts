@@ -117,12 +117,48 @@ export type Notification = {
   relatedId?: string;
 };
 
+export type ChatMessageKind = "text" | "image" | "video" | "quote" | "system";
+
 export type ChatMessage = {
   id: string;
   conversationId: string;
   senderId: string;
-  text: string;
+  kind: ChatMessageKind;
+  text?: string;
+  mediaUri?: string;
+  mediaWidth?: number;
+  mediaHeight?: number;
+  quoteId?: string;
   createdAt: number;
+};
+
+export type QuoteStatus = "pending" | "accepted" | "rejected" | "paid" | "expired";
+
+export type QuoteLineItem = {
+  id: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+};
+
+export type Quote = {
+  id: string;
+  workshopId: string;
+  customerId: string;
+  conversationId: string;
+  title: string;
+  notes?: string;
+  lineItems: QuoteLineItem[];
+  subtotal: number;
+  commissionFeePct: number;
+  commissionFee: number;
+  total: number;
+  status: QuoteStatus;
+  createdAt: number;
+  validUntil: number;
+  acceptedAt?: number;
+  paidAt?: number;
+  paymentRef?: string;
 };
 
 export type Conversation = {
