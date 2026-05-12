@@ -1,13 +1,25 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import type { ChatMessage, Conversation } from "@/types";
+import type { ChatMessage, ChatMessageKind, Conversation } from "@/types";
+
+type SendInput = {
+  conversationId: string;
+  senderId: string;
+  kind?: ChatMessageKind;
+  text?: string;
+  mediaUri?: string;
+  mediaWidth?: number;
+  mediaHeight?: number;
+  quoteId?: string;
+};
 
 type ChatState = {
   conversations: Conversation[];
   messages: ChatMessage[];
   ensureConversation: (customerId: string, workshopId: string) => Conversation;
-  send: (conversationId: string, senderId: string, text: string) => void;
+  send: (input: SendInput) => ChatMessage;
+  sendText: (conversationId: string, senderId: string, text: string) => ChatMessage;
   messagesFor: (conversationId: string) => ChatMessage[];
 };
 
@@ -20,6 +32,7 @@ const seedMessages: ChatMessage[] = [
     id: "m1",
     conversationId: conversationId("demo-customer", "w3"),
     senderId: "w3",
+    kind: "text",
     text: "Ciao Marco, abbiamo ricevuto la tua richiesta. Quando puoi passare per un'occhiata?",
     createdAt: Date.now() - 1000 * 60 * 60 * 2,
   },
@@ -27,6 +40,7 @@ const seedMessages: ChatMessage[] = [
     id: "m2",
     conversationId: conversationId("demo-customer", "w3"),
     senderId: "demo-customer",
+    kind: "text",
     text: "Posso domani mattina alle 9?",
     createdAt: Date.now() - 1000 * 60 * 60,
   },
@@ -34,6 +48,7 @@ const seedMessages: ChatMessage[] = [
     id: "m3",
     conversationId: conversationId("demo-customer", "w3"),
     senderId: "w3",
+    kind: "text",
     text: "Perfetto, ti aspettiamo. Porta libretto e patente.",
     createdAt: Date.now() - 1000 * 60 * 30,
   },
@@ -49,6 +64,21 @@ const seedConversations: Conversation[] = [
     unreadCount: 1,
   },
 ];
+
+function previewFor(msg: ChatMessage): string {
+  switch (msg.kind) {
+    case "image":
+      return "📷 Foto";
+    case "video":
+      return "🎬 Video";
+    case "quote":
+      return "💶 Preventivo ricevuto";
+    case "system":
+      return msg.text ?? "Aggiornamento";
+    default:
+      return msg.text ?? "";
+  }
+}
 
 export const useChatStore = create<ChatState>()(
   persist(
@@ -68,23 +98,35 @@ export const useChatStore = create<ChatState>()(
         set({ conversations: [...get().conversations, created] });
         return created;
       },
-      send: (convId, senderId, text) => {
+      send: (input) => {
         const message: ChatMessage = {
           id: generateId(),
-          conversationId: convId,
-          senderId,
-          text,
+          conversationId: input.conversationId,
+          senderId: input.senderId,
+          kind: input.kind ?? "text",
+          text: input.text,
+          mediaUri: input.mediaUri,
+          mediaWidth: input.mediaWidth,
+          mediaHeight: input.mediaHeight,
+          quoteId: input.quoteId,
           createdAt: Date.now(),
         };
         set({
           messages: [...get().messages, message],
           conversations: get().conversations.map((c) =>
-            c.id === convId
-              ? { ...c, lastMessage: text, lastMessageAt: message.createdAt }
+            c.id === input.conversationId
+              ? {
+                  ...c,
+                  lastMessage: previewFor(message),
+                  lastMessageAt: message.createdAt,
+                }
               : c
           ),
         });
+        return message;
       },
+      sendText: (convId, senderId, text) =>
+        get().send({ conversationId: convId, senderId, kind: "text", text }),
       messagesFor: (convId) =>
         get()
           .messages.filter((m) => m.conversationId === convId)
@@ -93,6 +135,16 @@ export const useChatStore = create<ChatState>()(
     {
       name: "nvmcars-chat",
       storage: createJSONStorage(() => AsyncStorage),
+      version: 2,
+      migrate: (persistedState: any, version) => {
+        if (version < 2 && persistedState?.messages) {
+          persistedState.messages = persistedState.messages.map((m: any) => ({
+            ...m,
+            kind: m.kind ?? "text",
+          }));
+        }
+        return persistedState;
+      },
     }
   )
 );
