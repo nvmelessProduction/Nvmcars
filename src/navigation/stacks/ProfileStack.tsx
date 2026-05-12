@@ -3,6 +3,10 @@ import { CustomerProfileScreen } from "@/screens/customer/CustomerProfileScreen"
 import { SettingsScreen } from "@/screens/customer/SettingsScreen";
 import { MyCarScreen } from "@/screens/customer/MyCarScreen";
 import { AddCarScreen } from "@/screens/customer/AddCarScreen";
+import { PrivacyPolicyScreen } from "@/screens/legal/PrivacyPolicyScreen";
+import { TermsOfServiceScreen } from "@/screens/legal/TermsOfServiceScreen";
+import { DataExportScreen } from "@/screens/legal/DataExportScreen";
+import { DeleteAccountScreen } from "@/screens/legal/DeleteAccountScreen";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
 import type { ProfileStackParamList } from "../types";
@@ -34,6 +38,26 @@ export function ProfileStack() {
       />
       <Stack.Screen name="MyCar" component={MyCarScreen} options={{ title: t.car.yourCar }} />
       <Stack.Screen name="AddCar" component={AddCarScreen} options={{ title: t.home.addCar }} />
+      <Stack.Screen
+        name="PrivacyPolicy"
+        component={PrivacyPolicyScreen}
+        options={{ title: t.settings.privacyPolicy }}
+      />
+      <Stack.Screen
+        name="TermsOfService"
+        component={TermsOfServiceScreen}
+        options={{ title: t.settings.termsOfService }}
+      />
+      <Stack.Screen
+        name="DataExport"
+        component={DataExportScreen}
+        options={{ title: t.settings.exportData }}
+      />
+      <Stack.Screen
+        name="DeleteAccount"
+        component={DeleteAccountScreen}
+        options={{ title: t.settings.deleteAccount }}
+      />
     </Stack.Navigator>
   );
 }

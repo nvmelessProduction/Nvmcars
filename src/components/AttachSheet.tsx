@@ -48,7 +48,7 @@ export function AttachSheet({ visible, onClose, onPick }: Props) {
               key={it.key}
               onPress={() => {
                 onClose();
-                setTimeout(() => onPick(it.key), 120);
+                setTimeout(() => onPick(it.key), 350);
               }}
               style={({ pressed }) => ({
                 paddingVertical: 16,

@@ -3,13 +3,12 @@ import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import {
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   Text,
   View,
 } from "react-native";
 import { ScreenContainer } from "@/components/ScreenContainer";
+import { KAV } from "@/components/KAV";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { TextField } from "@/components/TextField";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -68,10 +67,7 @@ export function LoginScreen() {
 
   return (
     <ScreenContainer>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1 }}
-      >
+      <KAV>
         <ScrollView
           contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 22, paddingTop: 28 }}
           keyboardShouldPersistTaps="handled"
@@ -110,7 +106,7 @@ export function LoginScreen() {
             />
           </View>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </KAV>
     </ScreenContainer>
   );
 }

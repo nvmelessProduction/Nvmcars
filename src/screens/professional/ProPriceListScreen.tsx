@@ -1,8 +1,6 @@
 import { useMemo, useState } from "react";
 import {
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -10,6 +8,7 @@ import {
   View,
 } from "react-native";
 import { ScreenContainer } from "@/components/ScreenContainer";
+import { KAV } from "@/components/KAV";
 import { Card } from "@/components/Card";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -59,10 +58,7 @@ export function ProPriceListScreen() {
 
   return (
     <ScreenContainer>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1 }}
-      >
+      <KAV>
         <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 32 }}>
           <Text style={{ fontSize: 13, color: colors.textMuted }}>
             Imposta i tuoi prezzi base. Per ogni cliente i prezzi vengono adattati alla
@@ -153,7 +149,7 @@ export function ProPriceListScreen() {
             <PrimaryButton label="Salva listino" icon="💾" onPress={handleSave} />
           </View>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </KAV>
     </ScreenContainer>
   );
 }

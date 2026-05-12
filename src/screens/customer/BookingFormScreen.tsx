@@ -3,14 +3,13 @@ import { useNavigation, useRoute, type RouteProp } from "@react-navigation/nativ
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import {
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   Text,
   View,
 } from "react-native";
 import { ScreenContainer } from "@/components/ScreenContainer";
+import { KAV } from "@/components/KAV";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { TextField } from "@/components/TextField";
 import { Card } from "@/components/Card";
@@ -94,10 +93,7 @@ export function BookingFormScreen() {
 
   return (
     <ScreenContainer>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1 }}
-      >
+      <KAV>
         <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 32 }}>
           <Card>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
@@ -163,7 +159,7 @@ export function BookingFormScreen() {
             <PrimaryButton label="Conferma e invia richiesta" icon="✅" onPress={handleConfirm} />
           </View>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </KAV>
     </ScreenContainer>
   );
 }

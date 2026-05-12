@@ -42,6 +42,10 @@ export type ProfileStackParamList = {
   Settings: undefined;
   MyCar: undefined;
   AddCar: undefined;
+  PrivacyPolicy: undefined;
+  TermsOfService: undefined;
+  DataExport: undefined;
+  DeleteAccount: undefined;
 };
 
 export type CustomerTabParamList = {
@@ -76,6 +80,14 @@ export type ProProfileStackParamList = {
   ProProfile: undefined;
   ProEditWorkshop: undefined;
   ProSettings: undefined;
+  ProChatsList: undefined;
+  ProChat: { conversationId: string };
+  CreateQuote: { conversationId: string };
+  QuoteDetail: { quoteId: string };
+  PrivacyPolicy: undefined;
+  TermsOfService: undefined;
+  DataExport: undefined;
+  DeleteAccount: undefined;
 };
 
 export type ProTabParamList = {

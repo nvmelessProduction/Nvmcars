@@ -3,13 +3,12 @@ import { useNavigation, useRoute, type RouteProp } from "@react-navigation/nativ
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import {
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   Text,
   View,
 } from "react-native";
 import { ScreenContainer } from "@/components/ScreenContainer";
+import { KAV } from "@/components/KAV";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { TextField } from "@/components/TextField";
 import { RatingStars } from "@/components/RatingStars";
@@ -58,10 +57,7 @@ export function AddReviewScreen() {
 
   return (
     <ScreenContainer>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1 }}
-      >
+      <KAV>
         <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 32 }}>
           <Card>
             <Text style={{ fontSize: 13, color: colors.textMuted }}>Stai recensendo</Text>
@@ -104,7 +100,7 @@ export function AddReviewScreen() {
             <PrimaryButton label={t.reviews.submit} onPress={handleSubmit} />
           </View>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </KAV>
     </ScreenContainer>
   );
 }

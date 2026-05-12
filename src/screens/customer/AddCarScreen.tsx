@@ -4,14 +4,13 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import {
   ActivityIndicator,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   Text,
   View,
 } from "react-native";
 import { ScreenContainer } from "@/components/ScreenContainer";
+import { KAV } from "@/components/KAV";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { TextField } from "@/components/TextField";
 import { Card } from "@/components/Card";
@@ -149,10 +148,7 @@ export function AddCarScreen() {
 
   return (
     <ScreenContainer>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1 }}
-      >
+      <KAV>
         <ScrollView
           contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 40 }}
           keyboardShouldPersistTaps="handled"
@@ -444,7 +440,7 @@ export function AddCarScreen() {
           onSelect={setModel}
           onClose={() => setModelOpen(false)}
         />
-      </KeyboardAvoidingView>
+      </KAV>
     </ScreenContainer>
   );
 }

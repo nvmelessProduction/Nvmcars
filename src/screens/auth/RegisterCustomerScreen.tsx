@@ -1,14 +1,13 @@
 import { useState } from "react";
 import {
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   Text,
   View,
 } from "react-native";
 import { z } from "zod";
 import { ScreenContainer } from "@/components/ScreenContainer";
+import { KAV } from "@/components/KAV";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { TextField } from "@/components/TextField";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -42,10 +41,7 @@ export function RegisterCustomerScreen() {
 
   return (
     <ScreenContainer>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1 }}
-      >
+      <KAV>
         <ScrollView
           contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 22, paddingTop: 28 }}
           keyboardShouldPersistTaps="handled"
@@ -92,7 +88,7 @@ export function RegisterCustomerScreen() {
             <PrimaryButton label={t.auth.createAccount} onPress={handleSubmit} />
           </View>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </KAV>
     </ScreenContainer>
   );
 }

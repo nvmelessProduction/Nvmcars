@@ -240,6 +240,92 @@ export const it = {
     english: "English",
     about: "Informazioni",
     version: "Versione",
+    account: "Account",
+    legal: "Privacy e termini",
+    privacyPolicy: "Informativa privacy",
+    termsOfService: "Termini di servizio",
+    exportData: "Esporta i miei dati",
+    exportDataSubtitle: "Scarica una copia dei tuoi dati personali",
+    deleteAccount: "Elimina account",
+    deleteAccountSubtitle: "Rimuovi definitivamente il tuo account",
+    support: "Supporto",
+    contactSupport: "Contattaci",
+    contactSupportSubtitle: "support@nvmcars.it",
+  },
+  legal: {
+    privacyTitle: "Informativa sulla privacy",
+    privacyIntro:
+      "Nvmcars rispetta la tua privacy. Questo documento spiega quali dati raccogliamo, perché li raccogliamo e come li trattiamo.",
+    privacyDraftBanner:
+      "Versione preliminare. La versione definitiva sarà pubblicata su nvmcars.it/privacy prima del lancio pubblico.",
+    privacyDataCollectedTitle: "1. Dati che raccogliamo",
+    privacyDataCollectedBody:
+      "Raccogliamo: dati di registrazione (nome, email, telefono), dati delle tue auto (targa, marca, modello, alimentazione), prenotazioni e preventivi, messaggi nella chat con le officine, recensioni che pubblichi, posizione approssimativa (solo se attivi il permesso), token di notifica push, dati di pagamento gestiti direttamente da Stripe (Nvmcars non vede mai il numero della tua carta).",
+    privacyUseTitle: "2. Come usiamo i tuoi dati",
+    privacyUseBody:
+      "Usiamo i tuoi dati esclusivamente per: farti trovare officine vicine, gestire prenotazioni e preventivi, abilitare la chat con le officine, processare i pagamenti, inviare notifiche di servizio (es. preventivo ricevuto), prevenire frodi.",
+    privacyShareTitle: "3. Condivisione con terzi",
+    privacyShareBody:
+      "Condividiamo dati strettamente necessari con: Supabase (hosting dati, server EU), Stripe (pagamenti), il provider di lookup targa (solo la targa che cerchi), il provider di notifiche push (Apple/Google). Non vendiamo i tuoi dati a nessuno.",
+    privacyRightsTitle: "4. I tuoi diritti (GDPR)",
+    privacyRightsBody:
+      "Hai diritto a: accedere ai tuoi dati, correggerli, cancellarli, esportarli in formato leggibile, limitarne il trattamento, opporti al trattamento, revocare il consenso. Tutte queste azioni sono accessibili direttamente dall'app (Impostazioni → Account).",
+    privacyRetentionTitle: "5. Conservazione",
+    privacyRetentionBody:
+      "Conserviamo i tuoi dati finché il tuo account è attivo. Se elimini l'account, cancelliamo tutto entro 30 giorni, salvo obblighi di legge (es. fatture per 10 anni come previsto dalla normativa fiscale italiana).",
+    privacyContactTitle: "6. Contatti",
+    privacyContactBody:
+      "Titolare del trattamento: Nvmcars. Email: privacy@nvmcars.it. Per il reclamo all'autorità: Garante per la protezione dei dati personali — www.garanteprivacy.it.",
+    privacyLastUpdate: "Ultimo aggiornamento",
+    termsTitle: "Termini di servizio",
+    termsIntro:
+      "Utilizzando Nvmcars accetti questi termini. Leggili con attenzione.",
+    termsDraftBanner:
+      "Versione preliminare. La versione definitiva sarà pubblicata su nvmcars.it/termini prima del lancio pubblico.",
+    terms1Title: "1. Cos'è Nvmcars",
+    terms1Body:
+      "Nvmcars è una piattaforma che mette in contatto automobilisti e officine. Non eseguiamo lavori di riparazione: le officine sono fornitori indipendenti.",
+    terms2Title: "2. Account",
+    terms2Body:
+      "Devi avere almeno 18 anni. Sei responsabile della sicurezza del tuo account e di tutte le attività svolte tramite esso. Devi fornire dati veritieri.",
+    terms3Title: "3. Preventivi e pagamenti",
+    terms3Body:
+      "I preventivi sono vincolanti per l'officina solo dopo la tua accettazione esplicita. Se paghi tramite Nvmcars, addebitiamo una commissione di sicurezza del 2% sul totale, che garantisce il trasferimento dei fondi all'officina dopo il completamento del servizio.",
+    terms4Title: "4. Responsabilità",
+    terms4Body:
+      "Le officine sono indipendenti. Nvmcars non è responsabile della qualità del lavoro eseguito, ma offre strumenti di mediazione e tutela del cliente in caso di disputa.",
+    terms5Title: "5. Recensioni",
+    terms5Body:
+      "Le recensioni devono essere veritiere e basate su esperienze dirette. Recensioni false, offensive o diffamatorie verranno rimosse e potranno comportare la sospensione dell'account.",
+    terms6Title: "6. Cessazione",
+    terms6Body:
+      "Puoi cancellare il tuo account in qualsiasi momento dalle Impostazioni. Nvmcars può sospendere account che violano questi termini.",
+    terms7Title: "7. Legge applicabile",
+    terms7Body:
+      "Si applica la legge italiana. Foro competente: Tribunale di Milano.",
+    exportTitle: "Esporta i miei dati",
+    exportIntro:
+      "Hai diritto a una copia completa dei tuoi dati personali in formato leggibile (JSON). Te la invieremo via email entro 30 giorni come richiesto dal GDPR.",
+    exportRequestButton: "Richiedi esportazione",
+    exportRequestedTitle: "Richiesta inviata",
+    exportRequestedBody:
+      "Riceverai i tuoi dati via email a {email} entro 30 giorni. Se non li ricevi, scrivici a privacy@nvmcars.it.",
+    exportMockNote:
+      "(Versione demo: in mock mode, l'esportazione produce un file JSON con i dati salvati localmente nel dispositivo.)",
+    deleteTitle: "Elimina account",
+    deleteWarningTitle: "Attenzione: azione irreversibile",
+    deleteWarningBody:
+      "Eliminando il tuo account verranno rimossi definitivamente:\n• Il tuo profilo e i dati personali\n• Tutte le tue auto salvate\n• Le tue prenotazioni passate e future\n• Le tue conversazioni con le officine\n• I tuoi preventivi\n• Le tue recensioni\n• I tuoi preferiti\n\nQuesti dati non potranno essere recuperati.",
+    deleteRetentionNote:
+      "Per obblighi fiscali italiani, le fatture relative a pagamenti effettivamente eseguiti saranno conservate per 10 anni in forma anonimizzata, come previsto dalla normativa.",
+    deleteConfirmCheckbox: "Confermo di voler eliminare il mio account",
+    deleteButton: "Elimina definitivamente",
+    deleteSuccessTitle: "Account eliminato",
+    deleteSuccessBody:
+      "Il tuo account è stato eliminato. Ci dispiace vederti andare via. Se cambi idea, puoi sempre crearne uno nuovo.",
+    deleteConfirmDialogTitle: "Sei davvero sicuro?",
+    deleteConfirmDialogBody:
+      "Questa operazione non può essere annullata. Tutti i tuoi dati saranno rimossi.",
   },
   pro: {
     dashboard: "Dashboard",
@@ -261,6 +347,10 @@ export const it = {
     accept: "Accetta",
     reject: "Rifiuta",
     markCompleted: "Segna come completata",
+    myChats: "Le mie chat",
+    myChatsSubtitle: "Conversazioni attive con i clienti",
+    noChats: "Non hai ancora conversazioni con clienti.",
+    customerLabel: "Cliente",
   },
   onboarding: {
     skip: "Salta",

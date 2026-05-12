@@ -242,6 +242,92 @@ export const en: Translations = {
     english: "English",
     about: "About",
     version: "Version",
+    account: "Account",
+    legal: "Privacy & terms",
+    privacyPolicy: "Privacy policy",
+    termsOfService: "Terms of service",
+    exportData: "Export my data",
+    exportDataSubtitle: "Download a copy of your personal data",
+    deleteAccount: "Delete account",
+    deleteAccountSubtitle: "Permanently remove your account",
+    support: "Support",
+    contactSupport: "Contact us",
+    contactSupportSubtitle: "support@nvmcars.it",
+  },
+  legal: {
+    privacyTitle: "Privacy policy",
+    privacyIntro:
+      "Nvmcars respects your privacy. This document explains what data we collect, why we collect it, and how we handle it.",
+    privacyDraftBanner:
+      "Preliminary version. The final version will be published at nvmcars.it/privacy before public launch.",
+    privacyDataCollectedTitle: "1. Data we collect",
+    privacyDataCollectedBody:
+      "We collect: signup data (name, email, phone), car data (plate, make, model, fuel), bookings and quotes, chat messages with workshops, reviews you post, approximate location (only if you grant permission), push notification tokens, payment data handled directly by Stripe (Nvmcars never sees your card number).",
+    privacyUseTitle: "2. How we use your data",
+    privacyUseBody:
+      "We use your data only to: help you find nearby workshops, manage bookings and quotes, enable chat with workshops, process payments, send service notifications (e.g. quote received), prevent fraud.",
+    privacyShareTitle: "3. Sharing with third parties",
+    privacyShareBody:
+      "We share strictly necessary data with: Supabase (data hosting, EU servers), Stripe (payments), the plate lookup provider (only the plate you search), the push notification provider (Apple/Google). We never sell your data.",
+    privacyRightsTitle: "4. Your rights (GDPR)",
+    privacyRightsBody:
+      "You have the right to: access your data, correct it, delete it, export it in a readable format, restrict processing, object to processing, withdraw consent. All these actions are accessible directly in the app (Settings → Account).",
+    privacyRetentionTitle: "5. Retention",
+    privacyRetentionBody:
+      "We keep your data as long as your account is active. If you delete your account, we erase everything within 30 days, except for legal obligations (e.g. invoices kept for 10 years under Italian tax law).",
+    privacyContactTitle: "6. Contacts",
+    privacyContactBody:
+      "Data controller: Nvmcars. Email: privacy@nvmcars.it. To file a complaint with the authority: Italian Data Protection Authority — www.garanteprivacy.it.",
+    privacyLastUpdate: "Last updated",
+    termsTitle: "Terms of service",
+    termsIntro:
+      "By using Nvmcars you accept these terms. Please read them carefully.",
+    termsDraftBanner:
+      "Preliminary version. The final version will be published at nvmcars.it/terms before public launch.",
+    terms1Title: "1. What Nvmcars is",
+    terms1Body:
+      "Nvmcars is a platform connecting drivers with workshops. We do not perform repairs ourselves: workshops are independent providers.",
+    terms2Title: "2. Account",
+    terms2Body:
+      "You must be at least 18. You are responsible for keeping your account secure and for all activity carried out through it. You must provide truthful data.",
+    terms3Title: "3. Quotes and payments",
+    terms3Body:
+      "Quotes are binding for the workshop only after your explicit acceptance. If you pay via Nvmcars, we charge a 2% safety fee on the total, which guarantees the transfer of funds to the workshop after service completion.",
+    terms4Title: "4. Liability",
+    terms4Body:
+      "Workshops are independent providers. Nvmcars is not responsible for the quality of work performed, but offers mediation tools and customer protection in case of disputes.",
+    terms5Title: "5. Reviews",
+    terms5Body:
+      "Reviews must be truthful and based on direct experience. False, offensive or defamatory reviews will be removed and may lead to account suspension.",
+    terms6Title: "6. Termination",
+    terms6Body:
+      "You can delete your account at any time from Settings. Nvmcars may suspend accounts that violate these terms.",
+    terms7Title: "7. Governing law",
+    terms7Body:
+      "Italian law applies. Competent court: Court of Milan.",
+    exportTitle: "Export my data",
+    exportIntro:
+      "You have the right to a full copy of your personal data in readable format (JSON). We will email it to you within 30 days as required by GDPR.",
+    exportRequestButton: "Request export",
+    exportRequestedTitle: "Request sent",
+    exportRequestedBody:
+      "You will receive your data by email at {email} within 30 days. If you don't receive it, write to privacy@nvmcars.it.",
+    exportMockNote:
+      "(Demo version: in mock mode, the export produces a JSON file with data stored locally on the device.)",
+    deleteTitle: "Delete account",
+    deleteWarningTitle: "Warning: irreversible action",
+    deleteWarningBody:
+      "Deleting your account will permanently remove:\n• Your profile and personal data\n• All your saved cars\n• Your past and future bookings\n• Your conversations with workshops\n• Your quotes\n• Your reviews\n• Your favorites\n\nThis data cannot be recovered.",
+    deleteRetentionNote:
+      "For Italian tax obligations, invoices for actually executed payments will be kept for 10 years in anonymized form, as required by law.",
+    deleteConfirmCheckbox: "I confirm I want to delete my account",
+    deleteButton: "Delete permanently",
+    deleteSuccessTitle: "Account deleted",
+    deleteSuccessBody:
+      "Your account has been deleted. We're sorry to see you go. If you change your mind, you can always create a new one.",
+    deleteConfirmDialogTitle: "Are you really sure?",
+    deleteConfirmDialogBody:
+      "This operation cannot be undone. All your data will be removed.",
   },
   pro: {
     dashboard: "Dashboard",
@@ -263,6 +349,10 @@ export const en: Translations = {
     accept: "Accept",
     reject: "Reject",
     markCompleted: "Mark completed",
+    myChats: "My chats",
+    myChatsSubtitle: "Active conversations with customers",
+    noChats: "No conversations with customers yet.",
+    customerLabel: "Customer",
   },
   onboarding: {
     skip: "Skip",
