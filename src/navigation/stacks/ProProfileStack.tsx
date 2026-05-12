@@ -1,6 +1,8 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { ProProfileScreen } from "@/screens/professional/ProProfileScreen";
 import { ProEditWorkshopScreen } from "@/screens/professional/ProEditWorkshopScreen";
+import { ProOnboardingScreen } from "@/screens/professional/ProOnboardingScreen";
+import { ProPriceListScreen } from "@/screens/professional/ProPriceListScreen";
 import { ProSettingsScreen } from "@/screens/professional/ProSettingsScreen";
 import { ProChatsListScreen } from "@/screens/professional/ProChatsListScreen";
 import { ProChatScreen } from "@/screens/professional/ProChatScreen";
@@ -35,9 +37,19 @@ export function ProProfileStack() {
         options={{ title: t.profile.yourProfile }}
       />
       <Stack.Screen
+        name="ProOnboarding"
+        component={ProOnboardingScreen}
+        options={{ title: t.pro.onboardingTitle, headerBackVisible: false }}
+      />
+      <Stack.Screen
         name="ProEditWorkshop"
         component={ProEditWorkshopScreen}
         options={{ title: t.pro.editWorkshop }}
+      />
+      <Stack.Screen
+        name="ProPriceList"
+        component={ProPriceListScreen}
+        options={{ title: t.pro.editPriceList }}
       />
       <Stack.Screen
         name="ProSettings"
@@ -47,12 +59,12 @@ export function ProProfileStack() {
       <Stack.Screen
         name="ProChatsList"
         component={ProChatsListScreen}
-        options={{ title: t.pro.myChats }}
+        options={{ title: t.chat.chats }}
       />
       <Stack.Screen
         name="ProChat"
         component={ProChatScreen}
-        options={{ title: t.chat.chats }}
+        options={{ title: "" }}
       />
       <Stack.Screen
         name="CreateQuote"

@@ -12,18 +12,11 @@ import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
 import { WORKSHOPS } from "@/data/workshops";
 import { getServiceLabel, getServiceEmoji } from "@/data/services";
-import type { Booking, BookingStatus } from "@/types";
+import type { Booking } from "@/types";
 import type { BookingsStackParamList } from "@/navigation/types";
+import { statusMeta } from "@/utils/bookingStatus";
 
 type Nav = NativeStackNavigationProp<BookingsStackParamList, "BookingsList">;
-
-const STATUS_COLORS: Record<BookingStatus, string> = {
-  pending: "#F59E0B",
-  accepted: "#10B981",
-  rejected: "#EF4444",
-  completed: "#64748B",
-  cancelled: "#EF4444",
-};
 
 export function MyBookingsScreen() {
   const navigation = useNavigation<Nav>();
@@ -39,7 +32,14 @@ export function MyBookingsScreen() {
   );
 
   const filtered = useMemo(() => {
-    const upcoming = ["pending", "accepted"];
+    const upcoming: Booking["status"][] = [
+      "requested",
+      "pending",
+      "slot_proposed",
+      "confirmed",
+      "accepted",
+      "in_progress",
+    ];
     return all
       .filter((b) =>
         tab === "upcoming" ? upcoming.includes(b.status) : !upcoming.includes(b.status)
@@ -145,7 +145,7 @@ function BookingRow({
                     paddingHorizontal: 8,
                     paddingVertical: 3,
                     borderRadius: 10,
-                    backgroundColor: STATUS_COLORS[booking.status],
+                    backgroundColor: statusMeta(booking.status).color,
                   }}
                 >
                   <Text style={{ fontSize: 11, color: "#FFF", fontWeight: "700" }}>

@@ -2,11 +2,13 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Text, View } from "react-native";
 import { ProDashboardStack } from "./stacks/ProDashboardStack";
 import { ProRequestsStack } from "./stacks/ProRequestsStack";
-import { ProPriceListStack } from "./stacks/ProPriceListStack";
+import { ProChatStack } from "./stacks/ProChatStack";
 import { ProCalendarStack } from "./stacks/ProCalendarStack";
 import { ProProfileStack } from "./stacks/ProProfileStack";
 import { useColors } from "@/store/useThemeStore";
 import { useBookingsStore } from "@/store/useBookingsStore";
+import { useChatStore } from "@/store/useChatStore";
+import { useNotificationsStore } from "@/store/useNotificationsStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useT } from "@/i18n";
 import type { ProTabParamList } from "./types";
@@ -46,10 +48,24 @@ export function ProNavigator() {
   const t = useT();
   const user = useAuthStore((s) => s.user);
   const allBookings = useBookingsStore((s) => s.bookings);
-  const pendingCount =
-    user && user.role === "professional"
-      ? allBookings.filter((b) => b.workshopId === user.workshopId && b.status === "pending").length
-      : 0;
+  const conversations = useChatStore((s) => s.conversations);
+  const notifs = useNotificationsStore((s) => s.notifications);
+
+  const workshopId = user && user.role === "professional" ? user.workshopId : null;
+
+  const pendingCount = workshopId
+    ? allBookings.filter(
+        (b) => b.workshopId === workshopId && (b.status === "requested" || b.status === "pending")
+      ).length
+    : 0;
+
+  const unreadChats = workshopId
+    ? conversations
+        .filter((c) => c.workshopId === workshopId)
+        .reduce((acc, c) => acc + (c.unreadCountPro ?? 0), 0)
+    : 0;
+
+  const unreadNotifs = user ? notifs.filter((n) => n.userId === user.id && !n.read).length : 0;
 
   return (
     <Tab.Navigator
@@ -86,11 +102,13 @@ export function ProNavigator() {
         }}
       />
       <Tab.Screen
-        name="ProPriceListTab"
-        component={ProPriceListStack}
+        name="ProChatTab"
+        component={ProChatStack}
         options={{
-          title: t.tabs.priceList,
-          tabBarIcon: ({ focused }) => <TabIcon emoji="💶" focused={focused} />,
+          title: t.tabs.chat,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon emoji="💬" focused={focused} badge={unreadChats} />
+          ),
         }}
       />
       <Tab.Screen
@@ -106,7 +124,9 @@ export function ProNavigator() {
         component={ProProfileStack}
         options={{
           title: t.tabs.profile,
-          tabBarIcon: ({ focused }) => <TabIcon emoji="👤" focused={focused} />,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon emoji="👤" focused={focused} badge={unreadNotifs} />
+          ),
         }}
       />
     </Tab.Navigator>

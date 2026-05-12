@@ -21,6 +21,7 @@ type ChatState = {
   send: (input: SendInput) => ChatMessage;
   sendText: (conversationId: string, senderId: string, text: string) => ChatMessage;
   messagesFor: (conversationId: string) => ChatMessage[];
+  markRead: (conversationId: string, role: "customer" | "pro") => void;
 };
 
 const generateId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
@@ -113,15 +114,19 @@ export const useChatStore = create<ChatState>()(
         };
         set({
           messages: [...get().messages, message],
-          conversations: get().conversations.map((c) =>
-            c.id === input.conversationId
-              ? {
-                  ...c,
-                  lastMessage: previewFor(message),
-                  lastMessageAt: message.createdAt,
-                }
-              : c
-          ),
+          conversations: get().conversations.map((c) => {
+            if (c.id !== input.conversationId) return c;
+            const sentByCustomer = input.senderId === c.customerId;
+            return {
+              ...c,
+              lastMessage: previewFor(message),
+              lastMessageAt: message.createdAt,
+              unreadCount: sentByCustomer ? c.unreadCount : c.unreadCount + 1,
+              unreadCountPro: sentByCustomer
+                ? (c.unreadCountPro ?? 0) + 1
+                : c.unreadCountPro ?? 0,
+            };
+          }),
         });
         return message;
       },
@@ -131,6 +136,16 @@ export const useChatStore = create<ChatState>()(
         get()
           .messages.filter((m) => m.conversationId === convId)
           .sort((a, b) => a.createdAt - b.createdAt),
+      markRead: (convId, role) =>
+        set({
+          conversations: get().conversations.map((c) =>
+            c.id === convId
+              ? role === "customer"
+                ? { ...c, unreadCount: 0 }
+                : { ...c, unreadCountPro: 0 }
+              : c
+          ),
+        }),
     }),
     {
       name: "nvmcars-chat",

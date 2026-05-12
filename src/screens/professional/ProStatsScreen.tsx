@@ -21,8 +21,19 @@ export function ProStatsScreen() {
   );
 
   const totalRequests = bookings.length;
-  const accepted = bookings.filter((b) => b.status === "accepted" || b.status === "completed").length;
-  const rejected = bookings.filter((b) => b.status === "rejected" || b.status === "cancelled").length;
+  const accepted = bookings.filter(
+    (b) =>
+      b.status === "confirmed" ||
+      b.status === "accepted" ||
+      b.status === "in_progress" ||
+      b.status === "completed"
+  ).length;
+  const rejected = bookings.filter(
+    (b) =>
+      b.status === "rejected" ||
+      b.status === "cancelled_by_customer" ||
+      b.status === "cancelled_by_pro"
+  ).length;
   const conversion = totalRequests > 0 ? Math.round((accepted / totalRequests) * 100) : 0;
 
   const byService = bookings.reduce<Record<string, number>>((acc, b) => {

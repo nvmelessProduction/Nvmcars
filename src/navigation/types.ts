@@ -20,6 +20,7 @@ export type HomeStackParamList = {
   PaymentSuccess: { quoteId: string };
   MyCar: undefined;
   AddCar: undefined;
+  CarServiceLog: { carId: string };
 };
 
 export type BookingsStackParamList = {
@@ -42,6 +43,7 @@ export type ProfileStackParamList = {
   Settings: undefined;
   MyCar: undefined;
   AddCar: undefined;
+  CarServiceLog: { carId: string };
   PrivacyPolicy: undefined;
   TermsOfService: undefined;
   DataExport: undefined;
@@ -64,6 +66,14 @@ export type ProDashboardStackParamList = {
 export type ProRequestsStackParamList = {
   ProRequests: undefined;
   ProChat: { conversationId: string };
+  ProProposeSlots: { bookingId: string };
+  CreateQuote: { conversationId: string };
+  QuoteDetail: { quoteId: string };
+};
+
+export type ProChatStackParamList = {
+  ProChatsList: undefined;
+  ProChat: { conversationId: string };
   CreateQuote: { conversationId: string };
   QuoteDetail: { quoteId: string };
 };
@@ -78,7 +88,9 @@ export type ProCalendarStackParamList = {
 
 export type ProProfileStackParamList = {
   ProProfile: undefined;
+  ProOnboarding: undefined;
   ProEditWorkshop: undefined;
+  ProPriceList: undefined;
   ProSettings: undefined;
   ProChatsList: undefined;
   ProChat: { conversationId: string };
@@ -93,7 +105,11 @@ export type ProProfileStackParamList = {
 export type ProTabParamList = {
   ProDashboardTab: undefined;
   ProRequestsTab: undefined;
-  ProPriceListTab: undefined;
+  ProChatTab: undefined;
   ProCalendarTab: undefined;
   ProProfileTab: undefined;
+};
+
+export type ProNotificationsStackParamList = {
+  ProNotificationsList: undefined;
 };

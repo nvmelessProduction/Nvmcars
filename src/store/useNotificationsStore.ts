@@ -1,14 +1,16 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import type { Notification } from "@/types";
+import type { Notification, NotificationType } from "@/types";
 
 type NotificationsState = {
   notifications: Notification[];
   unreadCount: (userId: string) => number;
   markRead: (id: string) => void;
   markAllRead: (userId: string) => void;
-  push: (n: Omit<Notification, "id" | "createdAt" | "read">) => void;
+  push: (n: Omit<Notification, "id" | "createdAt" | "read">) => Notification;
+  remove: (id: string) => void;
+  byUser: (userId: string) => Notification[];
 };
 
 const generateId = () => `nt-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
@@ -17,12 +19,13 @@ const seedNotifications: Notification[] = [
   {
     id: "nt-seed-1",
     userId: "demo-customer",
-    type: "booking_accepted",
-    title: "Prenotazione confermata 🎉",
-    body: "Carrozzeria Tirrenica ha accettato la tua prenotazione.",
+    type: "booking_confirmed",
+    title: "Prenotazione confermata",
+    body: "Carrozzeria Tirrenica ha confermato il tuo appuntamento.",
     read: false,
     createdAt: Date.now() - 1000 * 60 * 30,
     relatedId: "bk-seed-2",
+    relatedKind: "booking",
   },
   {
     id: "nt-seed-2",
@@ -42,11 +45,12 @@ const seedNotifications: Notification[] = [
     read: true,
     createdAt: Date.now() - 1000 * 60 * 60 * 24 * 7,
     relatedId: "bk-seed-1",
+    relatedKind: "booking",
   },
   {
     id: "nt-seed-pro-1",
     userId: "demo-pro",
-    type: "new_review",
+    type: "booking_requested",
     title: "Nuova richiesta",
     body: "Hai ricevuto una richiesta di Tagliando.",
     read: false,
@@ -72,18 +76,20 @@ export const useNotificationsStore = create<NotificationsState>()(
             n.userId === userId ? { ...n, read: true } : n
           ),
         }),
-      push: (data) =>
-        set({
-          notifications: [
-            {
-              id: generateId(),
-              createdAt: Date.now(),
-              read: false,
-              ...data,
-            },
-            ...get().notifications,
-          ],
-        }),
+      push: (data) => {
+        const n: Notification = {
+          id: generateId(),
+          createdAt: Date.now(),
+          read: false,
+          ...data,
+        };
+        set({ notifications: [n, ...get().notifications] });
+        return n;
+      },
+      remove: (id) =>
+        set({ notifications: get().notifications.filter((n) => n.id !== id) }),
+      byUser: (userId) =>
+        get().notifications.filter((n) => n.userId === userId),
     }),
     {
       name: "nvmcars-notifications",
@@ -91,3 +97,14 @@ export const useNotificationsStore = create<NotificationsState>()(
     }
   )
 );
+
+export function notifyEvent(input: {
+  userId: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  relatedId?: string;
+  relatedKind?: Notification["relatedKind"];
+}) {
+  return useNotificationsStore.getState().push(input);
+}

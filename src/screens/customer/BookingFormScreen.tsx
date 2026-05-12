@@ -1,27 +1,21 @@
 import { useState } from "react";
 import { useNavigation, useRoute, type RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { KAV } from "@/components/KAV";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { TextField } from "@/components/TextField";
 import { Card } from "@/components/Card";
 import { useBookingsStore } from "@/store/useBookingsStore";
-import { useNotificationsStore } from "@/store/useNotificationsStore";
+import { notifyEvent } from "@/store/useNotificationsStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useActiveCar } from "@/store/useCarStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
-import { WORKSHOPS } from "@/data/workshops";
+import { useResolvedWorkshop } from "@/store/useWorkshopStore";
 import { getServiceLabel, getServiceEmoji } from "@/data/services";
-import { pricingForCar } from "@/data/carBrands";
+import { resolvePrice, isExactMatch } from "@/utils/pricing";
 import { openWhatsApp } from "@/utils/whatsapp";
 import type { HomeStackParamList } from "@/navigation/types";
 
@@ -37,15 +31,13 @@ export function BookingFormScreen() {
   const user = useAuthStore((s) => s.user);
   const car = useActiveCar();
   const createBooking = useBookingsStore((s) => s.createBooking);
-  const pushNotification = useNotificationsStore((s) => s.push);
+  const workshop = useResolvedWorkshop(workshopId);
 
-  const workshop = WORKSHOPS.find((w) => w.id === workshopId);
-  const basePrice = workshop?.services[service] ?? 0;
-  const finalPrice = car ? pricingForCar(basePrice, car.category) : basePrice;
+  const priceRes = workshop ? resolvePrice(workshop, service, car) : null;
   const [message, setMessage] = useState("");
 
   const handleConfirm = () => {
-    if (!user || !workshop) return;
+    if (!user || !workshop || !priceRes) return;
     if (!car) {
       Alert.alert("Manca la tua auto", "Aggiungi la tua auto per inviare la prenotazione.");
       return;
@@ -55,24 +47,24 @@ export function BookingFormScreen() {
       workshopId,
       service,
       carId: car.id,
-      estimatedPrice: finalPrice,
+      estimatedPrice: priceRes.finalPrice,
       message: message.trim(),
     });
-    pushNotification({
-      userId: workshop.id,
-      type: "system",
-      title: "Nuova richiesta",
-      body: `Hai ricevuto una richiesta di ${getServiceLabel(service)}.`,
-      relatedId: booking.id,
-    });
+    if (workshop.ownerId) {
+      notifyEvent({
+        userId: workshop.ownerId,
+        type: "booking_requested",
+        title: "Nuova richiesta",
+        body: `Hai ricevuto una richiesta di ${getServiceLabel(service)}.`,
+        relatedId: booking.id,
+        relatedKind: "booking",
+      });
+    }
     Alert.alert(
       "Richiesta inviata!",
-      "L'officina ti risponderà a breve. Vuoi avvisare anche su WhatsApp?",
+      "L'officina ti risponderà a breve con orari disponibili.",
       [
-        {
-          text: "Solo nell'app",
-          onPress: () => navigation.popToTop(),
-        },
+        { text: "Solo nell'app", onPress: () => navigation.popToTop() },
         {
           text: "Apri WhatsApp",
           onPress: () => {
@@ -89,7 +81,10 @@ export function BookingFormScreen() {
     );
   };
 
-  if (!workshop) return null;
+  if (!workshop || !priceRes) return null;
+
+  const exact = isExactMatch(priceRes);
+  const accepting = workshop.acceptingRequests !== false;
 
   return (
     <ScreenContainer>
@@ -99,7 +94,14 @@ export function BookingFormScreen() {
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
               <Text style={{ fontSize: 36 }}>{getServiceEmoji(service)}</Text>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 11, color: colors.textMuted, fontWeight: "700", letterSpacing: 0.8 }}>
+                <Text
+                  style={{
+                    fontSize: 11,
+                    color: colors.textMuted,
+                    fontWeight: "700",
+                    letterSpacing: 0.8,
+                  }}
+                >
                   SERVIZIO
                 </Text>
                 <Text style={{ fontSize: 18, fontWeight: "800", color: colors.text }}>
@@ -112,20 +114,39 @@ export function BookingFormScreen() {
             </View>
           </Card>
 
+          {!accepting ? (
+            <Card style={{ borderColor: colors.warning, borderWidth: 1.5 }}>
+              <Text style={{ fontSize: 13, color: colors.text, lineHeight: 19 }}>
+                ⏸️ {t.workshop.pausedBanner}
+              </Text>
+            </Card>
+          ) : null}
+
           <Card>
             <Text style={{ fontSize: 11, color: colors.textMuted, fontWeight: "700", letterSpacing: 0.8 }}>
-              {car ? t.car.customPricing.toUpperCase() : t.car.standardPricing.toUpperCase()}
+              {exact ? t.car.customPricing.toUpperCase() : t.car.standardPricing.toUpperCase()}
             </Text>
             <View style={{ flexDirection: "row", alignItems: "baseline", marginTop: 6, gap: 8 }}>
               <Text style={{ fontSize: 36, fontWeight: "800", color: colors.text }}>
-                €{finalPrice}
+                €{priceRes.finalPrice}
               </Text>
-              {car && finalPrice !== basePrice ? (
-                <Text style={{ fontSize: 14, color: colors.textMuted, textDecorationLine: "line-through" }}>
-                  €{basePrice}
+              {priceRes.finalPrice !== priceRes.basePrice ? (
+                <Text
+                  style={{
+                    fontSize: 14,
+                    color: colors.textMuted,
+                    textDecorationLine: "line-through",
+                  }}
+                >
+                  €{priceRes.basePrice}
                 </Text>
               ) : null}
             </View>
+            {exact ? (
+              <Text style={{ fontSize: 11, color: colors.accent, fontWeight: "800", marginTop: 6 }}>
+                ✨ Prezzo personalizzato dall'officina per la tua auto
+              </Text>
+            ) : null}
             {car ? (
               <View style={{ marginTop: 8 }}>
                 <Text style={{ fontSize: 13, color: colors.textMuted }}>
@@ -139,10 +160,13 @@ export function BookingFormScreen() {
             ) : (
               <Pressable onPress={() => navigation.navigate("AddCar")} style={{ marginTop: 10 }}>
                 <Text style={{ color: colors.accent, fontWeight: "700" }}>
-                  ➕ Aggiungi la tua auto per un prezzo su misura
+                  ➕ {t.home.addCar} per un prezzo su misura
                 </Text>
               </Pressable>
             )}
+            <Text style={{ fontSize: 11, color: colors.textMuted, marginTop: 8, fontStyle: "italic" }}>
+              Il prezzo è una stima. L'officina ti confermerà il prezzo definitivo dopo la valutazione.
+            </Text>
           </Card>
 
           <TextField
@@ -156,7 +180,12 @@ export function BookingFormScreen() {
           />
 
           <View style={{ marginTop: 8 }}>
-            <PrimaryButton label="Conferma e invia richiesta" icon="✅" onPress={handleConfirm} />
+            <PrimaryButton
+              label="Invia richiesta"
+              icon="📤"
+              onPress={handleConfirm}
+              disabled={!accepting}
+            />
           </View>
         </ScrollView>
       </KAV>

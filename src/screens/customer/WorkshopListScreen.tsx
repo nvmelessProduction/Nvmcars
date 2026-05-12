@@ -13,7 +13,9 @@ import { useUserLocation } from "@/hooks/useUserLocation";
 import { useActiveCar } from "@/store/useCarStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
-import { pricingForCar } from "@/data/carBrands";
+import { useWorkshopStore } from "@/store/useWorkshopStore";
+import { resolvePrice } from "@/utils/pricing";
+import type { Workshop } from "@/types";
 import type { HomeStackParamList } from "@/navigation/types";
 
 type Nav = NativeStackNavigationProp<HomeStackParamList, "WorkshopList">;
@@ -34,18 +36,26 @@ export function WorkshopListScreen() {
   const [city, setCity] = useState<CityFilter>("all");
   const [view, setView] = useState<"list" | "map">("list");
 
+  const ownWorkshops = useWorkshopStore((s) => s.ownWorkshops);
   const items = useMemo(() => {
-    const filtered = WORKSHOPS.filter((w) => {
+    const merged: Workshop[] = WORKSHOPS.map((w) => ownWorkshops[w.id] ?? w);
+    for (const own of Object.values(ownWorkshops)) {
+      if (!merged.some((m) => m.id === own.id)) merged.push(own);
+    }
+    const filtered = merged.filter((w) => {
+      if (w.status === "draft") return false;
       if (service && w.services[service] === undefined) return false;
       if (city !== "all" && w.city !== city) return false;
       return true;
     });
 
     const withMeta = filtered.map((w) => {
-      const basePrice = service
-        ? w.services[service] ?? Infinity
-        : Math.min(...Object.values(w.services));
-      const price = car && basePrice !== Infinity ? pricingForCar(basePrice, car.category) : basePrice;
+      const res = service ? resolvePrice(w, service, car) : null;
+      const price = res
+        ? res.finalPrice
+        : Object.values(w.services).length > 0
+          ? Math.min(...Object.values(w.services))
+          : Infinity;
       return {
         workshop: w,
         distanceKm: location ? haversineKm(location.lat, location.lng, w.lat, w.lng) : 0,
@@ -58,7 +68,7 @@ export function WorkshopListScreen() {
       if (sort === "price") return a.price - b.price;
       return b.workshop.rating - a.workshop.rating;
     });
-  }, [service, location, sort, city, car]);
+  }, [service, location, sort, city, car, ownWorkshops]);
 
   if (loading) {
     return (

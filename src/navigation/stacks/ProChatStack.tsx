@@ -1,16 +1,15 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { ProRequestsScreen } from "@/screens/professional/ProRequestsScreen";
+import { ProChatsListScreen } from "@/screens/professional/ProChatsListScreen";
 import { ProChatScreen } from "@/screens/professional/ProChatScreen";
-import { ProProposeSlotsScreen } from "@/screens/professional/ProProposeSlotsScreen";
 import { CreateQuoteScreen } from "@/screens/professional/CreateQuoteScreen";
 import { QuoteDetailScreen } from "@/screens/customer/QuoteDetailScreen";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
-import type { ProRequestsStackParamList } from "../types";
+import type { ProChatStackParamList } from "../types";
 
-const Stack = createNativeStackNavigator<ProRequestsStackParamList>();
+const Stack = createNativeStackNavigator<ProChatStackParamList>();
 
-export function ProRequestsStack() {
+export function ProChatStack() {
   const colors = useColors();
   const t = useT();
 
@@ -24,19 +23,14 @@ export function ProRequestsStack() {
       }}
     >
       <Stack.Screen
-        name="ProRequests"
-        component={ProRequestsScreen}
-        options={{ title: t.tabs.requests }}
+        name="ProChatsList"
+        component={ProChatsListScreen}
+        options={{ title: t.chat.chats }}
       />
       <Stack.Screen
         name="ProChat"
         component={ProChatScreen}
         options={{ title: "" }}
-      />
-      <Stack.Screen
-        name="ProProposeSlots"
-        component={ProProposeSlotsScreen}
-        options={{ title: t.pro.proposeSlots }}
       />
       <Stack.Screen
         name="CreateQuote"

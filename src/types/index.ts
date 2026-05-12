@@ -31,6 +31,10 @@ export type Car = {
   displacement: number;
   category: CarCategory;
   nickname?: string;
+  km?: number;
+  lastServiceAt?: number;
+  nextRevisionAt?: number;
+  nextServiceKm?: number;
 };
 
 export type CustomerUser = {
@@ -64,23 +68,87 @@ export type WorkshopHours = {
   sunday: { open: string; close: string; closed?: boolean };
 };
 
+export type WorkshopFiscalData = {
+  legalName: string;
+  vatNumber: string;
+  taxCode: string;
+  sdiCode?: string;
+  pec?: string;
+  ibanLast4?: string;
+};
+
+export type WorkshopOwner = {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  avatar?: string;
+};
+
+export type ServicePriceOverride = {
+  id: string;
+  serviceKey: ServiceKey;
+  brand?: string;
+  model?: string;
+  price: number;
+};
+
+export type WorkshopVacation = {
+  id: string;
+  fromDate: string;
+  toDate: string;
+  reason?: string;
+};
+
+export type WorkshopStatus = "draft" | "active" | "paused";
+
 export type Workshop = {
   id: string;
+  ownerId?: string;
   name: string;
-  city: "Cerveteri" | "Ladispoli";
+  city: string;
   address: string;
+  cap?: string;
+  province?: string;
   phone: string;
   lat: number;
   lng: number;
   rating: number;
   reviewsCount: number;
   photo: string;
+  photos?: string[];
+  logo?: string;
   description: string;
   hours: WorkshopHours;
   services: Partial<Record<ServiceKey, number>>;
+  priceOverrides?: ServicePriceOverride[];
+  fiscalData?: WorkshopFiscalData;
+  owner?: WorkshopOwner;
+  vacations?: WorkshopVacation[];
+  status?: WorkshopStatus;
+  acceptingRequests?: boolean;
+  stripeConnected?: boolean;
+  inOfficinaPayment?: boolean;
+  responseTimeHours?: number;
+  autoReplyOutOfHours?: string;
 };
 
-export type BookingStatus = "pending" | "accepted" | "rejected" | "completed" | "cancelled";
+export type BookingSlot = {
+  id: string;
+  startAt: number;
+  durationMinutes: number;
+};
+
+export type BookingStatus =
+  | "requested"
+  | "slot_proposed"
+  | "confirmed"
+  | "in_progress"
+  | "completed"
+  | "cancelled_by_customer"
+  | "cancelled_by_pro"
+  | "rejected"
+  | "pending"
+  | "accepted";
 
 export type Booking = {
   id: string;
@@ -93,6 +161,15 @@ export type Booking = {
   message: string;
   createdAt: number;
   scheduledAt?: number;
+  proposedSlots?: BookingSlot[];
+  proposedAt?: number;
+  proposedNote?: string;
+  selectedSlotId?: string;
+  startedAt?: number;
+  completedAt?: number;
+  cancelledAt?: number;
+  cancellationReason?: string;
+  photos?: string[];
 };
 
 export type Review = {
@@ -106,15 +183,39 @@ export type Review = {
   createdAt: number;
 };
 
+export type NotificationType =
+  | "booking_requested"
+  | "booking_slot_proposed"
+  | "booking_confirmed"
+  | "booking_in_progress"
+  | "booking_completed"
+  | "booking_cancelled"
+  | "booking_rejected"
+  | "booking_reminder"
+  | "booking_accepted"
+  | "new_message"
+  | "new_quote"
+  | "quote_accepted"
+  | "quote_rejected"
+  | "payment_received"
+  | "payment_succeeded"
+  | "new_review"
+  | "review_received"
+  | "service_reminder"
+  | "revision_due"
+  | "promo"
+  | "system";
+
 export type Notification = {
   id: string;
   userId: string;
-  type: "booking_accepted" | "booking_rejected" | "booking_completed" | "new_review" | "promo" | "system";
+  type: NotificationType;
   title: string;
   body: string;
   read: boolean;
   createdAt: number;
   relatedId?: string;
+  relatedKind?: "booking" | "quote" | "review" | "conversation" | "car";
 };
 
 export type ChatMessageKind = "text" | "image" | "video" | "quote" | "system";
@@ -168,4 +269,27 @@ export type Conversation = {
   lastMessage?: string;
   lastMessageAt?: number;
   unreadCount: number;
+  unreadCountPro?: number;
+};
+
+export type ServiceLogEntry = {
+  id: string;
+  carId: string;
+  workshopId?: string;
+  workshopName?: string;
+  service: ServiceKey;
+  description?: string;
+  cost?: number;
+  km?: number;
+  performedAt: number;
+};
+
+export type CarReminderKind = "revision" | "service" | "insurance" | "tax";
+
+export type CarReminder = {
+  id: string;
+  carId: string;
+  kind: CarReminderKind;
+  dueAt: number;
+  note?: string;
 };

@@ -7,16 +7,7 @@ import { useNotificationsStore } from "@/store/useNotificationsStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
-import type { Notification } from "@/types";
-
-const TYPE_EMOJI: Record<Notification["type"], string> = {
-  booking_accepted: "✅",
-  booking_rejected: "❌",
-  booking_completed: "🏁",
-  new_review: "⭐",
-  promo: "🎁",
-  system: "ℹ️",
-};
+import { notificationMeta } from "@/utils/bookingStatus";
 
 function timeAgo(ts: number): string {
   const diff = Date.now() - ts;
@@ -73,7 +64,7 @@ export function NotificationsScreen() {
                 <Pressable onPress={() => markRead(item.id)}>
                   <Card style={{ borderColor: item.read ? colors.border : colors.accent }}>
                     <View style={{ flexDirection: "row", gap: 12, alignItems: "flex-start" }}>
-                      <Text style={{ fontSize: 30 }}>{TYPE_EMOJI[item.type]}</Text>
+                      <Text style={{ fontSize: 30 }}>{notificationMeta(item.type).icon}</Text>
                       <View style={{ flex: 1 }}>
                         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
                           <Text style={{ fontSize: 15, fontWeight: "700", color: colors.text, flex: 1 }}>

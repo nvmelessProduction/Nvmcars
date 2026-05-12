@@ -12,9 +12,10 @@ import { useFavoritesStore } from "@/store/useFavoritesStore";
 import { useActiveCar } from "@/store/useCarStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
-import { WORKSHOPS, formatWeeklyHours, isOpenNow } from "@/data/workshops";
-import { SERVICES, getServiceLabel } from "@/data/services";
-import { pricingForCar } from "@/data/carBrands";
+import { formatWeeklyHours, isOpenNow } from "@/data/workshops";
+import { SERVICES } from "@/data/services";
+import { useResolvedWorkshop } from "@/store/useWorkshopStore";
+import { resolvePrice, isExactMatch } from "@/utils/pricing";
 import type { HomeStackParamList } from "@/navigation/types";
 
 type Nav = NativeStackNavigationProp<HomeStackParamList, "WorkshopDetail">;
@@ -40,7 +41,7 @@ export function WorkshopDetailScreen() {
     [allReviews, workshopId]
   );
 
-  const workshop = useMemo(() => WORKSHOPS.find((w) => w.id === workshopId), [workshopId]);
+  const workshop = useResolvedWorkshop(workshopId);
 
   useLayoutEffect(() => {
     navigation.setOptions({ title: workshop?.name ?? "" });
@@ -134,6 +135,14 @@ export function WorkshopDetailScreen() {
             </Text>
           </Card>
 
+          {workshop.acceptingRequests === false ? (
+            <Card style={{ borderColor: colors.warning, borderWidth: 1.5 }}>
+              <Text style={{ fontSize: 13, color: colors.text, lineHeight: 19 }}>
+                ⏸️ {t.workshop.pausedBanner}
+              </Text>
+            </Card>
+          ) : null}
+
           <Card>
             <Text style={{ fontSize: 12, color: colors.textMuted, fontWeight: "700", letterSpacing: 0.6 }}>
               💶 {t.workshop.priceListLabel.toUpperCase()}
@@ -145,9 +154,10 @@ export function WorkshopDetailScreen() {
             ) : null}
             <View style={{ marginTop: 10, gap: 4 }}>
               {SERVICES.filter((s) => workshop.services[s.key] !== undefined).map((s, idx) => {
-                const basePrice = workshop.services[s.key]!;
-                const finalPrice = car ? pricingForCar(basePrice, car.category) : basePrice;
+                const res = resolvePrice(workshop, s.key, car);
+                if (!res) return null;
                 const highlighted = s.key === service;
+                const exact = isExactMatch(res);
                 return (
                   <Pressable
                     key={s.key}
@@ -164,25 +174,40 @@ export function WorkshopDetailScreen() {
                       borderTopColor: colors.border,
                     }}
                   >
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flex: 1 }}>
                       <Text style={{ fontSize: 22 }}>{s.emoji}</Text>
-                      <Text
-                        style={{
-                          fontSize: 15,
-                          color: colors.text,
-                          fontWeight: highlighted ? "800" : "600",
-                        }}
-                      >
-                        {s.label}
-                      </Text>
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={{
+                            fontSize: 15,
+                            color: colors.text,
+                            fontWeight: highlighted ? "800" : "600",
+                          }}
+                        >
+                          {s.label}
+                        </Text>
+                        {exact ? (
+                          <Text
+                            style={{
+                              fontSize: 10,
+                              color: colors.accent,
+                              fontWeight: "800",
+                              marginTop: 2,
+                              letterSpacing: 0.4,
+                            }}
+                          >
+                            ✨ {t.workshop.promotedPrice.toUpperCase()}
+                          </Text>
+                        ) : null}
+                      </View>
                     </View>
                     <View style={{ alignItems: "flex-end" }}>
                       <Text style={{ fontSize: 16, fontWeight: "800", color: colors.text }}>
-                        €{finalPrice}
+                        €{res.finalPrice}
                       </Text>
-                      {car && finalPrice !== basePrice ? (
+                      {res.finalPrice !== res.basePrice ? (
                         <Text style={{ fontSize: 11, color: colors.textMuted, textDecorationLine: "line-through" }}>
-                          €{basePrice}
+                          €{res.basePrice}
                         </Text>
                       ) : null}
                     </View>
