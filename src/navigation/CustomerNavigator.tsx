@@ -7,6 +7,7 @@ import { NotificationsStack } from "./stacks/NotificationsStack";
 import { ProfileStack } from "./stacks/ProfileStack";
 import { useColors } from "@/store/useThemeStore";
 import { useNotificationsStore } from "@/store/useNotificationsStore";
+import { useBookingsStore } from "@/store/useBookingsStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useT } from "@/i18n";
 import type { CustomerTabParamList } from "./types";
@@ -46,8 +47,12 @@ export function CustomerNavigator() {
   const t = useT();
   const user = useAuthStore((s) => s.user);
   const allNotifications = useNotificationsStore((s) => s.notifications);
+  const allBookings = useBookingsStore((s) => s.bookings);
   const unread = user
     ? allNotifications.filter((n) => n.userId === user.id && !n.read).length
+    : 0;
+  const slotsToConfirm = user
+    ? allBookings.filter((b) => b.customerId === user.id && b.status === "slot_proposed").length
     : 0;
 
   return (
@@ -79,7 +84,9 @@ export function CustomerNavigator() {
         component={BookingsStack}
         options={{
           title: t.tabs.bookings,
-          tabBarIcon: ({ focused }) => <TabIcon emoji="📅" focused={focused} />,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon emoji="📅" focused={focused} badge={slotsToConfirm} />
+          ),
         }}
       />
       <Tab.Screen

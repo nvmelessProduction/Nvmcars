@@ -170,7 +170,7 @@ export function BookingFormScreen() {
           </Card>
 
           <TextField
-            label="Messaggio per l'officina (opzionale)"
+            label={`${t.pro.requestMessage} (${t.common.optional})`}
             value={message}
             onChangeText={setMessage}
             placeholder="es. Quando posso passare? Ho un'urgenza..."
@@ -181,7 +181,7 @@ export function BookingFormScreen() {
 
           <View style={{ marginTop: 8 }}>
             <PrimaryButton
-              label="Invia richiesta"
+              label={t.common.submit}
               icon="📤"
               onPress={handleConfirm}
               disabled={!accepting}

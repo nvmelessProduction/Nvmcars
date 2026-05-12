@@ -7,6 +7,7 @@ import { Card } from "@/components/Card";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useChatStore } from "@/store/useChatStore";
+import { useNotificationsStore } from "@/store/useNotificationsStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
 import { useWorkshopStore, useOwnWorkshop } from "@/store/useWorkshopStore";
@@ -21,6 +22,7 @@ export function ProProfileScreen() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const conversations = useChatStore((s) => s.conversations);
+  const notifs = useNotificationsStore((s) => s.notifications);
   const ensureWorkshop = useWorkshopStore((s) => s.ensureWorkshop);
   const setAcceptingRequests = useWorkshopStore((s) => s.setAcceptingRequests);
   const missingOnboardingSteps = useWorkshopStore((s) => s.missingOnboardingSteps);
@@ -40,6 +42,7 @@ export function ProProfileScreen() {
   const unreadCount = conversations
     .filter((c) => c.workshopId === user.workshopId)
     .reduce((acc, c) => acc + (c.unreadCountPro ?? 0), 0);
+  const unreadNotifs = notifs.filter((n) => n.userId === user.id && !n.read).length;
 
   return (
     <ScreenContainer>
@@ -163,6 +166,18 @@ export function ProProfileScreen() {
           title={t.pro.editPriceList}
           subtitle="Servizi, prezzi base e personalizzati"
           onPress={() => navigation.navigate("ProPriceList")}
+          colors={colors}
+        />
+        <ActionRow
+          icon="🔔"
+          title={t.notifications.notifications}
+          subtitle={
+            unreadNotifs > 0
+              ? `${unreadNotifs} ${unreadNotifs === 1 ? "non letta" : "non lette"}`
+              : "Tutte lette"
+          }
+          badge={unreadNotifs > 0 ? unreadNotifs : undefined}
+          onPress={() => navigation.navigate("ProNotifications")}
           colors={colors}
         />
         <ActionRow

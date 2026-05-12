@@ -47,7 +47,7 @@ export function ProChatsListScreen() {
     <ScreenContainer>
       {myConversations.length === 0 ? (
         <View style={{ flex: 1, justifyContent: "center" }}>
-          <EmptyState emoji="💬" title={t.pro.noChats} />
+          <EmptyState emoji="💬" title={t.pro.noChats} body={t.chat.noChatsHint} />
         </View>
       ) : (
         <FlatList
@@ -104,7 +104,7 @@ export function ProChatsListScreen() {
                         >
                           {item.lastMessage ?? "—"}
                         </Text>
-                        {item.unreadCount > 0 ? (
+                        {(item.unreadCountPro ?? 0) > 0 ? (
                           <View
                             style={{
                               backgroundColor: colors.accent,
@@ -116,7 +116,7 @@ export function ProChatsListScreen() {
                             }}
                           >
                             <Text style={{ color: "#FFF", fontSize: 11, fontWeight: "800" }}>
-                              {item.unreadCount}
+                              {item.unreadCountPro}
                             </Text>
                           </View>
                         ) : null}

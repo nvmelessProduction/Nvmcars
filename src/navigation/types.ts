@@ -91,6 +91,7 @@ export type ProProfileStackParamList = {
   ProOnboarding: undefined;
   ProEditWorkshop: undefined;
   ProPriceList: undefined;
+  ProNotifications: undefined;
   ProSettings: undefined;
   ProChatsList: undefined;
   ProChat: { conversationId: string };

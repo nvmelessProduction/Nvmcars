@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { FlatList, Pressable, Text, View } from "react-native";
+import { FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { Card } from "@/components/Card";
@@ -25,6 +25,11 @@ export function MyBookingsScreen() {
   const user = useAuthStore((s) => s.user);
   const allRaw = useBookingsStore((s) => s.bookings);
   const [tab, setTab] = useState<"upcoming" | "history">("upcoming");
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 500);
+  }, []);
 
   const all = useMemo(
     () => (user ? allRaw.filter((b) => b.customerId === user.id) : []),
@@ -89,13 +94,24 @@ export function MyBookingsScreen() {
 
         {filtered.length === 0 ? (
           <View style={{ flex: 1, justifyContent: "center" }}>
-            <EmptyState emoji="📅" title={t.bookings.noBookings} />
+            <EmptyState
+              emoji="📅"
+              title={tab === "upcoming" ? t.bookings.noUpcoming : t.bookings.noHistory}
+              body={tab === "upcoming" ? t.bookings.noBookingsHint : undefined}
+            />
           </View>
         ) : (
           <FlatList
             data={filtered}
             keyExtractor={(item) => item.id}
             contentContainerStyle={{ gap: 12, paddingBottom: 24 }}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor={colors.accent}
+              />
+            }
             renderItem={({ item, index }) => (
               <BookingRow
                 booking={item}

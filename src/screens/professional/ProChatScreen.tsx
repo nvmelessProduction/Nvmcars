@@ -32,7 +32,12 @@ export function ProChatScreen() {
   const user = useAuthStore((s) => s.user);
   const allMessages = useChatStore((s) => s.messages);
   const send = useChatStore((s) => s.send);
+  const markRead = useChatStore((s) => s.markRead);
   const conversations = useChatStore((s) => s.conversations);
+
+  useEffect(() => {
+    markRead(conversationId, "pro");
+  }, [conversationId, markRead]);
   const messages = useMemo(
     () =>
       allMessages

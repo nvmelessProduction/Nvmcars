@@ -10,6 +10,7 @@ import { PaymentScreen } from "@/screens/customer/PaymentScreen";
 import { PaymentSuccessScreen } from "@/screens/customer/PaymentSuccessScreen";
 import { MyCarScreen } from "@/screens/customer/MyCarScreen";
 import { AddCarScreen } from "@/screens/customer/AddCarScreen";
+import { CarServiceLogScreen } from "@/screens/customer/CarServiceLogScreen";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
 import type { HomeStackParamList } from "../types";
@@ -68,6 +69,11 @@ export function HomeStack() {
       />
       <Stack.Screen name="MyCar" component={MyCarScreen} options={{ title: t.car.yourCar }} />
       <Stack.Screen name="AddCar" component={AddCarScreen} options={{ title: t.home.addCar }} />
+      <Stack.Screen
+        name="CarServiceLog"
+        component={CarServiceLogScreen}
+        options={{ title: t.car.serviceLog }}
+      />
     </Stack.Navigator>
   );
 }

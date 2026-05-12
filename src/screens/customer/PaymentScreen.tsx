@@ -4,6 +4,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import {
   ActivityIndicator,
   Alert,
+  Pressable,
   ScrollView,
   Text,
   View,
@@ -36,6 +37,7 @@ export function PaymentScreen() {
   const [expiry, setExpiry] = useState("");
   const [cvv, setCvv] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [method, setMethod] = useState<"card" | "in_shop">("card");
 
   useLayoutEffect(() => {
     navigation.setOptions({ title: t.payment.title });
@@ -73,7 +75,35 @@ export function PaymentScreen() {
     return null;
   };
 
-  const onPay = () => {
+  const onPayInShop = () => {
+    Alert.alert(
+      "Conferma pagamento in officina",
+      "Concorderai il pagamento direttamente con l'officina al ritiro. Nessuna commissione Nvmcars.",
+      [
+        { text: t.common.cancel, style: "cancel" },
+        {
+          text: t.common.confirm,
+          onPress: () => {
+            const paymentRef = `IN-SHOP-${Date.now().toString(36).toUpperCase()}`;
+            setStatus(quote.id, "accepted", { acceptedAt: Date.now() });
+            sendMsg({
+              conversationId: quote.conversationId,
+              senderId: quote.customerId,
+              kind: "system",
+              text: `Pagamento concordato in officina. (Ref ${paymentRef})`,
+            });
+            Alert.alert(
+              "Prenotazione confermata",
+              "Buona riparazione! Pagherai direttamente in officina al ritiro.",
+              [{ text: "OK", onPress: () => navigation.popToTop() }]
+            );
+          },
+        },
+      ]
+    );
+  };
+
+  const onPayCard = () => {
     const err = validate();
     if (err) {
       Alert.alert(t.payment.failure, err);
@@ -127,51 +157,122 @@ export function PaymentScreen() {
             </View>
           </Card>
 
+          <Card padding={16} style={{ borderColor: colors.warning, borderWidth: 1.2 }}>
+            <Text style={{ fontSize: 13, color: colors.text, fontWeight: "700" }}>
+              🚧 {t.payment.comingSoon}
+            </Text>
+            <Text style={{ fontSize: 12, color: colors.textMuted, marginTop: 4, lineHeight: 17 }}>
+              {t.payment.comingSoonBody}
+            </Text>
+          </Card>
+
           <Card padding={16}>
             <Text style={{ fontSize: 12, fontWeight: "800", color: colors.textMuted, letterSpacing: 0.5, marginBottom: 12 }}>
               {t.payment.paymentMethod.toUpperCase()}
             </Text>
 
-            <View style={{ gap: 10 }}>
-              <TextField
-                label={t.payment.cardholderName}
-                value={cardholder}
-                onChangeText={setCardholder}
-                placeholder="Mario Rossi"
-                autoCapitalize="words"
-              />
-              <TextField
-                label={t.payment.cardNumber}
-                value={cardNumber}
-                onChangeText={(v) => setCardNumber(formatCardNumber(v))}
-                placeholder="0000 0000 0000 0000"
-                keyboardType="number-pad"
-              />
-              <View style={{ flexDirection: "row", gap: 10 }}>
-                <View style={{ flex: 1 }}>
-                  <TextField
-                    label={t.payment.cardExpiry}
-                    value={expiry}
-                    onChangeText={(v) => setExpiry(formatExpiry(v))}
-                    placeholder="MM/AA"
-                    keyboardType="number-pad"
-                    maxLength={5}
-                  />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <TextField
-                    label={t.payment.cardCvv}
-                    value={cvv}
-                    onChangeText={(v) => setCvv(v.replace(/[^0-9]/g, "").slice(0, 4))}
-                    placeholder="123"
-                    keyboardType="number-pad"
-                    secureTextEntry
-                    maxLength={4}
-                  />
-                </View>
-              </View>
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <Pressable
+                onPress={() => setMethod("card")}
+                style={{
+                  flex: 1,
+                  paddingVertical: 14,
+                  borderRadius: 12,
+                  borderWidth: 1.5,
+                  borderColor: method === "card" ? colors.accent : colors.border,
+                  backgroundColor: method === "card" ? colors.accentSoft : colors.bgElevated,
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ fontSize: 24 }}>💳</Text>
+                <Text style={{ fontWeight: "800", color: colors.text, fontSize: 13, marginTop: 4 }}>
+                  Carta (Demo)
+                </Text>
+                <Text style={{ fontSize: 10, color: colors.textMuted, marginTop: 2 }}>
+                  Test mode
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => setMethod("in_shop")}
+                style={{
+                  flex: 1,
+                  paddingVertical: 14,
+                  borderRadius: 12,
+                  borderWidth: 1.5,
+                  borderColor: method === "in_shop" ? colors.accent : colors.border,
+                  backgroundColor: method === "in_shop" ? colors.accentSoft : colors.bgElevated,
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ fontSize: 24 }}>🏪</Text>
+                <Text style={{ fontWeight: "800", color: colors.text, fontSize: 13, marginTop: 4 }}>
+                  {t.payment.payAtShopChoice}
+                </Text>
+                <Text style={{ fontSize: 10, color: colors.textMuted, marginTop: 2 }}>
+                  Niente commissione
+                </Text>
+              </Pressable>
             </View>
           </Card>
+
+          {method === "card" ? (
+            <Card padding={16}>
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: "800",
+                  color: colors.textMuted,
+                  letterSpacing: 0.5,
+                  marginBottom: 12,
+                }}
+              >
+                {t.payment.card.toUpperCase()}
+              </Text>
+
+              <View style={{ gap: 10 }}>
+                <TextField
+                  label={t.payment.cardholderName}
+                  value={cardholder}
+                  onChangeText={setCardholder}
+                  placeholder="Mario Rossi"
+                  autoCapitalize="words"
+                />
+                <TextField
+                  label={t.payment.cardNumber}
+                  value={cardNumber}
+                  onChangeText={(v) => setCardNumber(formatCardNumber(v))}
+                  placeholder="0000 0000 0000 0000"
+                  keyboardType="number-pad"
+                />
+                <View style={{ flexDirection: "row", gap: 10 }}>
+                  <View style={{ flex: 1 }}>
+                    <TextField
+                      label={t.payment.cardExpiry}
+                      value={expiry}
+                      onChangeText={(v) => setExpiry(formatExpiry(v))}
+                      placeholder="MM/AA"
+                      keyboardType="number-pad"
+                      maxLength={5}
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <TextField
+                      label={t.payment.cardCvv}
+                      value={cvv}
+                      onChangeText={(v) => setCvv(v.replace(/[^0-9]/g, "").slice(0, 4))}
+                      placeholder="123"
+                      keyboardType="number-pad"
+                      secureTextEntry
+                      maxLength={4}
+                    />
+                  </View>
+                </View>
+                <Text style={{ fontSize: 11, color: colors.textMuted, marginTop: 6, fontStyle: "italic" }}>
+                  💡 {t.payment.cardSimulationNote}
+                </Text>
+              </View>
+            </Card>
+          ) : null}
 
           <View
             style={{
@@ -190,14 +291,28 @@ export function PaymentScreen() {
           </View>
 
           {processing ? (
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 10, justifyContent: "center", paddingVertical: 12 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 10,
+                justifyContent: "center",
+                paddingVertical: 12,
+              }}
+            >
               <ActivityIndicator color={colors.accent} />
               <Text style={{ color: colors.textMuted }}>{t.payment.processing}</Text>
             </View>
-          ) : (
+          ) : method === "card" ? (
             <PrimaryButton
               label={`${t.payment.payNow} — € ${quote.total.toFixed(2)}`}
-              onPress={onPay}
+              onPress={onPayCard}
+            />
+          ) : (
+            <PrimaryButton
+              label={`${t.payment.payAtShopChoice} — € ${quote.subtotal.toFixed(2)}`}
+              icon="🏪"
+              onPress={onPayInShop}
             />
           )}
         </ScrollView>

@@ -3,6 +3,7 @@ import { ProProfileScreen } from "@/screens/professional/ProProfileScreen";
 import { ProEditWorkshopScreen } from "@/screens/professional/ProEditWorkshopScreen";
 import { ProOnboardingScreen } from "@/screens/professional/ProOnboardingScreen";
 import { ProPriceListScreen } from "@/screens/professional/ProPriceListScreen";
+import { ProNotificationsScreen } from "@/screens/professional/ProNotificationsScreen";
 import { ProSettingsScreen } from "@/screens/professional/ProSettingsScreen";
 import { ProChatsListScreen } from "@/screens/professional/ProChatsListScreen";
 import { ProChatScreen } from "@/screens/professional/ProChatScreen";
@@ -50,6 +51,11 @@ export function ProProfileStack() {
         name="ProPriceList"
         component={ProPriceListScreen}
         options={{ title: t.pro.editPriceList }}
+      />
+      <Stack.Screen
+        name="ProNotifications"
+        component={ProNotificationsScreen}
+        options={{ title: t.notifications.notifications }}
       />
       <Stack.Screen
         name="ProSettings"

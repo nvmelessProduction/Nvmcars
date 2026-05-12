@@ -33,6 +33,7 @@ export function ChatScreen() {
   const user = useAuthStore((s) => s.user);
   const ensure = useChatStore((s) => s.ensureConversation);
   const send = useChatStore((s) => s.send);
+  const markRead = useChatStore((s) => s.markRead);
   const allMessages = useChatStore((s) => s.messages);
   const workshop = WORKSHOPS.find((w) => w.id === workshopId);
   const [text, setText] = useState("");
@@ -48,6 +49,10 @@ export function ChatScreen() {
   }, [user, workshopId, ensure]);
 
   const convId = user ? `cv-${user.id}-${workshopId}` : "";
+
+  useEffect(() => {
+    if (convId) markRead(convId, "customer");
+  }, [convId, markRead]);
   const messages = useMemo(
     () =>
       allMessages

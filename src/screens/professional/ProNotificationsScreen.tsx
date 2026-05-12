@@ -1,5 +1,4 @@
-import { useCallback, useState } from "react";
-import { FlatList, Pressable, RefreshControl, Text, View } from "react-native";
+import { FlatList, Pressable, Text, View } from "react-native";
 import Animated, { FadeInRight } from "react-native-reanimated";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { Card } from "@/components/Card";
@@ -13,13 +12,14 @@ import { notificationMeta } from "@/utils/bookingStatus";
 function timeAgo(ts: number): string {
   const diff = Date.now() - ts;
   const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return "ora";
   if (minutes < 60) return `${minutes} min`;
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours}h`;
   return `${Math.floor(hours / 24)}g`;
 }
 
-export function NotificationsScreen() {
+export function ProNotificationsScreen() {
   const colors = useColors();
   const t = useT();
   const user = useAuthStore((s) => s.user);
@@ -30,12 +30,6 @@ export function NotificationsScreen() {
   const items = user
     ? all.filter((n) => n.userId === user.id).sort((a, b) => b.createdAt - a.createdAt)
     : [];
-
-  const [refreshing, setRefreshing] = useState(false);
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 500);
-  }, []);
 
   return (
     <ScreenContainer>
@@ -69,9 +63,6 @@ export function NotificationsScreen() {
           <FlatList
             data={items}
             keyExtractor={(item) => item.id}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />
-            }
             contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24, gap: 10 }}
             renderItem={({ item, index }) => (
               <Animated.View entering={FadeInRight.delay(index * 50).duration(300)}>
@@ -81,14 +72,23 @@ export function NotificationsScreen() {
                       <Text style={{ fontSize: 30 }}>{notificationMeta(item.type).icon}</Text>
                       <View style={{ flex: 1 }}>
                         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                          <Text style={{ fontSize: 15, fontWeight: "700", color: colors.text, flex: 1 }}>
+                          <Text
+                            style={{ fontSize: 15, fontWeight: "700", color: colors.text, flex: 1 }}
+                          >
                             {item.title}
                           </Text>
                           <Text style={{ fontSize: 11, color: colors.textMuted, marginLeft: 6 }}>
                             {timeAgo(item.createdAt)}
                           </Text>
                         </View>
-                        <Text style={{ fontSize: 13, color: colors.textMuted, marginTop: 4, lineHeight: 20 }}>
+                        <Text
+                          style={{
+                            fontSize: 13,
+                            color: colors.textMuted,
+                            marginTop: 4,
+                            lineHeight: 20,
+                          }}
+                        >
                           {item.body}
                         </Text>
                       </View>

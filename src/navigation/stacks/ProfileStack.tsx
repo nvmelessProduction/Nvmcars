@@ -3,6 +3,7 @@ import { CustomerProfileScreen } from "@/screens/customer/CustomerProfileScreen"
 import { SettingsScreen } from "@/screens/customer/SettingsScreen";
 import { MyCarScreen } from "@/screens/customer/MyCarScreen";
 import { AddCarScreen } from "@/screens/customer/AddCarScreen";
+import { CarServiceLogScreen } from "@/screens/customer/CarServiceLogScreen";
 import { PrivacyPolicyScreen } from "@/screens/legal/PrivacyPolicyScreen";
 import { TermsOfServiceScreen } from "@/screens/legal/TermsOfServiceScreen";
 import { DataExportScreen } from "@/screens/legal/DataExportScreen";
@@ -38,6 +39,11 @@ export function ProfileStack() {
       />
       <Stack.Screen name="MyCar" component={MyCarScreen} options={{ title: t.car.yourCar }} />
       <Stack.Screen name="AddCar" component={AddCarScreen} options={{ title: t.home.addCar }} />
+      <Stack.Screen
+        name="CarServiceLog"
+        component={CarServiceLogScreen}
+        options={{ title: t.car.serviceLog }}
+      />
       <Stack.Screen
         name="PrivacyPolicy"
         component={PrivacyPolicyScreen}

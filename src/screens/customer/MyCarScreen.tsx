@@ -85,22 +85,45 @@ export function MyCarScreen() {
                         <Text style={{ fontSize: 18 }}>🗑️</Text>
                       </Pressable>
                     </View>
-                    {isActive ? (
-                      <View
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        gap: 8,
+                        marginTop: 12,
+                        alignItems: "center",
+                      }}
+                    >
+                      {isActive ? (
+                        <View
+                          style={{
+                            paddingHorizontal: 10,
+                            paddingVertical: 4,
+                            backgroundColor: colors.accent,
+                            borderRadius: 12,
+                          }}
+                        >
+                          <Text style={{ color: "#FFF", fontSize: 11, fontWeight: "700" }}>
+                            ATTIVA
+                          </Text>
+                        </View>
+                      ) : null}
+                      <Pressable
+                        onPress={() => navigation.navigate("CarServiceLog", { carId: item.id })}
+                        hitSlop={6}
                         style={{
-                          marginTop: 12,
                           paddingHorizontal: 10,
                           paddingVertical: 4,
-                          backgroundColor: colors.accent,
-                          alignSelf: "flex-start",
                           borderRadius: 12,
+                          borderWidth: 1,
+                          borderColor: colors.border,
+                          backgroundColor: colors.bgElevated,
                         }}
                       >
-                        <Text style={{ color: "#FFF", fontSize: 11, fontWeight: "700" }}>
-                          ATTIVA
+                        <Text style={{ color: colors.text, fontSize: 11, fontWeight: "700" }}>
+                          📋 {t.car.serviceLog}
                         </Text>
-                      </View>
-                    ) : null}
+                      </Pressable>
+                    </View>
                   </Card>
                 </Pressable>
               );

@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { Alert, FlatList, Pressable, Text, View } from "react-native";
+import { Alert, FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 import Animated, { FadeInRight } from "react-native-reanimated";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { Card } from "@/components/Card";
@@ -9,6 +9,8 @@ import { EmptyState } from "@/components/EmptyState";
 import { useBookingsStore } from "@/store/useBookingsStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { notifyEvent } from "@/store/useNotificationsStore";
+import { useServiceLogStore } from "@/store/useServiceLogStore";
+import { useResolvedWorkshop } from "@/store/useWorkshopStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
 import { getServiceLabel, getServiceEmoji } from "@/data/services";
@@ -39,9 +41,16 @@ export function ProRequestsScreen() {
   const rejectBooking = useBookingsStore((s) => s.rejectBooking);
   const startWork = useBookingsStore((s) => s.startWork);
   const completeWork = useBookingsStore((s) => s.completeWork);
+  const addLogEntry = useServiceLogStore((s) => s.addEntry);
   const [filter, setFilter] = useState<Filter>("pending");
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 500);
+  }, []);
 
   const workshopId = user && user.role === "professional" ? user.workshopId : null;
+  const workshop = useResolvedWorkshop(workshopId ?? undefined);
   const all = useMemo(
     () => (workshopId ? allRaw.filter((b) => b.workshopId === workshopId) : []),
     [allRaw, workshopId]
@@ -102,6 +111,14 @@ export function ProRequestsScreen() {
 
   const handleComplete = (b: Booking) => {
     completeWork(b.id);
+    addLogEntry({
+      carId: b.carId,
+      workshopId: b.workshopId,
+      workshopName: workshop?.name ?? "Officina",
+      service: b.service,
+      cost: b.estimatedPrice,
+      performedAt: Date.now(),
+    });
     notifyEvent({
       userId: b.customerId,
       type: "booking_completed",
@@ -163,6 +180,9 @@ export function ProRequestsScreen() {
           <FlatList
             data={data}
             keyExtractor={(item) => item.id}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />
+            }
             contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 24 }}
             renderItem={({ item, index }) => {
               const meta = statusMeta(item.status);
