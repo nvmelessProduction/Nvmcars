@@ -115,13 +115,19 @@ NON pubblicare niente senza permesso esplicito. Il founder vuole testare prima.
 - `src/lib/wipeUserData.ts` — pulisce AsyncStorage keys, preserva tema/lingua
 
 #### Backend Supabase scritto ma non deployato
-File pronti da incollare nel SQL editor:
+File pronti da incollare nel SQL editor (in ordine):
 - `supabase/migrations/0001_initial_schema.sql` — 13 tabelle + trigger auto-profile-on-signup
-- `supabase/migrations/0002_rls_policies.sql` — Row Level Security
+- `supabase/migrations/0002_rls_policies.sql` — Row Level Security base
 - `supabase/migrations/0003_storage_buckets.sql` — 3 bucket
-- `supabase/README.md` — guida step-by-step
+- `supabase/migrations/0004_round3_extensions.sql` ⭐ NEW — estensioni: vacations, service_price_overrides, service_log_entries, car_reminders, workshops.fiscal_data/owner_data/photos[]/status/accepting_requests, bookings stati nuovi + proposed_slots, notifications.related_kind, trigger auto-log su booking completed, view v_workshop_completeness
+- `supabase/migrations/0005_round3_rls.sql` ⭐ NEW — RLS per le tabelle nuove
+- `supabase/README.md` — guida step-by-step aggiornata
 
-**Nota**: lo schema **non riflette ancora** override marca/modello né nuovi stati booking né tipi notifica nuovi né dati fiscali pro. Va esteso quando si lavora al Round 3.
+**Credenziali Alberto già fornite** (in `.env` locale, gitignored):
+- URL: `https://wdfoxsecsgilyixadidp.supabase.co`
+- Anon key: `sb_publishable_1KOA9_Jwoplz7OAm-XoQDw_-xzWWm6Z` (formato publishable nuovo, sicuro client-side)
+
+**Da fare nel Round 3 vero**: migrare 11 store zustand → query Supabase (1-2 sessioni dense). Schema è già allineato al codice client.
 
 ### ❌ DA FARE — backend (0% live)
 
@@ -239,10 +245,14 @@ Usato in: `WorkshopDetailScreen`, `WorkshopListScreen`, `BookingFormScreen`.
 ## 7. Cosa Alberto deve fare PRIMA che si possa procedere
 
 ### 🟢 Adesso (15 min totali)
-1. **Crea progetto Supabase** → https://supabase.com → New project → region **Frankfurt eu-central-1**
-2. SQL editor: esegui `0001_initial_schema.sql`, `0002_rls_policies.sql`, `0003_storage_buckets.sql`
-3. **NOTA**: lo schema attuale non include estensioni Round 2-3 (vedi §4 "DA FARE backend"). Va esteso prima di migrare gli store.
-4. Project Settings → API → copia **URL** + **anon key** → mandami in chat
+1. ✅ **Progetto Supabase creato** — URL e anon key sono in `.env` locale (gitignored)
+2. **Esegui le 5 migrazioni SQL** nel SQL Editor di Supabase in ordine:
+   - `0001_initial_schema.sql`
+   - `0002_rls_policies.sql`
+   - `0003_storage_buckets.sql`
+   - `0004_round3_extensions.sql` (NUOVO)
+   - `0005_round3_rls.sql` (NUOVO)
+3. Verifica nel pannello che le tabelle `workshop_vacations`, `service_price_overrides`, `service_log_entries`, `car_reminders` siano state create.
 
 ### 🟡 Stasera / domani
 5. **Apple Developer Program** €99 — https://developer.apple.com/programs/enroll/ — verifica 24-48h

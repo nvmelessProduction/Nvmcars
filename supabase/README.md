@@ -30,6 +30,8 @@ Nel pannello Supabase del tuo progetto:
 3. Copia tutto, incolla nell'editor, **Run** (in basso a destra)
 4. Ripeti con `supabase/migrations/0002_rls_policies.sql`
 5. Ripeti con `supabase/migrations/0003_storage_buckets.sql`
+6. Ripeti con `supabase/migrations/0004_round3_extensions.sql` ← estensioni (vacations, override prezzi, dati fiscali, stati booking nuovi, libretto auto, reminders)
+7. Ripeti con `supabase/migrations/0005_round3_rls.sql` ← RLS per le nuove tabelle
 
 Dovresti vedere "Success. No rows returned." dopo ognuno.
 
