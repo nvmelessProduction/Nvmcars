@@ -1,11 +1,21 @@
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Linking, Pressable, ScrollView, Text, View } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import type { NavigationProp, ParamListBase } from "@react-navigation/native";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { Card } from "@/components/Card";
 import { useThemeStore, useColors, type ThemeMode } from "@/store/useThemeStore";
 import { useLanguageStore, type Locale } from "@/store/useLanguageStore";
 import { useT } from "@/i18n";
 
+type LegalRoutes = {
+  PrivacyPolicy: undefined;
+  TermsOfService: undefined;
+  DataExport: undefined;
+  DeleteAccount: undefined;
+};
+
 export function SettingsScreen() {
+  const navigation = useNavigation<NavigationProp<ParamListBase & LegalRoutes>>();
   const colors = useColors();
   const t = useT();
   const themeMode = useThemeStore((s) => s.mode);
@@ -15,7 +25,7 @@ export function SettingsScreen() {
 
   return (
     <ScreenContainer>
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 32 }}>
+      <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 40 }}>
         <SectionTitle title={t.settings.appearance} colors={colors} />
         <Card>
           <Text style={{ fontSize: 13, color: colors.textMuted, marginBottom: 10 }}>
@@ -85,12 +95,59 @@ export function SettingsScreen() {
                 <Text style={{ flex: 1, fontSize: 15, color: colors.text, fontWeight: "600" }}>
                   {label}
                 </Text>
-                <Text style={{ fontSize: 18 }}>
-                  {active ? "✅" : "  "}
-                </Text>
+                <Text style={{ fontSize: 18 }}>{active ? "✅" : "  "}</Text>
               </Pressable>
             );
           })}
+        </Card>
+
+        <SectionTitle title={t.settings.legal} colors={colors} />
+        <Card padding={0}>
+          <NavRow
+            icon="🔒"
+            title={t.settings.privacyPolicy}
+            onPress={() => navigation.navigate("PrivacyPolicy")}
+            colors={colors}
+            isFirst
+          />
+          <NavRow
+            icon="📜"
+            title={t.settings.termsOfService}
+            onPress={() => navigation.navigate("TermsOfService")}
+            colors={colors}
+          />
+        </Card>
+
+        <SectionTitle title={t.settings.account} colors={colors} />
+        <Card padding={0}>
+          <NavRow
+            icon="📦"
+            title={t.settings.exportData}
+            subtitle={t.settings.exportDataSubtitle}
+            onPress={() => navigation.navigate("DataExport")}
+            colors={colors}
+            isFirst
+          />
+          <NavRow
+            icon="🗑️"
+            title={t.settings.deleteAccount}
+            subtitle={t.settings.deleteAccountSubtitle}
+            onPress={() => navigation.navigate("DeleteAccount")}
+            colors={colors}
+            danger
+          />
+        </Card>
+
+        <SectionTitle title={t.settings.support} colors={colors} />
+        <Card padding={0}>
+          <NavRow
+            icon="✉️"
+            title={t.settings.contactSupport}
+            subtitle={t.settings.contactSupportSubtitle}
+            onPress={() => Linking.openURL("mailto:support@nvmcars.it")}
+            colors={colors}
+            isFirst
+          />
         </Card>
 
         <SectionTitle title={t.settings.about} colors={colors} />
@@ -130,5 +187,56 @@ function SectionTitle({
     >
       {title.toUpperCase()}
     </Text>
+  );
+}
+
+function NavRow({
+  icon,
+  title,
+  subtitle,
+  onPress,
+  colors,
+  isFirst,
+  danger,
+}: {
+  icon: string;
+  title: string;
+  subtitle?: string;
+  onPress: () => void;
+  colors: ReturnType<typeof useColors>;
+  isFirst?: boolean;
+  danger?: boolean;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => ({
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 12,
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        borderTopWidth: isFirst ? 0 : 1,
+        borderTopColor: colors.border,
+        opacity: pressed ? 0.6 : 1,
+      })}
+    >
+      <Text style={{ fontSize: 20 }}>{icon}</Text>
+      <View style={{ flex: 1 }}>
+        <Text
+          style={{
+            fontSize: 14,
+            fontWeight: "600",
+            color: danger ? colors.danger : colors.text,
+          }}
+        >
+          {title}
+        </Text>
+        {subtitle ? (
+          <Text style={{ fontSize: 11, color: colors.textMuted, marginTop: 2 }}>{subtitle}</Text>
+        ) : null}
+      </View>
+      <Text style={{ fontSize: 18, color: colors.textMuted }}>›</Text>
+    </Pressable>
   );
 }

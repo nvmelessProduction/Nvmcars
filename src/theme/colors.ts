@@ -1,4 +1,19 @@
-export const lightColors = {
+export type ThemeColors = {
+  bg: string;
+  bgElevated: string;
+  bgHeader: string;
+  border: string;
+  text: string;
+  textMuted: string;
+  textInverse: string;
+  accent: string;
+  accentSoft: string;
+  success: string;
+  danger: string;
+  warning: string;
+};
+
+export const lightColors: ThemeColors = {
   bg: "#F1F5F9",
   bgElevated: "#FFFFFF",
   bgHeader: "#0F172A",
@@ -11,9 +26,9 @@ export const lightColors = {
   success: "#10B981",
   danger: "#EF4444",
   warning: "#F59E0B",
-} as const;
+};
 
-export const darkColors = {
+export const darkColors: ThemeColors = {
   bg: "#020617",
   bgElevated: "#0F172A",
   bgHeader: "#020617",
@@ -26,6 +41,4 @@ export const darkColors = {
   success: "#34D399",
   danger: "#F87171",
   warning: "#FBBF24",
-} as const;
-
-export type ThemeColors = typeof lightColors;
+};
