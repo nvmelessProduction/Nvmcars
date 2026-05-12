@@ -4,6 +4,8 @@ import { SettingsScreen } from "@/screens/customer/SettingsScreen";
 import { MyCarScreen } from "@/screens/customer/MyCarScreen";
 import { AddCarScreen } from "@/screens/customer/AddCarScreen";
 import { CarServiceLogScreen } from "@/screens/customer/CarServiceLogScreen";
+import { CustomerChatsListScreen } from "@/screens/customer/CustomerChatsListScreen";
+import { ChatScreen } from "@/screens/customer/ChatScreen";
 import { PrivacyPolicyScreen } from "@/screens/legal/PrivacyPolicyScreen";
 import { TermsOfServiceScreen } from "@/screens/legal/TermsOfServiceScreen";
 import { DataExportScreen } from "@/screens/legal/DataExportScreen";
@@ -44,6 +46,12 @@ export function ProfileStack() {
         component={CarServiceLogScreen}
         options={{ title: t.car.serviceLog }}
       />
+      <Stack.Screen
+        name="CustomerChatsList"
+        component={CustomerChatsListScreen}
+        options={{ title: t.chat.chats }}
+      />
+      <Stack.Screen name="Chat" component={ChatScreen} options={{ title: "" }} />
       <Stack.Screen
         name="PrivacyPolicy"
         component={PrivacyPolicyScreen}

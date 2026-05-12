@@ -308,6 +308,25 @@ export function ProOnboardingScreen() {
               <Text style={{ fontSize: 13, color: colors.textMuted, marginTop: 6, lineHeight: 19 }}>
                 Servono al cliente per riconoscerti e a noi per contattarti in caso di necessità.
               </Text>
+              <Pressable
+                onPress={() => {
+                  setFirstName("Mario");
+                  setLastName("Rossi");
+                  setOwnerPhone("+393331234567");
+                }}
+                style={{
+                  marginTop: 12,
+                  paddingVertical: 8,
+                  paddingHorizontal: 12,
+                  borderRadius: 8,
+                  backgroundColor: colors.accentSoft,
+                  alignSelf: "flex-start",
+                }}
+              >
+                <Text style={{ color: colors.accent, fontWeight: "700", fontSize: 12 }}>
+                  🧪 Compila dati di test
+                </Text>
+              </Pressable>
               <View style={{ marginTop: 16, gap: 12 }}>
                 <TextField label={t.pro.firstName} value={firstName} onChangeText={setFirstName} />
                 <TextField label={t.pro.lastName} value={lastName} onChangeText={setLastName} />
@@ -328,8 +347,31 @@ export function ProOnboardingScreen() {
                 🧾 Dati fiscali
               </Text>
               <Text style={{ fontSize: 13, color: colors.textMuted, marginTop: 6, lineHeight: 19 }}>
-                Necessari per la fatturazione italiana. P.IVA e codice fiscale vengono verificati.
+                Necessari per la fatturazione italiana. P.IVA e codice fiscale vengono verificati
+                con algoritmo di checksum (non è verificata l'esistenza presso la Camera di Commercio).
               </Text>
+              <Pressable
+                onPress={() => {
+                  setLegalName("Officina Test S.r.l.");
+                  setVat("00471400011");
+                  setTaxCode("00471400011");
+                  setSdi("ABCDEFG");
+                  setPec("test@pec.it");
+                  setIban("IT60X0542811101000000123456");
+                }}
+                style={{
+                  marginTop: 12,
+                  paddingVertical: 8,
+                  paddingHorizontal: 12,
+                  borderRadius: 8,
+                  backgroundColor: colors.accentSoft,
+                  alignSelf: "flex-start",
+                }}
+              >
+                <Text style={{ color: colors.accent, fontWeight: "700", fontSize: 12 }}>
+                  🧪 Compila dati di test
+                </Text>
+              </Pressable>
               <View style={{ marginTop: 16, gap: 12 }}>
                 <TextField label={t.pro.legalName} value={legalName} onChangeText={setLegalName} />
                 <TextField
@@ -382,6 +424,31 @@ export function ProOnboardingScreen() {
               <Text style={{ fontSize: 13, color: colors.textMuted, marginTop: 6, lineHeight: 19 }}>
                 Queste sono le informazioni che il cliente vede.
               </Text>
+              <Pressable
+                onPress={() => {
+                  setName("Autofficina Test");
+                  setAddress("Via Roma 12");
+                  setCap("00100");
+                  setCity("Roma");
+                  setProvince("RM");
+                  setPublicPhone("+390612345678");
+                  setDescription(
+                    "Officina di prova creata per testare l'app. Servizi multimarca con esperienza pluridecennale."
+                  );
+                }}
+                style={{
+                  marginTop: 12,
+                  paddingVertical: 8,
+                  paddingHorizontal: 12,
+                  borderRadius: 8,
+                  backgroundColor: colors.accentSoft,
+                  alignSelf: "flex-start",
+                }}
+              >
+                <Text style={{ color: colors.accent, fontWeight: "700", fontSize: 12 }}>
+                  🧪 Compila dati di test (foto a parte)
+                </Text>
+              </Pressable>
               <View style={{ marginTop: 16, gap: 12 }}>
                 <TextField label={t.pro.workshopNamePublic} value={name} onChangeText={setName} />
                 <TextField

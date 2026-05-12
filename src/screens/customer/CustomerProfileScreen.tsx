@@ -7,6 +7,7 @@ import { PrimaryButton } from "@/components/PrimaryButton";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useColors } from "@/store/useThemeStore";
 import { useActiveCar } from "@/store/useCarStore";
+import { useChatStore } from "@/store/useChatStore";
 import { useT } from "@/i18n";
 import type { ProfileStackParamList } from "@/navigation/types";
 
@@ -19,8 +20,12 @@ export function CustomerProfileScreen() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const car = useActiveCar();
+  const conversations = useChatStore((s) => s.conversations);
 
   if (!user || user.role !== "customer") return null;
+
+  const myConvs = conversations.filter((c) => c.customerId === user.id);
+  const unreadChats = myConvs.reduce((acc, c) => acc + (c.unreadCount ?? 0), 0);
 
   return (
     <ScreenContainer>
@@ -46,6 +51,18 @@ export function CustomerProfileScreen() {
           </View>
         </Card>
 
+        <Row
+          icon="💬"
+          title={t.chat.chats}
+          subtitle={
+            myConvs.length === 0
+              ? t.chat.noChats
+              : `${myConvs.length} ${myConvs.length === 1 ? "conversazione" : "conversazioni"}`
+          }
+          badge={unreadChats > 0 ? unreadChats : undefined}
+          onPress={() => navigation.navigate("CustomerChatsList")}
+          colors={colors}
+        />
         <Row
           icon="🚗"
           title={t.car.yourCar}
@@ -80,12 +97,14 @@ function Row({
   subtitle,
   onPress,
   colors,
+  badge,
 }: {
   icon: string;
   title: string;
   subtitle: string;
   onPress: () => void;
   colors: ReturnType<typeof useColors>;
+  badge?: number;
 }) {
   return (
     <Pressable onPress={onPress}>
@@ -109,6 +128,20 @@ function Row({
               {subtitle}
             </Text>
           </View>
+          {badge !== undefined ? (
+            <View
+              style={{
+                backgroundColor: colors.accent,
+                borderRadius: 999,
+                paddingHorizontal: 8,
+                paddingVertical: 2,
+                minWidth: 24,
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ color: "#FFF", fontSize: 12, fontWeight: "800" }}>{badge}</Text>
+            </View>
+          ) : null}
           <Text style={{ fontSize: 18, color: colors.textMuted }}>›</Text>
         </View>
       </Card>

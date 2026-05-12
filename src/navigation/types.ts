@@ -44,6 +44,8 @@ export type ProfileStackParamList = {
   MyCar: undefined;
   AddCar: undefined;
   CarServiceLog: { carId: string };
+  CustomerChatsList: undefined;
+  Chat: { workshopId: string };
   PrivacyPolicy: undefined;
   TermsOfService: undefined;
   DataExport: undefined;

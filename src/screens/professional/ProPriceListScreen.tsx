@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
-  FlatList,
   Modal,
   Pressable,
   ScrollView,
@@ -385,34 +384,40 @@ function OverrideModal({
             <Text style={{ fontSize: 13, color: colors.textMuted, fontWeight: "600", marginBottom: 6 }}>
               {t.pro.overrideBrand}
             </Text>
-            <View style={{ height: 200, marginBottom: 16 }}>
-              <FlatList
-                data={brands}
-                keyExtractor={(b) => b}
-                renderItem={({ item }) => (
-                  <Pressable
-                    onPress={() => {
-                      setBrand(item);
-                      setModel("");
-                    }}
+            <View
+              style={{
+                marginBottom: 16,
+                borderRadius: 10,
+                borderWidth: 1,
+                borderColor: colors.border,
+                overflow: "hidden",
+              }}
+            >
+              {brands.map((item) => (
+                <Pressable
+                  key={item}
+                  onPress={() => {
+                    setBrand(item);
+                    setModel("");
+                  }}
+                  style={{
+                    paddingVertical: 10,
+                    paddingHorizontal: 12,
+                    backgroundColor: brand === item ? colors.accentSoft : "transparent",
+                    borderTopWidth: 1,
+                    borderTopColor: colors.border,
+                  }}
+                >
+                  <Text
                     style={{
-                      paddingVertical: 10,
-                      paddingHorizontal: 12,
-                      borderRadius: 8,
-                      backgroundColor: brand === item ? colors.accentSoft : "transparent",
+                      color: brand === item ? colors.accent : colors.text,
+                      fontWeight: brand === item ? "800" : "500",
                     }}
                   >
-                    <Text
-                      style={{
-                        color: brand === item ? colors.accent : colors.text,
-                        fontWeight: brand === item ? "800" : "500",
-                      }}
-                    >
-                      {item}
-                    </Text>
-                  </Pressable>
-                )}
-              />
+                    {item}
+                  </Text>
+                </Pressable>
+              ))}
             </View>
 
             {scope === "model" && brand ? (
@@ -427,31 +432,37 @@ function OverrideModal({
                 >
                   {t.pro.overrideModel}
                 </Text>
-                <View style={{ height: 180, marginBottom: 16 }}>
-                  <FlatList
-                    data={models}
-                    keyExtractor={(m) => m}
-                    renderItem={({ item }) => (
-                      <Pressable
-                        onPress={() => setModel(item)}
+                <View
+                  style={{
+                    marginBottom: 16,
+                    borderRadius: 10,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    overflow: "hidden",
+                  }}
+                >
+                  {models.map((item) => (
+                    <Pressable
+                      key={item}
+                      onPress={() => setModel(item)}
+                      style={{
+                        paddingVertical: 10,
+                        paddingHorizontal: 12,
+                        backgroundColor: model === item ? colors.accentSoft : "transparent",
+                        borderTopWidth: 1,
+                        borderTopColor: colors.border,
+                      }}
+                    >
+                      <Text
                         style={{
-                          paddingVertical: 10,
-                          paddingHorizontal: 12,
-                          borderRadius: 8,
-                          backgroundColor: model === item ? colors.accentSoft : "transparent",
+                          color: model === item ? colors.accent : colors.text,
+                          fontWeight: model === item ? "800" : "500",
                         }}
                       >
-                        <Text
-                          style={{
-                            color: model === item ? colors.accent : colors.text,
-                            fontWeight: model === item ? "800" : "500",
-                          }}
-                        >
-                          {item}
-                        </Text>
-                      </Pressable>
-                    )}
-                  />
+                        {item}
+                      </Text>
+                    </Pressable>
+                  ))}
                 </View>
               </>
             ) : null}
