@@ -80,6 +80,10 @@ export type ProProfileStackParamList = {
   ProProfile: undefined;
   ProEditWorkshop: undefined;
   ProSettings: undefined;
+  ProChatsList: undefined;
+  ProChat: { conversationId: string };
+  CreateQuote: { conversationId: string };
+  QuoteDetail: { quoteId: string };
   PrivacyPolicy: undefined;
   TermsOfService: undefined;
   DataExport: undefined;

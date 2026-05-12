@@ -1,13 +1,12 @@
 import { useState } from "react";
 import {
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   Text,
   View,
 } from "react-native";
 import { ScreenContainer } from "@/components/ScreenContainer";
+import { KAV } from "@/components/KAV";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { TextField } from "@/components/TextField";
 import { Card } from "@/components/Card";
@@ -35,10 +34,7 @@ export function ProEditWorkshopScreen() {
 
   return (
     <ScreenContainer>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1 }}
-      >
+      <KAV>
         <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 32 }}>
           <Card>
             <Text style={{ fontSize: 13, color: colors.textMuted, lineHeight: 19 }}>
@@ -68,7 +64,7 @@ export function ProEditWorkshopScreen() {
             <PrimaryButton label={t.common.save} icon="💾" onPress={handleSave} />
           </View>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </KAV>
     </ScreenContainer>
   );
 }

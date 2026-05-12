@@ -349,6 +349,10 @@ export const en: Translations = {
     accept: "Accept",
     reject: "Reject",
     markCompleted: "Mark completed",
+    myChats: "My chats",
+    myChatsSubtitle: "Active conversations with customers",
+    noChats: "No conversations with customers yet.",
+    customerLabel: "Customer",
   },
   onboarding: {
     skip: "Skip",

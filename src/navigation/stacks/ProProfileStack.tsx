@@ -2,6 +2,10 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { ProProfileScreen } from "@/screens/professional/ProProfileScreen";
 import { ProEditWorkshopScreen } from "@/screens/professional/ProEditWorkshopScreen";
 import { ProSettingsScreen } from "@/screens/professional/ProSettingsScreen";
+import { ProChatsListScreen } from "@/screens/professional/ProChatsListScreen";
+import { ProChatScreen } from "@/screens/professional/ProChatScreen";
+import { CreateQuoteScreen } from "@/screens/professional/CreateQuoteScreen";
+import { QuoteDetailScreen } from "@/screens/customer/QuoteDetailScreen";
 import { PrivacyPolicyScreen } from "@/screens/legal/PrivacyPolicyScreen";
 import { TermsOfServiceScreen } from "@/screens/legal/TermsOfServiceScreen";
 import { DataExportScreen } from "@/screens/legal/DataExportScreen";
@@ -39,6 +43,26 @@ export function ProProfileStack() {
         name="ProSettings"
         component={ProSettingsScreen}
         options={{ title: t.settings.settings }}
+      />
+      <Stack.Screen
+        name="ProChatsList"
+        component={ProChatsListScreen}
+        options={{ title: t.pro.myChats }}
+      />
+      <Stack.Screen
+        name="ProChat"
+        component={ProChatScreen}
+        options={{ title: t.chat.chats }}
+      />
+      <Stack.Screen
+        name="CreateQuote"
+        component={CreateQuoteScreen}
+        options={{ title: t.quote.createQuote }}
+      />
+      <Stack.Screen
+        name="QuoteDetail"
+        component={QuoteDetailScreen}
+        options={{ title: t.quote.quote }}
       />
       <Stack.Screen
         name="PrivacyPolicy"

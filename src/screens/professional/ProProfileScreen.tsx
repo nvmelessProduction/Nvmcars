@@ -5,6 +5,7 @@ import { ScreenContainer } from "@/components/ScreenContainer";
 import { Card } from "@/components/Card";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useChatStore } from "@/store/useChatStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
 import type { ProProfileStackParamList } from "@/navigation/types";
@@ -17,8 +18,14 @@ export function ProProfileScreen() {
   const colors = useColors();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
+  const conversations = useChatStore((s) => s.conversations);
 
   if (!user || user.role !== "professional") return null;
+
+  const myConvCount = conversations.filter((c) => c.workshopId === user.workshopId).length;
+  const unreadCount = conversations
+    .filter((c) => c.workshopId === user.workshopId)
+    .reduce((acc, c) => acc + (c.unreadCount || 0), 0);
 
   return (
     <ScreenContainer>
@@ -58,6 +65,18 @@ export function ProProfileScreen() {
         </Card>
 
         <ActionRow
+          icon="💬"
+          title={t.pro.myChats}
+          subtitle={
+            myConvCount === 0
+              ? t.pro.myChatsSubtitle
+              : `${myConvCount} ${myConvCount === 1 ? "conversazione" : "conversazioni"}`
+          }
+          badge={unreadCount > 0 ? unreadCount : undefined}
+          onPress={() => navigation.navigate("ProChatsList")}
+          colors={colors}
+        />
+        <ActionRow
           icon="🏢"
           title={t.pro.editWorkshop}
           subtitle="Nome, indirizzo, contatti, descrizione"
@@ -92,12 +111,14 @@ function ActionRow({
   subtitle,
   onPress,
   colors,
+  badge,
 }: {
   icon: string;
   title: string;
   subtitle: string;
   onPress: () => void;
   colors: ReturnType<typeof useColors>;
+  badge?: number;
 }) {
   return (
     <Pressable onPress={onPress}>
@@ -121,6 +142,20 @@ function ActionRow({
               {subtitle}
             </Text>
           </View>
+          {badge !== undefined ? (
+            <View
+              style={{
+                backgroundColor: colors.accent,
+                borderRadius: 999,
+                paddingHorizontal: 8,
+                paddingVertical: 2,
+                minWidth: 24,
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ color: "#FFF", fontSize: 12, fontWeight: "800" }}>{badge}</Text>
+            </View>
+          ) : null}
           <Text style={{ fontSize: 18, color: colors.textMuted }}>›</Text>
         </View>
       </Card>

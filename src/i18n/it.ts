@@ -347,6 +347,10 @@ export const it = {
     accept: "Accetta",
     reject: "Rifiuta",
     markCompleted: "Segna come completata",
+    myChats: "Le mie chat",
+    myChatsSubtitle: "Conversazioni attive con i clienti",
+    noChats: "Non hai ancora conversazioni con clienti.",
+    customerLabel: "Cliente",
   },
   onboarding: {
     skip: "Salta",

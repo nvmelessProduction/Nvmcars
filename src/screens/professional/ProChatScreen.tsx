@@ -3,15 +3,14 @@ import { useNavigation, useRoute, type RouteProp } from "@react-navigation/nativ
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import {
   FlatList,
-  KeyboardAvoidingView,
   Linking,
-  Platform,
   Pressable,
   Text,
   TextInput,
   View,
 } from "react-native";
 import { ScreenContainer } from "@/components/ScreenContainer";
+import { KAV } from "@/components/KAV";
 import { ChatBubble } from "@/components/ChatBubble";
 import { AttachSheet } from "@/components/AttachSheet";
 import { useChatStore } from "@/store/useChatStore";
@@ -85,10 +84,7 @@ export function ProChatScreen() {
 
   return (
     <ScreenContainer>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1 }}
-      >
+      <KAV>
         <View
           style={{
             paddingHorizontal: 12,
@@ -194,7 +190,7 @@ export function ProChatScreen() {
             <Text style={{ color: "#FFF", fontSize: 18, fontWeight: "700" }}>➤</Text>
           </Pressable>
         </View>
-      </KeyboardAvoidingView>
+      </KAV>
 
       <AttachSheet
         visible={attachOpen}
