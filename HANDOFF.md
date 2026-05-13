@@ -26,14 +26,16 @@ Marketplace italiano che mette in contatto **automobilisti** (Cliente) e **offic
 | Frontend | **Expo SDK 54** + React Native 0.81 + TypeScript strict | ✅ Funzionante |
 | State management | **Zustand** + AsyncStorage (persist) | ✅ Mock funzionante |
 | Navigation | `@react-navigation/native-stack` + bottom tabs | ✅ |
-| Backend | **Supabase** (region Frankfurt EU) | ⏳ Schema scritto, non deployato |
-| Auth | Supabase Auth (email+password) | ⏳ Solo mock zustand |
-| Pagamenti | **Stripe Connect Express** + commissione 2% | ❌ Mock polished + "in officina" |
-| Lookup targa | **Targato.it API** (a consumo €0.10/req) | ❌ Mock 5 targhe |
-| Push | expo-notifications | ❌ Zero (notifiche in-app via store sì) |
-| Crash | Sentry (free tier) | ❌ Zero |
+| Backend | **Supabase** (region Frankfurt EU) | ✅ Progetto creato + schema esteso. Migrazione store fatta in dual-mode |
+| Auth | Supabase Auth (email+password) | ✅ Reale + fallback mock |
+| Pagamenti | **Stripe Connect Express** + commissione 2% | ⚙️ Edge Functions + SDK pronto, off finché Stripe non attivo |
+| Lookup targa | **Targato.it API** (a consumo €0.10/req) | ⚙️ Edge Function pronta, fallback mock |
+| Push | expo-notifications | ⚙️ SDK pronto, off senza Apple Dev cert |
+| Crash | Sentry (free tier) | ⚙️ Wrapper pronto, off finché DSN non in env |
 | Mappe | react-native-maps (presente in deps) | ✅ Lista officine ha modalità mappa |
-| Image picker | expo-image-picker (presente) | ✅ Funziona, file locale |
+| Image picker | expo-image-picker (presente) | ✅ Funziona + upload su Supabase Storage |
+| Haptic feedback | expo-haptics | ⚙️ Wrapper pronto |
+| ATT iOS | expo-tracking-transparency | ⚙️ Wrapper pronto, prompt al primo launch |
 
 **Target finale**: app pubblicata su **App Store** (iOS) E **Google Play** (Android).
 
@@ -127,54 +129,65 @@ File pronti da incollare nel SQL editor (in ordine):
 - URL: `https://wdfoxsecsgilyixadidp.supabase.co`
 - Anon key: `sb_publishable_1KOA9_Jwoplz7OAm-XoQDw_-xzWWm6Z` (formato publishable nuovo, sicuro client-side)
 
-**Da fare nel Round 3 vero**: migrare 11 store zustand → query Supabase (1-2 sessioni dense). Schema è già allineato al codice client.
+**Migrazione store → Supabase**: ✅ FATTA in dual-mode. Quando `EXPO_PUBLIC_SUPABASE_URL` è settato:
+- Auth signup/login va a Supabase Auth
+- Workshops, Cars, Bookings, Chat, Notifications letti da DB
+- Mutations scritte su DB con fire-and-forget (ottimistico)
+- Realtime sub attivo su `bookings` (filtro per customer/workshop) e `messages` (filtro per conversation_id) e `notifications` (filtro per user_id)
+- Storage upload su `workshop-photos` (public) e `chat-media` (private + signed URL 7gg)
 
-### ❌ DA FARE — backend (0% live)
+Quando le env Supabase mancano → fallback ai seed locali (modalità demo).
 
-Tutto bloccato finché Alberto non crea progetto Supabase + URL + anon key.
+### ⚙️ Pronto, off finché manca account
 
-Quando arrivano le keys, da migrare:
-1. `.env`: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`
-2. **Estendere schema SQL** per:
-   - Workshop: `fiscal_data` (jsonb), `owner` (jsonb), `photos[]`, `vacations[]`, `status`, `accepting_requests`
-   - `service_price_overrides` (tabella nuova)
-   - Booking: stati nuovi, `proposed_slots` (jsonb), `proposed_at`, `proposed_note`, `selected_slot_id`, `started_at`, `completed_at`, `cancelled_at`, `cancellation_reason`, `photos[]`
-   - Notification.type ampliato
-   - `service_log_entries` (tabella nuova)
-   - `car_reminders` (tabella nuova)
-3. **Migrare 11 store zustand → query Supabase**:
-   - `useAuthStore`, `useCarStore`, `useBookingsStore`, `useFavoritesStore`, `useReviewsStore`, `useChatStore`, `useQuoteStore`, `useNotificationsStore`, **`useWorkshopStore`** (nuovo, gestione officina pro), **`useServiceLogStore`** (nuovo, libretto auto)
+#### Stripe (Round 4)
+File pronti: 3 Edge Functions in `supabase/functions/`:
+- `stripe-create-payment-intent` — PaymentIntent con application_fee 2% + transfer a Stripe Connect
+- `stripe-create-account-link` — onboarding officina Express (genera account + AccountLink URL)
+- `stripe-webhook` — aggiorna `quotes.status=paid` + crea notifiche
+Service client `src/services/payments.ts` con `createPaymentIntent`, `createStripeAccountLink`, `presentStripePaymentSheet`.
+`PaymentScreen` chiama l'Edge Function se config'd; se Stripe non onboarded → fallback mock automatico.
+**Da fare**: account Stripe Alberto → set `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` come secrets, `npx supabase functions deploy *`, configurare webhook su Dashboard Stripe.
 
-### ❌ DA FARE — Stripe (0%)
+#### Targato.it (Round 3)
+Edge Function `plate-lookup`:
+- Validazione formato targa IT
+- Rate-limit server-side (1 lookup/utente totale)
+- Chiamata Targato.it (o fallback mock)
+- Audit su `plate_lookups` + consumo quota
+Service client `src/services/plateLookup.ts`.
+**Da fare**: API key Targato.it → set `TARGATO_API_KEY` come secret, deploy function.
 
-Vedi Round 4 più sotto.
+#### Push notifications (Round 5)
+Edge Function `send-push`:
+- Legge `push_token` da `profiles`
+- Manda via Expo Push Service
+Util client `src/utils/pushNotifications.ts`:
+- Wrapper safe: se la dep non è installata è no-op
+- `registerForPushNotificationsAsync(userId)`: chiede permessi, salva token su profiles
+- `scheduleLocalNotification()` per local notif
+`App.tsx` chiama register al login automaticamente.
+**Da fare**: `npx expo install expo-notifications`, APNs cert da Apple Dev, FCM project Google. Trigger SQL `tg_notification_push` per auto-push su notifications.insert (vedi `supabase/functions/README.md`).
 
-### ❌ DA FARE — Targato.it (0%)
+#### Native deps pronte in package.json (richiede `npx expo install` di Alberto)
+- `@stripe/stripe-react-native` — SDK pagamenti
+- `expo-notifications` — push
+- `expo-haptics` — vibrazione feedback
+- `expo-tracking-transparency` — ATT iOS
+- `@react-native-community/datetimepicker` — date picker nativo
+- `@sentry/react-native` — crash reporting
 
-Vedi Round 3 più sotto.
-
-### ❌ DA FARE — Push notifications (0%)
-
-Notifiche **in-app** funzionano via `useNotificationsStore` + helper `notifyEvent()`. Per push reali servono:
-1. `expo-notifications` install + config in `app.json`
-2. Permesso al primo login → salva `push_token` in `profiles`
-3. APNs cert (Apple Dev) + FCM project (Google)
-4. Edge Functions trigger su eventi DB
-
-### ❌ DA FARE — Native features
-
-1. **Geolocation reale** (`expo-location` già in deps): `useUserLocation` parzialmente fatto, da rifinire
-2. **Mappa officina** in `WorkshopDetailScreen` (oggi solo lista)
-3. **Deep linking** schema `nvmcars://`
-4. **App Tracking Transparency** iOS
+Tutti i wrapper sono `try { require(...) } catch` safe: se la dep manca, no-op senza crash.
 
 ### ❌ DA FARE — Pre-pubblicazione
 
-- Splash screen custom (oggi default Expo)
-- App icon definitiva 1024×1024 + adaptive icon Android
-- Sentry crash reporting
-- Haptic feedback (`expo-haptics`)
-- Audit accessibilità completo (font dinamici, contrasto)
+- Splash screen custom: **SVG presenti** in `assets/splash.svg`, generare PNG via `rsvg-convert` (vedi `assets/README.md`)
+- App icon: **SVG presenti** in `assets/logo-icon-app.svg`, generare PNG 1024×1024
+- Adaptive icon Android: idem
+- Notification icon: idem
+- Sito nvmcars.it (anche solo landing con privacy/terms)
+- Email `support@nvmcars.it`, `privacy@nvmcars.it`
+- Asset store: screenshot iOS/Android, feature graphic, descrizione 80+4000 char IT+EN
 
 ---
 
@@ -244,15 +257,17 @@ Usato in: `WorkshopDetailScreen`, `WorkshopListScreen`, `BookingFormScreen`.
 
 ## 7. Cosa Alberto deve fare PRIMA che si possa procedere
 
-### 🟢 Adesso (15 min totali)
+### 🟢 Adesso
 1. ✅ **Progetto Supabase creato** — URL e anon key sono in `.env` locale (gitignored)
 2. **Esegui le 5 migrazioni SQL** nel SQL Editor di Supabase in ordine:
    - `0001_initial_schema.sql`
    - `0002_rls_policies.sql`
    - `0003_storage_buckets.sql`
-   - `0004_round3_extensions.sql` (NUOVO)
-   - `0005_round3_rls.sql` (NUOVO)
+   - `0004_round3_extensions.sql`
+   - `0005_round3_rls.sql`
 3. Verifica nel pannello che le tabelle `workshop_vacations`, `service_price_overrides`, `service_log_entries`, `car_reminders` siano state create.
+4. `npm install` per le nuove deps (stripe-rn, haptics, notifications, ATT, datetimepicker, sentry). Oppure `npx expo install` per allineare le versioni a SDK 54.
+5. Genera PNG icona/splash dagli SVG in `assets/` (vedi `assets/README.md`).
 
 ### 🟡 Stasera / domani
 5. **Apple Developer Program** €99 — https://developer.apple.com/programs/enroll/ — verifica 24-48h

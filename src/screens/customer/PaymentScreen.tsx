@@ -18,6 +18,8 @@ import { useQuoteStore } from "@/store/useQuoteStore";
 import { useChatStore } from "@/store/useChatStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import { createPaymentIntent, presentStripePaymentSheet } from "@/services/payments";
 import type { HomeStackParamList } from "@/navigation/types";
 
 type Nav = NativeStackNavigationProp<HomeStackParamList, "Payment">;
@@ -103,25 +105,74 @@ export function PaymentScreen() {
     );
   };
 
-  const onPayCard = () => {
+  const onPayCard = async () => {
+    // Se Supabase configurato → prova Stripe vero via Edge Function
+    if (isSupabaseConfigured) {
+      setProcessing(true);
+      try {
+        const intent = await createPaymentIntent(quote.id);
+        if (!intent.ok) {
+          // Edge Function non disponibile / Stripe non onboarded → fallback mock
+          if (
+            intent.reason.includes("not onboarded") ||
+            intent.reason.includes("non configurato") ||
+            intent.reason.includes("404")
+          ) {
+            await runMockCardFlow();
+            return;
+          }
+          Alert.alert(t.payment.failure, intent.reason);
+          return;
+        }
+        const present = await presentStripePaymentSheet(intent.clientSecret, "Nvmcars");
+        if (!present.ok) {
+          if (present.reason?.includes("non installato")) {
+            // SDK non installato in questo build → fallback mock + nota
+            await runMockCardFlow();
+            return;
+          }
+          Alert.alert(t.payment.failure, present.reason ?? "Pagamento annullato");
+          return;
+        }
+        // Successo: il webhook Stripe aggiornerà quote.status. Aggiorna locale ora.
+        setStatus(quote.id, "paid", {
+          paidAt: Date.now(),
+          paymentRef: intent.paymentIntentId,
+        });
+        sendMsg({
+          conversationId: quote.conversationId,
+          senderId: quote.customerId,
+          kind: "system",
+          text: `Pagamento confermato (€ ${quote.total.toFixed(2)}).`,
+        });
+        navigation.replace("PaymentSuccess", { quoteId: quote.id });
+      } finally {
+        setProcessing(false);
+      }
+      return;
+    }
+    // Mock mode
     const err = validate();
     if (err) {
       Alert.alert(t.payment.failure, err);
       return;
     }
+    await runMockCardFlow();
+  };
+
+  const runMockCardFlow = async () => {
     setProcessing(true);
-    setTimeout(() => {
-      const paymentRef = `PAY-${Date.now().toString(36).toUpperCase()}`;
-      setStatus(quote.id, "paid", { paidAt: Date.now(), paymentRef });
-      sendMsg({
-        conversationId: quote.conversationId,
-        senderId: quote.customerId,
-        kind: "system",
-        text: `Pagamento confermato (€ ${quote.total.toFixed(2)}). Ref ${paymentRef}.`,
-      });
-      setProcessing(false);
-      navigation.replace("PaymentSuccess", { quoteId: quote.id });
-    }, 1600);
+    await new Promise((r) => setTimeout(r, 1600));
+    const paymentRef = `PAY-${Date.now().toString(36).toUpperCase()}`;
+    setStatus(quote.id, "paid", { paidAt: Date.now(), paymentRef });
+    sendMsg({
+      conversationId: quote.conversationId,
+      senderId: quote.customerId,
+      kind: "system",
+      text: `Pagamento (demo) confermato (€ ${quote.total.toFixed(2)}). Ref ${paymentRef}.`,
+    });
+    setProcessing(false);
+    navigation.replace("PaymentSuccess", { quoteId: quote.id });
   };
 
   return (

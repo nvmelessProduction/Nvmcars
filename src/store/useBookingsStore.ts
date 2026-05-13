@@ -2,9 +2,14 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { Booking, BookingSlot, BookingStatus } from "@/types";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import * as bookingsService from "@/services/bookings";
 
 type BookingsState = {
   bookings: Booking[];
+  hydratedFor: string | null;
+  realtimeUnsub: (() => void) | null;
+  hydrate: (filter: { customerId?: string; workshopId?: string }) => Promise<void>;
   createBooking: (data: Omit<Booking, "id" | "status" | "createdAt">) => Booking;
   updateStatus: (id: string, status: BookingStatus) => void;
   proposeSlots: (id: string, slots: BookingSlot[], note?: string) => void;
@@ -60,10 +65,47 @@ const seedBookings: Booking[] = [
   },
 ];
 
+function upsert(list: Booking[], b: Booking): Booking[] {
+  const i = list.findIndex((x) => x.id === b.id);
+  if (i === -1) return [b, ...list];
+  const out = [...list];
+  out[i] = b;
+  return out;
+}
+
 export const useBookingsStore = create<BookingsState>()(
   persist(
     (set, get) => ({
       bookings: seedBookings,
+      hydratedFor: null,
+      realtimeUnsub: null,
+
+      hydrate: async (filter) => {
+        const key = filter.customerId
+          ? `c:${filter.customerId}`
+          : filter.workshopId
+            ? `w:${filter.workshopId}`
+            : "";
+        if (!isSupabaseConfigured || key === "" || get().hydratedFor === key) return;
+        const list = filter.customerId
+          ? await bookingsService.listMyBookingsAsCustomer(filter.customerId)
+          : await bookingsService.listMyBookingsAsWorkshop(filter.workshopId!);
+        // mantieni solo i bookings esterni allo scope (delle altre persone) + i remote
+        const otherScope = get().bookings.filter((b) =>
+          filter.customerId
+            ? b.customerId !== filter.customerId
+            : b.workshopId !== filter.workshopId
+        );
+        set({ bookings: [...otherScope, ...list], hydratedFor: key });
+
+        // realtime
+        get().realtimeUnsub?.();
+        const unsub = bookingsService.subscribeToBookings(filter, (b) => {
+          set({ bookings: upsert(get().bookings, b) });
+        });
+        set({ realtimeUnsub: unsub });
+      },
+
       createBooking: (data) => {
         const newBooking: Booking = {
           id: generateId(),
@@ -72,13 +114,26 @@ export const useBookingsStore = create<BookingsState>()(
           ...data,
         };
         set({ bookings: [newBooking, ...get().bookings] });
+        if (isSupabaseConfigured) {
+          bookingsService.createBookingRemote(data).then((res) => {
+            if (res.ok && res.booking) {
+              set({
+                bookings: get().bookings.map((b) =>
+                  b.id === newBooking.id ? res.booking! : b
+                ),
+              });
+            }
+          }).catch(() => undefined);
+        }
         return newBooking;
       },
-      updateStatus: (id, status) =>
-        set({
-          bookings: get().bookings.map((b) => (b.id === id ? { ...b, status } : b)),
-        }),
-      proposeSlots: (id, slots, note) =>
+
+      updateStatus: (id, status) => {
+        set({ bookings: get().bookings.map((b) => (b.id === id ? { ...b, status } : b)) });
+        bookingsService.updateBookingStatus(id, status).catch(() => undefined);
+      },
+
+      proposeSlots: (id, slots, note) => {
         set({
           bookings: get().bookings.map((b) =>
             b.id === id
@@ -91,42 +146,59 @@ export const useBookingsStore = create<BookingsState>()(
                 }
               : b
           ),
-        }),
-      selectSlot: (id, slotId) =>
+        });
+        bookingsService.proposeSlotsRemote(id, slots, note).catch(() => undefined);
+      },
+
+      selectSlot: (id, slotId) => {
+        const booking = get().bookings.find((b) => b.id === id);
+        const slot = booking?.proposedSlots?.find((s) => s.id === slotId);
+        if (!slot) return;
         set({
-          bookings: get().bookings.map((b) => {
-            if (b.id !== id) return b;
-            const slot = b.proposedSlots?.find((s) => s.id === slotId);
-            if (!slot) return b;
-            return {
-              ...b,
-              status: "confirmed",
-              selectedSlotId: slotId,
-              scheduledAt: slot.startAt,
-            };
-          }),
-        }),
-      startWork: (id) =>
+          bookings: get().bookings.map((b) =>
+            b.id === id
+              ? { ...b, status: "confirmed", selectedSlotId: slotId, scheduledAt: slot.startAt }
+              : b
+          ),
+        });
+        bookingsService.selectSlotRemote(id, slotId, slot.startAt).catch(() => undefined);
+      },
+
+      startWork: (id) => {
         set({
           bookings: get().bookings.map((b) =>
             b.id === id ? { ...b, status: "in_progress", startedAt: Date.now() } : b
           ),
-        }),
-      completeWork: (id) =>
+        });
+        bookingsService.updateBookingStatus(id, "in_progress").catch(() => undefined);
+        bookingsService.setBookingTimestamps(id, { startedAt: Date.now() }).catch(() => undefined);
+      },
+
+      completeWork: (id) => {
         set({
           bookings: get().bookings.map((b) =>
             b.id === id ? { ...b, status: "completed", completedAt: Date.now() } : b
           ),
-        }),
-      rejectBooking: (id, reason) =>
+        });
+        bookingsService.updateBookingStatus(id, "completed").catch(() => undefined);
+        bookingsService.setBookingTimestamps(id, { completedAt: Date.now() }).catch(() => undefined);
+      },
+
+      rejectBooking: (id, reason) => {
         set({
           bookings: get().bookings.map((b) =>
             b.id === id
               ? { ...b, status: "rejected", cancelledAt: Date.now(), cancellationReason: reason }
               : b
           ),
-        }),
-      cancelByCustomer: (id, reason) =>
+        });
+        bookingsService.updateBookingStatus(id, "rejected").catch(() => undefined);
+        bookingsService
+          .setBookingTimestamps(id, { cancelledAt: Date.now(), cancellationReason: reason })
+          .catch(() => undefined);
+      },
+
+      cancelByCustomer: (id, reason) => {
         set({
           bookings: get().bookings.map((b) =>
             b.id === id
@@ -138,8 +210,14 @@ export const useBookingsStore = create<BookingsState>()(
                 }
               : b
           ),
-        }),
-      cancelByPro: (id, reason) =>
+        });
+        bookingsService.updateBookingStatus(id, "cancelled_by_customer").catch(() => undefined);
+        bookingsService
+          .setBookingTimestamps(id, { cancelledAt: Date.now(), cancellationReason: reason })
+          .catch(() => undefined);
+      },
+
+      cancelByPro: (id, reason) => {
         set({
           bookings: get().bookings.map((b) =>
             b.id === id
@@ -151,7 +229,13 @@ export const useBookingsStore = create<BookingsState>()(
                 }
               : b
           ),
-        }),
+        });
+        bookingsService.updateBookingStatus(id, "cancelled_by_pro").catch(() => undefined);
+        bookingsService
+          .setBookingTimestamps(id, { cancelledAt: Date.now(), cancellationReason: reason })
+          .catch(() => undefined);
+      },
+
       byCustomer: (customerId) => get().bookings.filter((b) => b.customerId === customerId),
       byWorkshop: (workshopId) => get().bookings.filter((b) => b.workshopId === workshopId),
       getById: (id) => get().bookings.find((b) => b.id === id) ?? null,
@@ -160,6 +244,7 @@ export const useBookingsStore = create<BookingsState>()(
       name: "nvmcars-bookings",
       storage: createJSONStorage(() => AsyncStorage),
       version: 2,
+      partialize: (state) => ({ bookings: state.bookings }),
       migrate: (state, version) => {
         const s = state as { bookings?: Booking[] } | undefined;
         if (!s || !Array.isArray(s.bookings)) return s as BookingsState;
@@ -167,7 +252,8 @@ export const useBookingsStore = create<BookingsState>()(
           s.bookings = s.bookings.map((b) => {
             if ((b.status as string) === "pending") return { ...b, status: "requested" };
             if ((b.status as string) === "accepted") return { ...b, status: "confirmed" };
-            if ((b.status as string) === "cancelled") return { ...b, status: "cancelled_by_customer" };
+            if ((b.status as string) === "cancelled")
+              return { ...b, status: "cancelled_by_customer" };
             return b;
           });
         }

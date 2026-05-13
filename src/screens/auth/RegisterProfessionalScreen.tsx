@@ -1,10 +1,5 @@
 import { useState } from "react";
-import {
-  Alert,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { Alert, ScrollView, Text, View } from "react-native";
 import { z } from "zod";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { KAV } from "@/components/KAV";
@@ -14,13 +9,14 @@ import { Card } from "@/components/Card";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
+import { isSupabaseConfigured } from "@/lib/supabase";
 
 const schema = z.object({
   name: z.string().min(2, "Nome officina troppo corto."),
   email: z.string().email("Email non valida."),
   phone: z.string().min(8, "Telefono non valido."),
   vatNumber: z.string().min(11, "Partita IVA non valida (11 cifre).").max(11),
-  password: z.string().min(6, "La password deve avere almeno 6 caratteri."),
+  password: z.string().min(8, "La password deve avere almeno 8 caratteri."),
   inviteCode: z.string().min(4, "Codice invito mancante."),
 });
 
@@ -28,6 +24,8 @@ export function RegisterProfessionalScreen() {
   const t = useT();
   const colors = useColors();
   const registerProfessional = useAuthStore((s) => s.registerProfessional);
+  const signupProfessional = useAuthStore((s) => s.signupProfessional);
+  const authLoading = useAuthStore((s) => s.authLoading);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -35,10 +33,31 @@ export function RegisterProfessionalScreen() {
   const [password, setPassword] = useState("");
   const [inviteCode, setInviteCode] = useState("");
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const parsed = schema.safeParse({ name, email, phone, vatNumber, password, inviteCode });
     if (!parsed.success) {
-      Alert.alert(t.common.error, parsed.error.issues[0].message);
+      Alert.alert(t.common.error, parsed.error.issues[0]!.message);
+      return;
+    }
+    if (isSupabaseConfigured) {
+      const res = await signupProfessional({
+        name,
+        email: email.trim(),
+        phone,
+        vatNumber,
+        password,
+        inviteCode,
+      });
+      if (!res.ok) {
+        Alert.alert(t.auth.invalidInvite, res.reason);
+        return;
+      }
+      if (res.needsEmailVerification) {
+        Alert.alert(
+          "Conferma la tua email",
+          `Ti abbiamo inviato un'email a ${email}. Cliccala per attivare l'account.`
+        );
+      }
       return;
     }
     const result = registerProfessional({ name, email, phone, vatNumber, inviteCode });
@@ -117,7 +136,11 @@ export function RegisterProfessionalScreen() {
           </View>
 
           <View style={{ marginTop: 24 }}>
-            <PrimaryButton label="Verifica codice e registrati" onPress={handleSubmit} />
+            <PrimaryButton
+              label={authLoading ? t.common.loading : "Verifica codice e registrati"}
+              onPress={handleSubmit}
+              disabled={authLoading}
+            />
           </View>
         </ScrollView>
       </KAV>

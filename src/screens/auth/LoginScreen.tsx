@@ -1,12 +1,7 @@
 import { useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import {
-  Alert,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { Alert, ScrollView, Text, View } from "react-native";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { KAV } from "@/components/KAV";
 import { PrimaryButton } from "@/components/PrimaryButton";
@@ -14,6 +9,7 @@ import { TextField } from "@/components/TextField";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
+import { isSupabaseConfigured } from "@/lib/supabase";
 import type { AuthStackParamList } from "@/navigation/types";
 
 type Nav = NativeStackNavigationProp<AuthStackParamList, "Login">;
@@ -23,17 +19,25 @@ export function LoginScreen() {
   const t = useT();
   const colors = useColors();
   const loginAs = useAuthStore((s) => s.loginAs);
+  const loginWithPassword = useAuthStore((s) => s.loginWithPassword);
+  const authLoading = useAuthStore((s) => s.authLoading);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!email.trim() || !password) {
       Alert.alert(t.common.error, "Email e password sono richiesti.");
       return;
     }
+    if (isSupabaseConfigured) {
+      const res = await loginWithPassword(email.trim(), password);
+      if (!res.ok) Alert.alert(t.common.error, res.reason);
+      return;
+    }
+    // Modalità offline: scelta demo
     Alert.alert(
-      "Demo MVP",
-      "L'autenticazione reale arriverà con Firebase. Scegli come entrare:",
+      "Modalità demo (offline)",
+      "Backend non configurato. Scegli un account di prova:",
       [
         {
           text: "Cliente Demo",
@@ -98,7 +102,11 @@ export function LoginScreen() {
           </View>
 
           <View style={{ gap: 10, marginTop: 22 }}>
-            <PrimaryButton label={t.auth.login} onPress={handleLogin} />
+            <PrimaryButton
+              label={authLoading ? t.common.loading : t.auth.login}
+              onPress={handleLogin}
+              disabled={authLoading}
+            />
             <PrimaryButton
               label={t.auth.noAccount}
               variant="ghost"

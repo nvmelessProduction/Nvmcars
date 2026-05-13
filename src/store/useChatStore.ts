@@ -2,6 +2,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { ChatMessage, ChatMessageKind, Conversation } from "@/types";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import * as chatService from "@/services/chat";
 
 type SendInput = {
   conversationId: string;
@@ -17,6 +19,11 @@ type SendInput = {
 type ChatState = {
   conversations: Conversation[];
   messages: ChatMessage[];
+  realtimeSubs: Record<string, () => void>;
+  hydrateConversations: (filter: { customerId?: string; workshopId?: string }) => Promise<void>;
+  hydrateMessages: (conversationId: string) => Promise<void>;
+  subscribeToConversation: (conversationId: string) => void;
+  unsubscribeFromConversation: (conversationId: string) => void;
   ensureConversation: (customerId: string, workshopId: string) => Conversation;
   send: (input: SendInput) => ChatMessage;
   sendText: (conversationId: string, senderId: string, text: string) => ChatMessage;
@@ -34,7 +41,7 @@ const seedMessages: ChatMessage[] = [
     conversationId: conversationId("demo-customer", "w3"),
     senderId: "w3",
     kind: "text",
-    text: "Ciao Marco, abbiamo ricevuto la tua richiesta. Quando puoi passare per un'occhiata?",
+    text: "Ciao Marco, abbiamo ricevuto la tua richiesta. Quando puoi passare?",
     createdAt: Date.now() - 1000 * 60 * 60 * 2,
   },
   {
@@ -86,10 +93,56 @@ export const useChatStore = create<ChatState>()(
     (set, get) => ({
       conversations: seedConversations,
       messages: seedMessages,
+      realtimeSubs: {},
+
+      hydrateConversations: async (filter) => {
+        if (!isSupabaseConfigured) return;
+        const list = await chatService.listMyConversations(filter);
+        // sostituisco solo le conv che riguardano lo scope
+        const kept = get().conversations.filter((c) =>
+          filter.customerId
+            ? c.customerId !== filter.customerId
+            : c.workshopId !== filter.workshopId
+        );
+        set({ conversations: [...kept, ...list] });
+      },
+
+      hydrateMessages: async (convId) => {
+        if (!isSupabaseConfigured) return;
+        const remote = await chatService.listMessages(convId);
+        const others = get().messages.filter((m) => m.conversationId !== convId);
+        set({ messages: [...others, ...remote] });
+      },
+
+      subscribeToConversation: (convId) => {
+        if (!isSupabaseConfigured) return;
+        if (get().realtimeSubs[convId]) return;
+        const unsub = chatService.subscribeToMessages(convId, (m) => {
+          const exists = get().messages.some((x) => x.id === m.id);
+          if (!exists) set({ messages: [...get().messages, m] });
+        });
+        set({ realtimeSubs: { ...get().realtimeSubs, [convId]: unsub } });
+      },
+
+      unsubscribeFromConversation: (convId) => {
+        const u = get().realtimeSubs[convId];
+        if (u) {
+          u();
+          const next = { ...get().realtimeSubs };
+          delete next[convId];
+          set({ realtimeSubs: next });
+        }
+      },
+
       ensureConversation: (customerId, workshopId) => {
         const id = conversationId(customerId, workshopId);
         const existing = get().conversations.find((c) => c.id === id);
-        if (existing) return existing;
+        if (existing) {
+          if (isSupabaseConfigured) {
+            chatService.ensureConversationRemote(customerId, workshopId).catch(() => undefined);
+          }
+          return existing;
+        }
         const created: Conversation = {
           id,
           customerId,
@@ -97,8 +150,20 @@ export const useChatStore = create<ChatState>()(
           unreadCount: 0,
         };
         set({ conversations: [...get().conversations, created] });
+        if (isSupabaseConfigured) {
+          chatService.ensureConversationRemote(customerId, workshopId).then((remote) => {
+            if (remote) {
+              set({
+                conversations: get().conversations.map((c) =>
+                  c.id === id ? { ...remote } : c
+                ),
+              });
+            }
+          }).catch(() => undefined);
+        }
         return created;
       },
+
       send: (input) => {
         const message: ChatMessage = {
           id: generateId(),
@@ -128,15 +193,38 @@ export const useChatStore = create<ChatState>()(
             };
           }),
         });
+        if (isSupabaseConfigured) {
+          chatService.sendMessageRemote({
+            conversationId: input.conversationId,
+            senderId: input.senderId,
+            kind: input.kind ?? "text",
+            text: input.text,
+            mediaUri: input.mediaUri,
+            mediaWidth: input.mediaWidth,
+            mediaHeight: input.mediaHeight,
+            quoteId: input.quoteId,
+          }).then((remote) => {
+            if (remote) {
+              set({
+                messages: get().messages.map((m) =>
+                  m.id === message.id ? { ...remote } : m
+                ),
+              });
+            }
+          }).catch(() => undefined);
+        }
         return message;
       },
+
       sendText: (convId, senderId, text) =>
         get().send({ conversationId: convId, senderId, kind: "text", text }),
+
       messagesFor: (convId) =>
         get()
           .messages.filter((m) => m.conversationId === convId)
           .sort((a, b) => a.createdAt - b.createdAt),
-      markRead: (convId, role) =>
+
+      markRead: (convId, role) => {
         set({
           conversations: get().conversations.map((c) =>
             c.id === convId
@@ -145,12 +233,18 @@ export const useChatStore = create<ChatState>()(
                 : { ...c, unreadCountPro: 0 }
               : c
           ),
-        }),
+        });
+        chatService.markConversationReadRemote(convId, role).catch(() => undefined);
+      },
     }),
     {
       name: "nvmcars-chat",
       storage: createJSONStorage(() => AsyncStorage),
       version: 2,
+      partialize: (state) => ({
+        conversations: state.conversations,
+        messages: state.messages,
+      }),
       migrate: (persistedState: any, version) => {
         if (version < 2 && persistedState?.messages) {
           persistedState.messages = persistedState.messages.map((m: any) => ({

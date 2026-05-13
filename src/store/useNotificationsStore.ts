@@ -2,9 +2,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { Notification, NotificationType } from "@/types";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import * as notifService from "@/services/notifications";
 
 type NotificationsState = {
   notifications: Notification[];
+  realtimeUnsub: (() => void) | null;
+  hydrate: (userId: string) => Promise<void>;
   unreadCount: (userId: string) => number;
   markRead: (id: string) => void;
   markAllRead: (userId: string) => void;
@@ -62,20 +66,37 @@ export const useNotificationsStore = create<NotificationsState>()(
   persist(
     (set, get) => ({
       notifications: seedNotifications,
+      realtimeUnsub: null,
+      hydrate: async (userId) => {
+        if (!isSupabaseConfigured) return;
+        const list = await notifService.listMyNotifications(userId);
+        const others = get().notifications.filter((n) => n.userId !== userId);
+        set({ notifications: [...others, ...list] });
+        get().realtimeUnsub?.();
+        const unsub = notifService.subscribeToNotifications(userId, (n) => {
+          const exists = get().notifications.some((x) => x.id === n.id);
+          if (!exists) set({ notifications: [n, ...get().notifications] });
+        });
+        set({ realtimeUnsub: unsub });
+      },
       unreadCount: (userId) =>
         get().notifications.filter((n) => n.userId === userId && !n.read).length,
-      markRead: (id) =>
+      markRead: (id) => {
         set({
           notifications: get().notifications.map((n) =>
             n.id === id ? { ...n, read: true } : n
           ),
-        }),
-      markAllRead: (userId) =>
+        });
+        notifService.markReadRemote(id).catch(() => undefined);
+      },
+      markAllRead: (userId) => {
         set({
           notifications: get().notifications.map((n) =>
             n.userId === userId ? { ...n, read: true } : n
           ),
-        }),
+        });
+        notifService.markAllReadRemote(userId).catch(() => undefined);
+      },
       push: (data) => {
         const n: Notification = {
           id: generateId(),
@@ -84,16 +105,27 @@ export const useNotificationsStore = create<NotificationsState>()(
           ...data,
         };
         set({ notifications: [n, ...get().notifications] });
+        if (isSupabaseConfigured) {
+          notifService.pushNotification(data).then((remote) => {
+            if (remote) {
+              set({
+                notifications: get().notifications.map((x) =>
+                  x.id === n.id ? { ...remote } : x
+                ),
+              });
+            }
+          }).catch(() => undefined);
+        }
         return n;
       },
       remove: (id) =>
         set({ notifications: get().notifications.filter((n) => n.id !== id) }),
-      byUser: (userId) =>
-        get().notifications.filter((n) => n.userId === userId),
+      byUser: (userId) => get().notifications.filter((n) => n.userId === userId),
     }),
     {
       name: "nvmcars-notifications",
       storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => ({ notifications: state.notifications }),
     }
   )
 );

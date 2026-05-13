@@ -1,10 +1,5 @@
 import { useState } from "react";
-import {
-  Alert,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { Alert, ScrollView, Text, View } from "react-native";
 import { z } from "zod";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { KAV } from "@/components/KAV";
@@ -13,27 +8,44 @@ import { TextField } from "@/components/TextField";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
+import { isSupabaseConfigured } from "@/lib/supabase";
 
 const schema = z.object({
   name: z.string().min(2, "Nome troppo corto."),
   email: z.string().email("Email non valida."),
   phone: z.string().min(8, "Telefono non valido."),
-  password: z.string().min(6, "La password deve avere almeno 6 caratteri."),
+  password: z.string().min(8, "La password deve avere almeno 8 caratteri."),
 });
 
 export function RegisterCustomerScreen() {
   const t = useT();
   const colors = useColors();
   const registerCustomer = useAuthStore((s) => s.registerCustomer);
+  const signupCustomer = useAuthStore((s) => s.signupCustomer);
+  const authLoading = useAuthStore((s) => s.authLoading);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const parsed = schema.safeParse({ name, email, phone, password });
     if (!parsed.success) {
-      Alert.alert(t.common.error, parsed.error.issues[0].message);
+      Alert.alert(t.common.error, parsed.error.issues[0]!.message);
+      return;
+    }
+    if (isSupabaseConfigured) {
+      const res = await signupCustomer({ name, email: email.trim(), phone, password });
+      if (!res.ok) {
+        Alert.alert(t.common.error, res.reason);
+        return;
+      }
+      if (res.needsEmailVerification) {
+        Alert.alert(
+          "Conferma la tua email",
+          `Ti abbiamo inviato un'email a ${email}. Cliccala per attivare l'account.`
+        );
+      }
       return;
     }
     registerCustomer({ name, email, phone });
@@ -85,7 +97,11 @@ export function RegisterCustomerScreen() {
           </View>
 
           <View style={{ marginTop: 24 }}>
-            <PrimaryButton label={t.auth.createAccount} onPress={handleSubmit} />
+            <PrimaryButton
+              label={authLoading ? t.common.loading : t.auth.createAccount}
+              onPress={handleSubmit}
+              disabled={authLoading}
+            />
           </View>
         </ScrollView>
       </KAV>

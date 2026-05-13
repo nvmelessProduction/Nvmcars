@@ -16,6 +16,7 @@ import { TextField } from "@/components/TextField";
 import { Card } from "@/components/Card";
 import { PickerSheet } from "@/components/PickerSheet";
 import { useCarStore } from "@/store/useCarStore";
+import { useAuthStore } from "@/store/useAuthStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
 import {
@@ -41,6 +42,7 @@ export function AddCarScreen() {
   const addCar = useCarStore((s) => s.addCar);
   const canLookup = useCarStore((s) => s.canUsePlateLookup());
   const consumeLookup = useCarStore((s) => s.consumePlateLookup);
+  const userId = useAuthStore((s) => s.user?.id);
 
   const [mode, setMode] = useState<Mode>(canLookup ? "plate" : "manual");
 
@@ -102,16 +104,19 @@ export function AddCarScreen() {
 
   const handleSaveFromLookup = () => {
     if (!lookupResult) return;
-    addCar({
-      plate: lookupResult.plate,
-      make: lookupResult.make,
-      model: lookupResult.model,
-      year: lookupResult.year,
-      fuel: lookupResult.fuel,
-      displacement: lookupResult.displacement,
-      category: lookupResult.category,
-      nickname: nickname.trim() || undefined,
-    });
+    addCar(
+      {
+        plate: lookupResult.plate,
+        make: lookupResult.make,
+        model: lookupResult.model,
+        year: lookupResult.year,
+        fuel: lookupResult.fuel,
+        displacement: lookupResult.displacement,
+        category: lookupResult.category,
+        nickname: nickname.trim() || undefined,
+      },
+      userId
+    );
     navigation.goBack();
   };
 
@@ -131,16 +136,19 @@ export function AddCarScreen() {
       return;
     }
     const plateTrim = plate.trim().toUpperCase().replace(/\s+/g, "");
-    addCar({
-      plate: plateTrim || `MAN-${Date.now().toString(36).toUpperCase()}`,
-      make,
-      model,
-      year: yearNum,
-      fuel,
-      displacement: fuel === "elettrico" ? 0 : cc,
-      category: inferCategory(make, model),
-      nickname: nickname.trim() || undefined,
-    });
+    addCar(
+      {
+        plate: plateTrim || `MAN-${Date.now().toString(36).toUpperCase()}`,
+        make,
+        model,
+        year: yearNum,
+        fuel,
+        displacement: fuel === "elettrico" ? 0 : cc,
+        category: inferCategory(make, model),
+        nickname: nickname.trim() || undefined,
+      },
+      userId
+    );
     navigation.goBack();
   };
 

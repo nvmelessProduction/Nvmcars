@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigation, useRoute, type RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ActivityIndicator, FlatList, Pressable, Text, View } from "react-native";
@@ -37,12 +37,22 @@ export function WorkshopListScreen() {
   const [view, setView] = useState<"list" | "map">("list");
 
   const ownWorkshops = useWorkshopStore((s) => s.ownWorkshops);
+  const remoteWorkshops = useWorkshopStore((s) => s.remoteWorkshops);
+  const hydrateAll = useWorkshopStore((s) => s.hydrateAll);
+  useEffect(() => {
+    hydrateAll();
+  }, [hydrateAll]);
+
   const items = useMemo(() => {
-    const merged: Workshop[] = WORKSHOPS.map((w) => ownWorkshops[w.id] ?? w);
+    // Sorgente: se ci sono remote (Supabase), uso solo quelli; altrimenti mock + ownWorkshops
+    const source: Workshop[] =
+      remoteWorkshops.length > 0
+        ? remoteWorkshops.map((w) => ownWorkshops[w.id] ?? w)
+        : WORKSHOPS.map((w) => ownWorkshops[w.id] ?? w);
     for (const own of Object.values(ownWorkshops)) {
-      if (!merged.some((m) => m.id === own.id)) merged.push(own);
+      if (!source.some((m) => m.id === own.id)) source.push(own);
     }
-    const filtered = merged.filter((w) => {
+    const filtered = source.filter((w) => {
       if (w.status === "draft") return false;
       if (service && w.services[service] === undefined) return false;
       if (city !== "all" && w.city !== city) return false;
