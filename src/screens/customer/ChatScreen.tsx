@@ -44,6 +44,15 @@ export function ChatScreen() {
     navigation.setOptions({ title: workshop?.name ?? "Chat" });
   }, [navigation, workshop]);
 
+  // Hide bottom tab bar while in chat so the keyboard has full vertical space
+  useLayoutEffect(() => {
+    const parent = navigation.getParent();
+    parent?.setOptions({ tabBarStyle: { display: "none" } });
+    return () => {
+      parent?.setOptions({ tabBarStyle: undefined });
+    };
+  }, [navigation]);
+
   useEffect(() => {
     if (user) ensure(user.id, workshopId);
   }, [user, workshopId, ensure]);

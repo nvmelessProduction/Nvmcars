@@ -38,6 +38,15 @@ export function ProChatScreen() {
   useEffect(() => {
     markRead(conversationId, "pro");
   }, [conversationId, markRead]);
+
+  // Hide bottom tab bar while in chat so the keyboard has full vertical space
+  useLayoutEffect(() => {
+    const parent = navigation.getParent();
+    parent?.setOptions({ tabBarStyle: { display: "none" } });
+    return () => {
+      parent?.setOptions({ tabBarStyle: undefined });
+    };
+  }, [navigation]);
   const messages = useMemo(
     () =>
       allMessages
