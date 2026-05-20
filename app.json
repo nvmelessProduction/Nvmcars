@@ -4,15 +4,9 @@
     "slug": "nvmcars",
     "version": "0.3.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "scheme": "nvmcars",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#06B6D4"
-    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.nvmcars.app",
@@ -21,36 +15,19 @@
         "NSLocationWhenInUseUsageDescription": "Nvmcars usa la tua posizione per trovare le officine più vicine a te.",
         "NSCameraUsageDescription": "Nvmcars usa la fotocamera per inviare foto e video della tua auto all'officina.",
         "NSPhotoLibraryUsageDescription": "Nvmcars accede alla libreria foto per allegare immagini ai messaggi.",
-        "NSMicrophoneUsageDescription": "Nvmcars usa il microfono per registrare video da inviare all'officina.",
-        "NSUserTrackingUsageDescription": "Questo permesso non viene usato per pubblicità: serve solo a migliorare l'esperienza in app."
-      },
-      "associatedDomains": ["applinks:nvmcars.it"]
+        "NSMicrophoneUsageDescription": "Nvmcars usa il microfono per registrare video da inviare all'officina."
+      }
     },
     "android": {
       "package": "com.nvmcars.app",
       "versionCode": 1,
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/icon-adaptive.png",
-        "backgroundColor": "#06B6D4"
-      },
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
         "CAMERA",
         "RECORD_AUDIO",
         "READ_MEDIA_IMAGES",
-        "READ_MEDIA_VIDEO",
-        "POST_NOTIFICATIONS"
-      ],
-      "intentFilters": [
-        {
-          "action": "VIEW",
-          "autoVerify": true,
-          "data": [
-            { "scheme": "https", "host": "nvmcars.it", "pathPrefix": "/" }
-          ],
-          "category": ["BROWSABLE", "DEFAULT"]
-        }
+        "READ_MEDIA_VIDEO"
       ]
     },
     "plugins": [
@@ -67,37 +44,7 @@
           "cameraPermission": "Nvmcars usa la fotocamera per inviare foto e video della tua auto all'officina.",
           "microphonePermission": "Nvmcars usa il microfono per registrare video da inviare all'officina."
         }
-      ],
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/notification-icon.png",
-          "color": "#06B6D4",
-          "defaultChannel": "default"
-        }
-      ],
-      [
-        "expo-tracking-transparency",
-        {
-          "userTrackingPermission": "Questo permesso non viene usato per pubblicità: serve solo a migliorare l'esperienza in app."
-        }
-      ],
-      [
-        "@stripe/stripe-react-native",
-        {
-          "merchantIdentifier": "merchant.com.nvmcars.app",
-          "enableGooglePay": true
-        }
       ]
-    ],
-    "extra": {
-      "eas": {
-        "projectId": ""
-      }
-    },
-    "owner": "nvmcars",
-    "experiments": {
-      "typedRoutes": false
-    }
+    ]
   }
 }
