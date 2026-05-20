@@ -3,6 +3,7 @@ import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { RootNavigator } from "@/navigation/RootNavigator";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { AdminBanner } from "@/components/AdminBanner";
 import { useIsDark } from "@/store/useThemeStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useCarStore } from "@/store/useCarStore";
@@ -35,6 +36,7 @@ export default function App() {
           <StripeWrapper>
             <RootNavigator />
             <ThemedStatusBar />
+            <AdminBanner />
           </StripeWrapper>
         </AppBootstrap>
       </SafeAreaProvider>
@@ -94,11 +96,12 @@ function AppBootstrap({ children }: { children: React.ReactNode }) {
         hydrateCars(user.id).catch(() => undefined);
         hydrateBookings({ customerId: user.id }).catch(() => undefined);
         hydrateConversations({ customerId: user.id }).catch(() => undefined);
-      } else {
+      } else if (user.role === "professional") {
         hydrateBookings({ workshopId: user.workshopId }).catch(() => undefined);
         hydrateConversations({ workshopId: user.workshopId }).catch(() => undefined);
         if (user.workshopId) hydrateWorkshopById(user.workshopId).catch(() => undefined);
       }
+      // admin: niente hydrate role-specific (visualizza solo)
     }
   }, [
     user,

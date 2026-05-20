@@ -350,6 +350,13 @@ export const en: Translations = {
   },
   settings: {
     settings: "Settings",
+    devTools: "Developer tools",
+    devToolsHint: "Visible only in development mode",
+    switchToProTitle: "Switch to Pro side",
+    switchToProBody: "View the app as a professional (Officina Demo).",
+    switchToCustomerTitle: "Switch to Customer side",
+    switchToCustomerBody: "View the app as a customer (Marco Cliente).",
+    switchAction: "🔄 Switch role",
     appearance: "Appearance",
     theme: "Theme",
     themeAuto: "Auto",

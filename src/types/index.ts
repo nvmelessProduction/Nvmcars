@@ -1,4 +1,4 @@
-export type UserRole = "customer" | "professional";
+export type UserRole = "customer" | "professional" | "admin";
 
 export type ServiceKey =
   | "tagliando"
@@ -56,7 +56,14 @@ export type ProfessionalUser = {
   inviteCode: string;
 };
 
-export type AuthUser = CustomerUser | ProfessionalUser;
+export type AdminUser = {
+  id: string;
+  role: "admin";
+  email: string;
+  name: string;
+};
+
+export type AuthUser = CustomerUser | ProfessionalUser | AdminUser;
 
 export type WorkshopHours = {
   monday: { open: string; close: string; closed?: boolean };

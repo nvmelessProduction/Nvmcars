@@ -116,3 +116,7 @@ export type ProTabParamList = {
 export type ProNotificationsStackParamList = {
   ProNotificationsList: undefined;
 };
+
+export type AdminStackParamList = {
+  AdminHome: undefined;
+};

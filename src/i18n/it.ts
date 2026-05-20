@@ -348,6 +348,13 @@ export const it = {
   },
   settings: {
     settings: "Impostazioni",
+    devTools: "Strumenti sviluppatore",
+    devToolsHint: "Visibili solo in modalità di sviluppo",
+    switchToProTitle: "Passa al lato Pro",
+    switchToProBody: "Visualizzi l'app come professionista (Officina Demo).",
+    switchToCustomerTitle: "Passa al lato Cliente",
+    switchToCustomerBody: "Visualizzi l'app come cliente (Marco Cliente).",
+    switchAction: "🔄 Switch ruolo",
     appearance: "Aspetto",
     theme: "Tema",
     themeAuto: "Automatico",

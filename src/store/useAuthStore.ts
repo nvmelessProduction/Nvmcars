@@ -1,20 +1,26 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import type { AuthUser, CustomerUser, ProfessionalUser } from "@/types";
+import type { AdminUser, AuthUser, CustomerUser, ProfessionalUser } from "@/types";
 import { consumeInviteCode, validateInviteCode } from "@/data/inviteCodes";
-import {
-  isSupabaseConfigured,
-} from "@/lib/supabase";
+import { isAdminEmail } from "@/data/admins";
+import { isSupabaseConfigured } from "@/lib/supabase";
 import * as authService from "@/services/auth";
 
 type AuthState = {
   user: AuthUser | null;
   hasOnboarded: boolean;
   authLoading: boolean;
+  /** Snapshot dell'utente "vero" (admin) quando sta impersonando un cliente/pro */
+  switchSnapshot: AuthUser | null;
   finishOnboarding: () => void;
   loginAs: (user: AuthUser) => void;
   setUser: (user: AuthUser | null) => void;
+  loginAsAdmin: () => void;
+  impersonateCustomer: () => void;
+  impersonatePro: () => void;
+  restoreAdmin: () => void;
+  isImpersonating: () => boolean;
   signupCustomer: (
     data: { email: string; password: string; name: string; phone: string }
   ) => Promise<{ ok: true; user: CustomerUser; needsEmailVerification?: boolean } | { ok: false; reason: string }>;
@@ -41,15 +47,65 @@ type AuthState = {
 
 const generateId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
+const DEMO_CUSTOMER: CustomerUser = {
+  id: "demo-customer",
+  role: "customer",
+  email: "demo@cliente.it",
+  name: "Marco Cliente",
+  phone: "+393331110000",
+};
+
+const DEMO_PRO: ProfessionalUser = {
+  id: "demo-pro",
+  role: "professional",
+  email: "demo@pro.it",
+  name: "Officina Demo",
+  phone: "+393331110001",
+  vatNumber: "12345678901",
+  workshopId: "w1",
+  inviteCode: "NVM-CRV-A4F9",
+};
+
+const DEMO_ADMIN: AdminUser = {
+  id: "demo-admin",
+  role: "admin",
+  email: "admin@nvmcars.it",
+  name: "Admin Nvmcars",
+};
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       user: null,
       hasOnboarded: false,
       authLoading: false,
+      switchSnapshot: null,
       finishOnboarding: () => set({ hasOnboarded: true }),
-      loginAs: (user) => set({ user }),
+      loginAs: (user) => set({ user, switchSnapshot: null }),
       setUser: (user) => set({ user }),
+      loginAsAdmin: () => set({ user: DEMO_ADMIN, switchSnapshot: null }),
+      impersonateCustomer: () => {
+        const current = get().user;
+        const snapshot = current?.role === "admin" ? current : get().switchSnapshot;
+        set({ user: DEMO_CUSTOMER, switchSnapshot: snapshot });
+      },
+      impersonatePro: () => {
+        const current = get().user;
+        const snapshot = current?.role === "admin" ? current : get().switchSnapshot;
+        set({ user: DEMO_PRO, switchSnapshot: snapshot });
+      },
+      restoreAdmin: () => {
+        const snap = get().switchSnapshot;
+        if (snap && snap.role === "admin") {
+          set({ user: snap, switchSnapshot: null });
+        } else {
+          set({ user: DEMO_ADMIN, switchSnapshot: null });
+        }
+      },
+      isImpersonating: () => {
+        const snap = get().switchSnapshot;
+        return Boolean(snap && snap.role === "admin");
+      },
 
       signupCustomer: async (data) => {
         set({ authLoading: true });
@@ -91,6 +147,31 @@ export const useAuthStore = create<AuthState>()(
       loginWithPassword: async (email, password) => {
         set({ authLoading: true });
         try {
+          // Hidden admin path: if the email is in the admin whitelist and
+          // login succeeds (or in mock mode), elevate to admin role.
+          if (isAdminEmail(email)) {
+            if (!isSupabaseConfigured) {
+              const adminUser: AdminUser = {
+                id: "admin-" + email.trim().toLowerCase(),
+                role: "admin",
+                email: email.trim().toLowerCase(),
+                name: "Admin Nvmcars",
+              };
+              set({ user: adminUser, switchSnapshot: null });
+              return { ok: true, user: adminUser };
+            }
+            const res = await authService.login({ email, password });
+            if (!res.ok) return { ok: false, reason: res.reason };
+            const adminUser: AdminUser = {
+              id: res.user.id,
+              role: "admin",
+              email: res.user.email,
+              name: res.user.name,
+            };
+            set({ user: adminUser, switchSnapshot: null });
+            return { ok: true, user: adminUser };
+          }
+
           const res = await authService.login({ email, password });
           if (res.ok) {
             set({ user: res.user });
@@ -139,6 +220,7 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({
         user: state.user,
         hasOnboarded: state.hasOnboarded,
+        switchSnapshot: state.switchSnapshot,
       }),
     }
   )

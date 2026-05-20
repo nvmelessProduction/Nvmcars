@@ -10,6 +10,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
 import { isSupabaseConfigured } from "@/lib/supabase";
+import { isAdminEmail } from "@/data/admins";
 import type { AuthStackParamList } from "@/navigation/types";
 
 type Nav = NativeStackNavigationProp<AuthStackParamList, "Login">;
@@ -29,12 +30,14 @@ export function LoginScreen() {
       Alert.alert(t.common.error, t.auth.emailPasswordRequired);
       return;
     }
-    if (isSupabaseConfigured) {
+    // Email admin: passa SEMPRE per loginWithPassword (anche in mock mode);
+    // lo store rileva isAdminEmail() e promuove al ruolo admin in modo invisibile.
+    if (isSupabaseConfigured || isAdminEmail(email)) {
       const res = await loginWithPassword(email.trim(), password);
       if (!res.ok) Alert.alert(t.common.error, res.reason);
       return;
     }
-    // Modalità offline: scelta demo
+    // Modalità offline non-admin: scelta demo
     Alert.alert(
       t.auth.demoModeTitle,
       t.auth.demoModeBody,
