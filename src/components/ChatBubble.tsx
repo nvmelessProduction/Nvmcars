@@ -3,6 +3,7 @@ import Animated, { FadeIn } from "react-native-reanimated";
 import { useColors } from "@/store/useThemeStore";
 import { useQuoteStore } from "@/store/useQuoteStore";
 import { useT } from "@/i18n";
+import { hitSlop, withOpacity } from "@/theme/tokens";
 import type { ChatMessage } from "@/types";
 
 type Props = {
@@ -56,6 +57,9 @@ export function ChatBubble({ message, mine, onPressQuote, onPressMedia }: Props)
       >
         <Pressable
           onPress={() => onPressQuote?.(quote.id)}
+          hitSlop={hitSlop.small}
+          accessibilityRole="button"
+          accessibilityLabel={`Apri preventivo ${quote.title}`}
           style={{
             backgroundColor: colors.bgElevated,
             borderRadius: 18,
@@ -206,10 +210,10 @@ export function ChatBubble({ message, mine, onPressQuote, onPressMedia }: Props)
               justifyContent: "center",
             }}
           >
-            <Text style={{ color: "#FFF", fontSize: 28 }}>▶</Text>
+            <Text style={{ color: "#FFFFFF", fontSize: 28 }}>▶</Text>
           </View>
           <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 10 }}>
-            Tocca per riprodurre
+            {t.chat.tapToPlay}
           </Text>
         </Pressable>
         <Text
@@ -242,12 +246,12 @@ export function ChatBubble({ message, mine, onPressQuote, onPressMedia }: Props)
         borderColor: colors.border,
       }}
     >
-      <Text style={{ color: mine ? "#FFF" : colors.text, fontSize: 15, lineHeight: 21 }}>
+      <Text style={{ color: mine ? "#FFFFFF" : colors.text, fontSize: 15, lineHeight: 21 }}>
         {message.text}
       </Text>
       <Text
         style={{
-          color: mine ? "rgba(255,255,255,0.7)" : colors.textMuted,
+          color: mine ? withOpacity("#FFFFFF", 0.7) : colors.textMuted,
           fontSize: 10,
           marginTop: 4,
           textAlign: "right",

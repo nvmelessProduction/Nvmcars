@@ -220,6 +220,7 @@ export const en: Translations = {
     permissionDenied: "Permission denied. Grant photo access in settings.",
     sendQuote: "Send quote",
     autoReplyHint: "The workshop is closed. They'll reply as soon as possible.",
+    tapToPlay: "Tap to play",
   },
   quote: {
     quote: "Quote",

@@ -218,6 +218,7 @@ export const it = {
     permissionDenied: "Permesso negato. Concedi accesso alle foto nelle impostazioni.",
     sendQuote: "Invia preventivo",
     autoReplyHint: "L'officina è chiusa. Risponderà appena possibile.",
+    tapToPlay: "Tocca per riprodurre",
   },
   quote: {
     quote: "Preventivo",

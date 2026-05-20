@@ -1,7 +1,7 @@
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { FlatList, Pressable, Text, View } from "react-native";
+import { FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 import Animated, { FadeInRight } from "react-native-reanimated";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { Card } from "@/components/Card";
@@ -40,6 +40,12 @@ export function CustomerChatsListScreen() {
       .sort((a, b) => (b.lastMessageAt ?? 0) - (a.lastMessageAt ?? 0));
   }, [conversations, user]);
 
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 500);
+  }, []);
+
   if (!user) return null;
 
   return (
@@ -53,6 +59,13 @@ export function CustomerChatsListScreen() {
           data={myConversations}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ padding: 16, gap: 10, paddingBottom: 24 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.accent}
+            />
+          }
           renderItem={({ item, index }) => (
             <ChatRow
               workshopId={item.workshopId}

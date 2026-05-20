@@ -1,7 +1,8 @@
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { FlatList, View } from "react-native";
+import { FlatList, RefreshControl, View } from "react-native";
+import { useColors } from "@/store/useThemeStore";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { WorkshopCard } from "@/components/WorkshopCard";
 import { EmptyState } from "@/components/EmptyState";
@@ -17,8 +18,14 @@ type Nav = NativeStackNavigationProp<FavoritesStackParamList, "FavoritesList">;
 export function FavoritesScreen() {
   const navigation = useNavigation<Nav>();
   const t = useT();
+  const colors = useColors();
   const ids = useFavoritesStore((s) => s.ids);
   const { location } = useUserLocation();
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 500);
+  }, []);
 
   const favorites = useMemo(
     () =>
@@ -49,6 +56,13 @@ export function FavoritesScreen() {
         data={favorites}
         keyExtractor={(item) => item.workshop.id}
         contentContainerStyle={{ padding: 16 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.accent}
+          />
+        }
         renderItem={({ item, index }) => (
           <WorkshopCard
             workshop={item.workshop}

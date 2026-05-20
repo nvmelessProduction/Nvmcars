@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigation, useRoute, type RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { ActivityIndicator, FlatList, Pressable, Text, View } from "react-native";
+import { useCallback } from "react";
+import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 import MapView, { Marker, PROVIDER_DEFAULT } from "react-native-maps";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { WorkshopCard } from "@/components/WorkshopCard";
@@ -39,7 +40,11 @@ export function WorkshopListScreen() {
   const ownWorkshops = useWorkshopStore((s) => s.ownWorkshops);
   const remoteWorkshops = useWorkshopStore((s) => s.remoteWorkshops);
   const hydrateAll = useWorkshopStore((s) => s.hydrateAll);
+  const hydrating = useWorkshopStore((s) => s.hydrating);
   useEffect(() => {
+    hydrateAll();
+  }, [hydrateAll]);
+  const onRefresh = useCallback(() => {
     hydrateAll();
   }, [hydrateAll]);
 
@@ -173,6 +178,13 @@ export function WorkshopListScreen() {
           data={items}
           keyExtractor={(item) => item.workshop.id}
           contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 32 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={hydrating}
+              onRefresh={onRefresh}
+              tintColor={colors.accent}
+            />
+          }
           renderItem={({ item, index }) => (
             <WorkshopCard
               workshop={item.workshop}
