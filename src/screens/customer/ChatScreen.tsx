@@ -84,18 +84,24 @@ export function ChatScreen() {
   };
 
   const handleAttach = async (a: "camera" | "gallery" | "video") => {
+    console.log("[ChatScreen] handleAttach:", a);
     const picker = a === "camera" ? takePhoto : a === "gallery" ? pickFromGallery : recordVideo;
-    const r = await picker();
-    if (!r) return;
-    send({
-      conversationId: convId,
-      senderId: user.id,
-      kind: r.isVideo ? "video" : "image",
-      mediaUri: r.uri,
-      mediaWidth: r.width,
-      mediaHeight: r.height,
-    });
-    scrollEnd();
+    try {
+      const r = await picker();
+      console.log("[ChatScreen] picker result:", r ? "got media" : "null");
+      if (!r) return;
+      send({
+        conversationId: convId,
+        senderId: user.id,
+        kind: r.isVideo ? "video" : "image",
+        mediaUri: r.uri,
+        mediaWidth: r.width,
+        mediaHeight: r.height,
+      });
+      scrollEnd();
+    } catch (e) {
+      console.warn("[ChatScreen] picker error:", e);
+    }
   };
 
   return (

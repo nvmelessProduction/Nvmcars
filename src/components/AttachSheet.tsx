@@ -1,4 +1,6 @@
-import { Modal, Pressable, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Modal, Pressable, Text, View, Platform } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
 
@@ -13,6 +15,27 @@ type Props = {
 export function AttachSheet({ visible, onClose, onPick }: Props) {
   const colors = useColors();
   const t = useT();
+  const insets = useSafeAreaInsets();
+  const [pendingPick, setPendingPick] = useState<Action | null>(null);
+
+  // Fire the pick AFTER the modal has finished closing (visible=false has
+  // propagated). This avoids the iOS race where the picker is invoked while
+  // the modal is still dismissing and silently does nothing.
+  useEffect(() => {
+    if (!visible && pendingPick) {
+      const action = pendingPick;
+      setPendingPick(null);
+      // Small extra delay only on iOS (fade animation timing)
+      const delay = Platform.OS === "ios" ? 450 : 150;
+      const t = setTimeout(() => onPick(action), delay);
+      return () => clearTimeout(t);
+    }
+  }, [visible, pendingPick, onPick]);
+
+  const handleSelect = (a: Action) => {
+    setPendingPick(a);
+    onClose();
+  };
 
   const items: { key: Action; emoji: string; label: string }[] = [
     { key: "camera", emoji: "📷", label: t.chat.fromCamera },
@@ -31,7 +54,7 @@ export function AttachSheet({ visible, onClose, onPick }: Props) {
           position: "absolute",
           left: 16,
           right: 16,
-          bottom: 28,
+          bottom: Math.max(28, insets.bottom + 12),
         }}
       >
         <View
@@ -46,10 +69,7 @@ export function AttachSheet({ visible, onClose, onPick }: Props) {
           {items.map((it, idx) => (
             <Pressable
               key={it.key}
-              onPress={() => {
-                onClose();
-                setTimeout(() => onPick(it.key), 350);
-              }}
+              onPress={() => handleSelect(it.key)}
               style={({ pressed }) => ({
                 paddingVertical: 16,
                 paddingHorizontal: 18,

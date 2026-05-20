@@ -73,18 +73,24 @@ export function ProChatScreen() {
   };
 
   const handleAttach = async (a: "camera" | "gallery" | "video") => {
+    console.log("[ProChatScreen] handleAttach:", a);
     const picker = a === "camera" ? takePhoto : a === "gallery" ? pickFromGallery : recordVideo;
-    const r = await picker();
-    if (!r) return;
-    send({
-      conversationId,
-      senderId,
-      kind: r.isVideo ? "video" : "image",
-      mediaUri: r.uri,
-      mediaWidth: r.width,
-      mediaHeight: r.height,
-    });
-    scrollEnd();
+    try {
+      const r = await picker();
+      console.log("[ProChatScreen] picker result:", r ? "got media" : "null");
+      if (!r) return;
+      send({
+        conversationId,
+        senderId,
+        kind: r.isVideo ? "video" : "image",
+        mediaUri: r.uri,
+        mediaWidth: r.width,
+        mediaHeight: r.height,
+      });
+      scrollEnd();
+    } catch (e) {
+      console.warn("[ProChatScreen] picker error:", e);
+    }
   };
 
   return (
