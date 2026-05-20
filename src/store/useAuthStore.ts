@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { AdminUser, AuthUser, CustomerUser, ProfessionalUser } from "@/types";
 import { consumeInviteCode, validateInviteCode } from "@/data/inviteCodes";
-import { isAdminEmail } from "@/data/admins";
+import { isAdminEmail, isValidAdminPassword } from "@/data/admins";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import * as authService from "@/services/auth";
 
@@ -147,31 +147,24 @@ export const useAuthStore = create<AuthState>()(
       loginWithPassword: async (email, password) => {
         set({ authLoading: true });
         try {
-          // Hidden admin path: if the email is in the admin whitelist and
-          // login succeeds (or in mock mode), elevate to admin role.
+          // ADMIN PATH (bypassa Supabase): email in whitelist + password locale.
+          // Non serve avere l'account nel DB Supabase. Canale interno operativo.
           if (isAdminEmail(email)) {
-            if (!isSupabaseConfigured) {
-              const adminUser: AdminUser = {
-                id: "admin-" + email.trim().toLowerCase(),
-                role: "admin",
-                email: email.trim().toLowerCase(),
-                name: "Admin Nvmcars",
-              };
-              set({ user: adminUser, switchSnapshot: null });
-              return { ok: true, user: adminUser };
+            if (!isValidAdminPassword(password)) {
+              return { ok: false, reason: "Password admin errata" };
             }
-            const res = await authService.login({ email, password });
-            if (!res.ok) return { ok: false, reason: res.reason };
+            const cleanEmail = email.trim().toLowerCase();
             const adminUser: AdminUser = {
-              id: res.user.id,
+              id: "admin-" + cleanEmail,
               role: "admin",
-              email: res.user.email,
-              name: res.user.name,
+              email: cleanEmail,
+              name: cleanEmail.split("@")[0] ?? "Admin",
             };
             set({ user: adminUser, switchSnapshot: null });
             return { ok: true, user: adminUser };
           }
 
+          // Utenti normali: passano per Supabase (o mock).
           const res = await authService.login({ email, password });
           if (res.ok) {
             set({ user: res.user });
