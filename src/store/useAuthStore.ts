@@ -19,6 +19,8 @@ type AuthState = {
   loginAsAdmin: () => void;
   impersonateCustomer: () => void;
   impersonatePro: () => void;
+  /** Impersona un utente REALE (record dal DB). Salva l'admin in switchSnapshot. */
+  impersonateRealUser: (user: AuthUser) => void;
   restoreAdmin: () => void;
   isImpersonating: () => boolean;
   signupCustomer: (
@@ -94,6 +96,11 @@ export const useAuthStore = create<AuthState>()(
         const snapshot = current?.role === "admin" ? current : get().switchSnapshot;
         set({ user: DEMO_PRO, switchSnapshot: snapshot });
       },
+      impersonateRealUser: (target) => {
+        const current = get().user;
+        const snapshot = current?.role === "admin" ? current : get().switchSnapshot;
+        set({ user: target, switchSnapshot: snapshot });
+      },
       restoreAdmin: () => {
         const snap = get().switchSnapshot;
         if (snap && snap.role === "admin") {
@@ -112,7 +119,7 @@ export const useAuthStore = create<AuthState>()(
         try {
           const res = await authService.signupCustomer(data);
           if (res.ok && res.user.role === "customer") {
-            set({ user: res.user });
+            set({ user: res.user, switchSnapshot: null });
             return { ok: true, user: res.user, needsEmailVerification: res.needsEmailVerification };
           }
           if (!res.ok) return { ok: false, reason: res.reason };
@@ -134,7 +141,7 @@ export const useAuthStore = create<AuthState>()(
           }
           const res = await authService.signupProfessional(data);
           if (res.ok && res.user.role === "professional") {
-            set({ user: res.user });
+            set({ user: res.user, switchSnapshot: null });
             return { ok: true, user: res.user, needsEmailVerification: res.needsEmailVerification };
           }
           if (!res.ok) return { ok: false, reason: res.reason };
@@ -167,7 +174,8 @@ export const useAuthStore = create<AuthState>()(
           // Utenti normali: passano per Supabase (o mock).
           const res = await authService.login({ email, password });
           if (res.ok) {
-            set({ user: res.user });
+            // Reset snapshot: login normale non è un impersonate.
+            set({ user: res.user, switchSnapshot: null });
             return { ok: true, user: res.user };
           }
           return { ok: false, reason: res.reason };
@@ -183,7 +191,7 @@ export const useAuthStore = create<AuthState>()(
           role: "customer",
           ...data,
         };
-        set({ user: newUser });
+        set({ user: newUser, switchSnapshot: null });
         return newUser;
       },
       registerProfessional: (data) => {
@@ -198,13 +206,14 @@ export const useAuthStore = create<AuthState>()(
           workshopId: `workshop-${generateId()}`,
           ...data,
         };
-        set({ user: newUser });
+        set({ user: newUser, switchSnapshot: null });
         return { ok: true, user: newUser };
       },
 
       logout: async () => {
         await authService.logout();
-        set({ user: null });
+        // Reset COMPLETO: anche lo snapshot admin, altrimenti il banner persiste.
+        set({ user: null, switchSnapshot: null });
       },
     }),
     {

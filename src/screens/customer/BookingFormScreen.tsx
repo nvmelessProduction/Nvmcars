@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useNavigation, useRoute, type RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, Pressable, Text, View } from "react-native";
 import { ScreenContainer } from "@/components/ScreenContainer";
-import { KAV } from "@/components/KAV";
+import { KeyboardAwareScrollView } from "@/components/KAV";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { TextField } from "@/components/TextField";
 import { Card } from "@/components/Card";
@@ -88,8 +88,7 @@ export function BookingFormScreen() {
 
   return (
     <ScreenContainer>
-      <KAV>
-        <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 32 }}>
+      <KeyboardAwareScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 80 }}>
           <Card>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
               <Text style={{ fontSize: 36 }}>{getServiceEmoji(service)}</Text>
@@ -187,8 +186,7 @@ export function BookingFormScreen() {
               disabled={!accepting}
             />
           </View>
-        </ScrollView>
-      </KAV>
+      </KeyboardAwareScrollView>
     </ScreenContainer>
   );
 }

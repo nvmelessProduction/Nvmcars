@@ -1,16 +1,9 @@
 import { useLayoutEffect, useState } from "react";
 import { useNavigation, useRoute, type RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, Alert, Pressable, Text, View } from "react-native";
 import { ScreenContainer } from "@/components/ScreenContainer";
-import { KAV } from "@/components/KAV";
+import { KeyboardAwareScrollView } from "@/components/KAV";
 import { Card } from "@/components/Card";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { TextField } from "@/components/TextField";
@@ -177,11 +170,9 @@ export function PaymentScreen() {
 
   return (
     <ScreenContainer>
-      <KAV>
-        <ScrollView
-          contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 40 }}
-          keyboardShouldPersistTaps="handled"
-        >
+      <KeyboardAwareScrollView
+        contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 80 }}
+      >
           <Card padding={16}>
             <Text style={{ fontSize: 12, fontWeight: "800", color: colors.textMuted, letterSpacing: 0.5 }}>
               {t.payment.summary.toUpperCase()}
@@ -366,8 +357,7 @@ export function PaymentScreen() {
               onPress={onPayInShop}
             />
           )}
-        </ScrollView>
-      </KAV>
+      </KeyboardAwareScrollView>
     </ScreenContainer>
   );
 }

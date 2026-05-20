@@ -1,10 +1,13 @@
 import { useMemo } from "react";
 import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { Card } from "@/components/Card";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { useAuthStore } from "@/store/useAuthStore";
+import type { AdminStackParamList } from "@/navigation/types";
 import { useColors } from "@/store/useThemeStore";
 import { useBookingsStore } from "@/store/useBookingsStore";
 import { useWorkshopStore } from "@/store/useWorkshopStore";

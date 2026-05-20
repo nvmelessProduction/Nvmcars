@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Alert, Image, Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, Image, Pressable, Text, View } from "react-native";
 import { ScreenContainer } from "@/components/ScreenContainer";
-import { KAV } from "@/components/KAV";
+import { KeyboardAwareScrollView } from "@/components/KAV";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { TextField } from "@/components/TextField";
 import { Card } from "@/components/Card";
@@ -102,8 +102,7 @@ export function ProEditWorkshopScreen() {
 
   return (
     <ScreenContainer>
-      <KAV>
-        <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 32 }}>
+      <KeyboardAwareScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 80 }}>
           <Card>
             <Text style={{ fontSize: 13, color: colors.textMuted, lineHeight: 19 }}>
               Aggiorna le informazioni della tua officina. Queste sono le info che i clienti vedono.
@@ -204,8 +203,7 @@ export function ProEditWorkshopScreen() {
           <View style={{ marginTop: 8 }}>
             <PrimaryButton label={t.common.save} icon="💾" onPress={handleSave} />
           </View>
-        </ScrollView>
-      </KAV>
+      </KeyboardAwareScrollView>
     </ScreenContainer>
   );
 }

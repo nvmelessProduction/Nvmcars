@@ -1,14 +1,9 @@
 import { useState } from "react";
 import { useNavigation, useRoute, type RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import {
-  Alert,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { Alert, Text, View } from "react-native";
 import { ScreenContainer } from "@/components/ScreenContainer";
-import { KAV } from "@/components/KAV";
+import { KeyboardAwareScrollView } from "@/components/KAV";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { TextField } from "@/components/TextField";
 import { RatingStars } from "@/components/RatingStars";
@@ -68,8 +63,7 @@ export function AddReviewScreen() {
 
   return (
     <ScreenContainer>
-      <KAV>
-        <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 32 }}>
+      <KeyboardAwareScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 80 }}>
           <Card>
             <Text style={{ fontSize: 13, color: colors.textMuted }}>{t.reviews.youAreReviewing}</Text>
             <Text style={{ fontSize: 18, fontWeight: "700", color: colors.text, marginTop: 4 }}>
@@ -102,8 +96,7 @@ export function AddReviewScreen() {
           <View style={{ marginTop: 8 }}>
             <PrimaryButton label={t.reviews.submit} onPress={handleSubmit} />
           </View>
-        </ScrollView>
-      </KAV>
+      </KeyboardAwareScrollView>
     </ScreenContainer>
   );
 }

@@ -119,4 +119,5 @@ export type ProNotificationsStackParamList = {
 
 export type AdminStackParamList = {
   AdminHome: undefined;
+  AdminUsers: undefined;
 };

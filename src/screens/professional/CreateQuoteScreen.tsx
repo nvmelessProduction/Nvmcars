@@ -1,15 +1,9 @@
 import { useMemo, useState } from "react";
 import { useNavigation, useRoute, type RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { Alert, Pressable, Text, View } from "react-native";
 import { ScreenContainer } from "@/components/ScreenContainer";
-import { KAV } from "@/components/KAV";
+import { KeyboardAwareScrollView } from "@/components/KAV";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { TextField } from "@/components/TextField";
 import { Card } from "@/components/Card";
@@ -109,11 +103,9 @@ export function CreateQuoteScreen() {
 
   return (
     <ScreenContainer>
-      <KAV>
-        <ScrollView
-          contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 40 }}
-          keyboardShouldPersistTaps="handled"
-        >
+      <KeyboardAwareScrollView
+        contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 80 }}
+      >
           <Text style={{ fontSize: 22, fontWeight: "800", color: colors.text }}>
             {t.quote.createQuote}
           </Text>
@@ -245,8 +237,7 @@ export function CreateQuoteScreen() {
           </Card>
 
           <PrimaryButton label={t.quote.sendToCustomer} onPress={onSubmit} />
-        </ScrollView>
-      </KAV>
+      </KeyboardAwareScrollView>
     </ScreenContainer>
   );
 }

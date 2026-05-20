@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Alert, ScrollView, Text, View } from "react-native";
+import { Alert, Text, View } from "react-native";
 import { z } from "zod";
 import { ScreenContainer } from "@/components/ScreenContainer";
-import { KAV } from "@/components/KAV";
+import { KeyboardAwareScrollView } from "@/components/KAV";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { TextField } from "@/components/TextField";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -53,11 +53,9 @@ export function RegisterCustomerScreen() {
 
   return (
     <ScreenContainer>
-      <KAV>
-        <ScrollView
-          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 22, paddingTop: 28 }}
-          keyboardShouldPersistTaps="handled"
-        >
+      <KeyboardAwareScrollView
+        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 22, paddingTop: 28, paddingBottom: 60 }}
+      >
           <Text style={{ fontSize: 26, fontWeight: "800", color: colors.text }}>
             {t.auth.iAmCustomer}
           </Text>
@@ -103,8 +101,7 @@ export function RegisterCustomerScreen() {
               disabled={authLoading}
             />
           </View>
-        </ScrollView>
-      </KAV>
+      </KeyboardAwareScrollView>
     </ScreenContainer>
   );
 }

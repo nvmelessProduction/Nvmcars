@@ -1,5 +1,6 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { AdminHomeScreen } from "@/screens/admin/AdminHomeScreen";
+import { AdminUsersScreen } from "@/screens/admin/AdminUsersScreen";
 import { useColors } from "@/store/useThemeStore";
 import type { AdminStackParamList } from "./types";
 
@@ -20,6 +21,11 @@ export function AdminNavigator() {
         name="AdminHome"
         component={AdminHomeScreen}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="AdminUsers"
+        component={AdminUsersScreen}
+        options={{ title: "Utenti reali" }}
       />
     </Stack.Navigator>
   );
