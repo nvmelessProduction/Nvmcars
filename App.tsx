@@ -11,6 +11,7 @@ import { useWorkshopStore } from "@/store/useWorkshopStore";
 import { useBookingsStore } from "@/store/useBookingsStore";
 import { useChatStore } from "@/store/useChatStore";
 import { useNotificationsStore } from "@/store/useNotificationsStore";
+import { useFavoritesStore } from "@/store/useFavoritesStore";
 import * as authService from "@/services/auth";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { initSentry } from "@/lib/sentry";
@@ -65,6 +66,7 @@ function AppBootstrap({ children }: { children: React.ReactNode }) {
   const hydrateBookings = useBookingsStore((s) => s.hydrate);
   const hydrateConversations = useChatStore((s) => s.hydrateConversations);
   const hydrateNotifications = useNotificationsStore((s) => s.hydrate);
+  const hydrateFavorites = useFavoritesStore((s) => s.hydrate);
 
   // Init globali una volta
   useEffect(() => {
@@ -96,6 +98,7 @@ function AppBootstrap({ children }: { children: React.ReactNode }) {
         hydrateCars(user.id).catch(() => undefined);
         hydrateBookings({ customerId: user.id }).catch(() => undefined);
         hydrateConversations({ customerId: user.id }).catch(() => undefined);
+        hydrateFavorites(user.id).catch(() => undefined);
       } else if (user.role === "professional") {
         hydrateBookings({ workshopId: user.workshopId }).catch(() => undefined);
         hydrateConversations({ workshopId: user.workshopId }).catch(() => undefined);
@@ -111,6 +114,7 @@ function AppBootstrap({ children }: { children: React.ReactNode }) {
     hydrateBookings,
     hydrateConversations,
     hydrateNotifications,
+    hydrateFavorites,
   ]);
 
   return <>{children}</>;
@@ -118,5 +122,5 @@ function AppBootstrap({ children }: { children: React.ReactNode }) {
 
 function ThemedStatusBar() {
   const isDark = useIsDark();
-  return <StatusBar style={isDark ? "light" : "light"} />;
+  return <StatusBar style={isDark ? "light" : "dark"} />;
 }

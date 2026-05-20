@@ -10,6 +10,7 @@ import { RatingStars } from "@/components/RatingStars";
 import { Card } from "@/components/Card";
 import { useReviewsStore } from "@/store/useReviewsStore";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useWorkshopStore } from "@/store/useWorkshopStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
 import { WORKSHOPS } from "@/data/workshops";
@@ -26,6 +27,7 @@ export function AddReviewScreen() {
   const colors = useColors();
   const user = useAuthStore((s) => s.user);
   const addReview = useReviewsStore((s) => s.add);
+  const hydrateWorkshopById = useWorkshopStore((s) => s.hydrateById);
   const workshop = WORKSHOPS.find((w) => w.id === workshopId);
 
   const [rating, setRating] = useState(5);
@@ -45,6 +47,8 @@ export function AddReviewScreen() {
       rating,
       comment: comment.trim(),
     });
+    // Refetch del workshop per aggiornare rating/reviewsCount calcolati lato DB.
+    hydrateWorkshopById(workshopId).catch(() => undefined);
     Alert.alert(t.reviews.thanksTitle, t.reviews.thanksBody, [
       { text: t.common.ok, onPress: () => navigation.goBack() },
     ]);

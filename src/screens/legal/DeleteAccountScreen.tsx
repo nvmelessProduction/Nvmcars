@@ -19,10 +19,11 @@ export function DeleteAccountScreen() {
     setBusy(true);
     try {
       await wipeUserData();
-      logout();
+      await logout();
       Alert.alert(t.legal.deleteSuccessTitle, t.legal.deleteSuccessBody);
     } catch (e) {
       Alert.alert(t.common.error, String(e));
+    } finally {
       setBusy(false);
     }
   };

@@ -2,11 +2,14 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { Review } from "@/types";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import * as reviewsService from "@/services/reviews";
 
 type ReviewsState = {
   reviews: Review[];
   byWorkshop: (workshopId: string) => Review[];
   add: (data: Omit<Review, "id" | "createdAt">) => Review;
+  hydrateForWorkshop: (workshopId: string) => Promise<void>;
 };
 
 const generateId = () => `rv-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
@@ -74,7 +77,26 @@ export const useReviewsStore = create<ReviewsState>()(
           ...data,
         };
         set({ reviews: [newReview, ...get().reviews] });
+        if (isSupabaseConfigured) {
+          reviewsService
+            .createReviewRemote(data)
+            .then((remote) => {
+              if (!remote) return;
+              set({
+                reviews: get().reviews.map((r) =>
+                  r.id === newReview.id ? { ...remote, customerName: newReview.customerName } : r
+                ),
+              });
+            })
+            .catch(() => undefined);
+        }
         return newReview;
+      },
+      hydrateForWorkshop: async (workshopId) => {
+        if (!isSupabaseConfigured) return;
+        const remote = await reviewsService.listReviewsForWorkshop(workshopId);
+        const others = get().reviews.filter((r) => r.workshopId !== workshopId);
+        set({ reviews: [...remote, ...others] });
       },
     }),
     {

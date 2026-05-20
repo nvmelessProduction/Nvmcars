@@ -33,11 +33,18 @@ export function ProChatScreen() {
   const allMessages = useChatStore((s) => s.messages);
   const send = useChatStore((s) => s.send);
   const markRead = useChatStore((s) => s.markRead);
+  const hydrateMessages = useChatStore((s) => s.hydrateMessages);
+  const subscribe = useChatStore((s) => s.subscribeToConversation);
+  const unsubscribe = useChatStore((s) => s.unsubscribeFromConversation);
   const conversations = useChatStore((s) => s.conversations);
 
   useEffect(() => {
+    if (!conversationId) return;
     markRead(conversationId, "pro");
-  }, [conversationId, markRead]);
+    hydrateMessages(conversationId).catch(() => undefined);
+    subscribe(conversationId);
+    return () => unsubscribe(conversationId);
+  }, [conversationId, markRead, hydrateMessages, subscribe, unsubscribe]);
 
   // Hide bottom tab bar while in chat so the keyboard has full vertical space
   useLayoutEffect(() => {
@@ -68,7 +75,9 @@ export function ProChatScreen() {
   }, [messages.length]);
 
   if (!user || user.role !== "professional") return null;
-  const senderId = user.workshopId;
+  // sender_id deve essere l'auth.uid() del professionale (profile id),
+  // non l'id della officina, altrimenti la RLS sui messaggi rifiuta l'insert.
+  const senderId = user.id;
 
   const scrollEnd = () =>
     setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 50);

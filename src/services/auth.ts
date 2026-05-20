@@ -124,28 +124,32 @@ export async function signupProfessional(
   if (!data.user) return { ok: false, reason: "Signup failed" };
 
   // Crea workshop draft + lega al profilo
-  const workshopId =
-    invite.workshop_id ??
-    (
-      await supabase
-        .from("workshops")
-        .insert({
-          owner_id: data.user.id,
-          name: "",
-          city: "",
-          address: "",
-          lat: 0,
-          lng: 0,
-          status: "draft",
-        })
-        .select("id")
-        .single()
-    ).data?.id;
+  let workshopId: string | null = invite.workshop_id ?? null;
+  if (!workshopId) {
+    const { data: created, error: wsErr } = await supabase
+      .from("workshops")
+      .insert({
+        owner_id: data.user.id,
+        name: "",
+        city: "",
+        address: "",
+        lat: 0,
+        lng: 0,
+        status: "draft",
+      })
+      .select("id")
+      .single();
+    if (wsErr || !created?.id) {
+      return { ok: false, reason: wsErr?.message ?? "Errore creazione officina" };
+    }
+    workshopId = created.id;
+  }
 
-  await supabase
+  const { error: updateErr } = await supabase
     .from("profiles")
     .update({ workshop_id: workshopId, vat_number: input.vatNumber, invite_code: input.inviteCode })
     .eq("id", data.user.id);
+  if (updateErr) return { ok: false, reason: updateErr.message };
 
   await supabase
     .from("invite_codes")

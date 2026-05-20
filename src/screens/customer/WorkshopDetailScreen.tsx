@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo } from "react";
+import { useEffect, useLayoutEffect, useMemo } from "react";
 import { useNavigation, useRoute, type RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
@@ -9,6 +9,7 @@ import { Card } from "@/components/Card";
 import { RatingStars } from "@/components/RatingStars";
 import { useReviewsStore } from "@/store/useReviewsStore";
 import { useFavoritesStore } from "@/store/useFavoritesStore";
+import { useAuthStore } from "@/store/useAuthStore";
 import { useActiveCar } from "@/store/useCarStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
@@ -30,8 +31,14 @@ export function WorkshopDetailScreen() {
   const car = useActiveCar();
   const favoriteIds = useFavoritesStore((s) => s.ids);
   const toggleFavorite = useFavoritesStore((s) => s.toggle);
+  const userId = useAuthStore((s) => s.user?.id);
   const isFavorite = favoriteIds.includes(workshopId);
   const allReviews = useReviewsStore((s) => s.reviews);
+  const hydrateReviews = useReviewsStore((s) => s.hydrateForWorkshop);
+
+  useEffect(() => {
+    hydrateReviews(workshopId).catch(() => undefined);
+  }, [workshopId, hydrateReviews]);
 
   const reviews = useMemo(
     () =>
@@ -69,7 +76,7 @@ export function WorkshopDetailScreen() {
             resizeMode="cover"
           />
           <Pressable
-            onPress={() => toggleFavorite(workshopId)}
+            onPress={() => toggleFavorite(userId, workshopId)}
             hitSlop={12}
             accessibilityRole="button"
             accessibilityLabel={

@@ -162,7 +162,8 @@ export function ProCalendarScreen() {
                 return (
                   <Pressable
                     key={j}
-                    onPress={() => !past && handleToggleDay(cell)}
+                    disabled={past}
+                    onPress={() => handleToggleDay(cell)}
                     style={{
                       flex: 1,
                       aspectRatio: 1,

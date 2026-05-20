@@ -4,6 +4,7 @@ import type { ServiceKey, Workshop } from "@/types";
 import { formatKm } from "@/utils/distance";
 import { getServiceLabel } from "@/data/services";
 import { useFavoritesStore } from "@/store/useFavoritesStore";
+import { useAuthStore } from "@/store/useAuthStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
 import { isOpenNow } from "@/data/workshops";
@@ -31,6 +32,7 @@ export function WorkshopCard({
   const favoriteIds = useFavoritesStore((s) => s.ids);
   const isFavorite = favoriteIds.includes(workshop.id);
   const toggleFavorite = useFavoritesStore((s) => s.toggle);
+  const userId = useAuthStore((s) => s.user?.id);
   const price =
     priceOverride ??
     (highlightedService
@@ -58,7 +60,7 @@ export function WorkshopCard({
             resizeMode="cover"
           />
           <Pressable
-            onPress={() => toggleFavorite(workshop.id)}
+            onPress={() => toggleFavorite(userId, workshop.id)}
             hitSlop={hitSlop.medium}
             accessibilityRole="button"
             accessibilityLabel={isFavorite ? t.workshop.removeFromFavorites : t.workshop.addToFavorites}

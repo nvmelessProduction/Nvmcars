@@ -212,7 +212,14 @@ export function WorkshopListScreen() {
             initialRegion={mapRegion}
             showsUserLocation
           >
-            {items.map(({ workshop, price }) => (
+            {items
+              .filter(
+                ({ workshop }) =>
+                  Number.isFinite(workshop.lat) &&
+                  Number.isFinite(workshop.lng) &&
+                  (workshop.lat !== 0 || workshop.lng !== 0)
+              )
+              .map(({ workshop, price }) => (
               <Marker
                 key={workshop.id}
                 coordinate={{ latitude: workshop.lat, longitude: workshop.lng }}
@@ -227,6 +234,7 @@ export function WorkshopListScreen() {
               />
             ))}
           </MapView>
+
         </View>
       )}
     </ScreenContainer>

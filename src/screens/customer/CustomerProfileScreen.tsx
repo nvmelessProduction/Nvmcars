@@ -84,7 +84,14 @@ export function CustomerProfileScreen() {
         </Card>
 
         <View style={{ marginTop: 12 }}>
-          <PrimaryButton label={t.profile.logout} variant="ghost" icon="🚪" onPress={logout} />
+          <PrimaryButton
+            label={t.profile.logout}
+            variant="ghost"
+            icon="🚪"
+            onPress={() => {
+              logout().catch(() => undefined);
+            }}
+          />
         </View>
       </ScrollView>
     </ScreenContainer>

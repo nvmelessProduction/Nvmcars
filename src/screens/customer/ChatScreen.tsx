@@ -19,6 +19,7 @@ import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
 import { WORKSHOPS } from "@/data/workshops";
 import { pickFromGallery, recordVideo, takePhoto } from "@/utils/mediaPicker";
+import { isSupabaseConfigured } from "@/lib/supabase";
 import type { HomeStackParamList } from "@/navigation/types";
 
 type Nav = NativeStackNavigationProp<HomeStackParamList, "Chat">;
@@ -34,7 +35,11 @@ export function ChatScreen() {
   const ensure = useChatStore((s) => s.ensureConversation);
   const send = useChatStore((s) => s.send);
   const markRead = useChatStore((s) => s.markRead);
+  const hydrateMessages = useChatStore((s) => s.hydrateMessages);
+  const subscribe = useChatStore((s) => s.subscribeToConversation);
+  const unsubscribe = useChatStore((s) => s.unsubscribeFromConversation);
   const allMessages = useChatStore((s) => s.messages);
+  const conversations = useChatStore((s) => s.conversations);
   const workshop = WORKSHOPS.find((w) => w.id === workshopId);
   const [text, setText] = useState("");
   const [attachOpen, setAttachOpen] = useState(false);
@@ -57,11 +62,26 @@ export function ChatScreen() {
     if (user) ensure(user.id, workshopId);
   }, [user, workshopId, ensure]);
 
-  const convId = user ? `cv-${user.id}-${workshopId}` : "";
+  // Resolve the *current* conversation id from the store (may be remapped to a
+  // Supabase UUID after `ensureConversation` resolves remotely).
+  const conversation = useMemo(
+    () =>
+      user
+        ? conversations.find(
+            (c) => c.customerId === user.id && c.workshopId === workshopId
+          )
+        : undefined,
+    [conversations, user, workshopId]
+  );
+  const convId = conversation?.id ?? "";
 
   useEffect(() => {
-    if (convId) markRead(convId, "customer");
-  }, [convId, markRead]);
+    if (!convId) return;
+    markRead(convId, "customer");
+    hydrateMessages(convId).catch(() => undefined);
+    subscribe(convId);
+    return () => unsubscribe(convId);
+  }, [convId, markRead, hydrateMessages, subscribe, unsubscribe]);
   const messages = useMemo(
     () =>
       allMessages
@@ -77,22 +97,28 @@ export function ChatScreen() {
 
   const onSend = () => {
     const trimmed = text.trim();
-    if (!trimmed) return;
+    if (!trimmed || !convId) return;
     send({ conversationId: convId, senderId: user.id, kind: "text", text: trimmed });
     setText("");
     scrollEnd();
-    setTimeout(() => {
-      send({
-        conversationId: convId,
-        senderId: workshopId,
-        kind: "text",
-        text: "Grazie del messaggio, ti risponderò appena possibile.",
-      });
-      scrollEnd();
-    }, 900);
+    // Auto-reply demo solo in modalità offline (seed data); in produzione
+    // (Supabase configurato) la RLS rifiuterebbe questo INSERT perché
+    // sender_id ≠ auth.uid().
+    if (!isSupabaseConfigured) {
+      setTimeout(() => {
+        send({
+          conversationId: convId,
+          senderId: workshopId,
+          kind: "text",
+          text: "Grazie del messaggio, ti risponderò appena possibile.",
+        });
+        scrollEnd();
+      }, 900);
+    }
   };
 
   const handleAttach = async (a: "camera" | "gallery" | "video") => {
+    if (!convId) return;
     const picker = a === "camera" ? takePhoto : a === "gallery" ? pickFromGallery : recordVideo;
     const r = await picker();
     if (!r) return;

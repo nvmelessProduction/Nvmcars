@@ -38,18 +38,25 @@ export function ProRequestsScreen() {
   const t = useT();
   const user = useAuthStore((s) => s.user);
   const allRaw = useBookingsStore((s) => s.bookings);
+  const hydrateBookings = useBookingsStore((s) => s.hydrate);
   const rejectBooking = useBookingsStore((s) => s.rejectBooking);
   const startWork = useBookingsStore((s) => s.startWork);
   const completeWork = useBookingsStore((s) => s.completeWork);
   const addLogEntry = useServiceLogStore((s) => s.addEntry);
   const [filter, setFilter] = useState<Filter>("pending");
   const [refreshing, setRefreshing] = useState(false);
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 500);
-  }, []);
 
   const workshopId = user && user.role === "professional" ? user.workshopId : null;
+
+  const onRefresh = useCallback(async () => {
+    if (!workshopId) return;
+    setRefreshing(true);
+    try {
+      await hydrateBookings({ workshopId });
+    } finally {
+      setRefreshing(false);
+    }
+  }, [workshopId, hydrateBookings]);
   const workshop = useResolvedWorkshop(workshopId ?? undefined);
   const all = useMemo(
     () => (workshopId ? allRaw.filter((b) => b.workshopId === workshopId) : []),

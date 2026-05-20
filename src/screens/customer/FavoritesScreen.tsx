@@ -7,6 +7,8 @@ import { ScreenContainer } from "@/components/ScreenContainer";
 import { WorkshopCard } from "@/components/WorkshopCard";
 import { EmptyState } from "@/components/EmptyState";
 import { useFavoritesStore } from "@/store/useFavoritesStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useWorkshopStore } from "@/store/useWorkshopStore";
 import { useT } from "@/i18n";
 import { WORKSHOPS } from "@/data/workshops";
 import { useUserLocation } from "@/hooks/useUserLocation";
@@ -20,21 +22,33 @@ export function FavoritesScreen() {
   const t = useT();
   const colors = useColors();
   const ids = useFavoritesStore((s) => s.ids);
+  const hydrateFavorites = useFavoritesStore((s) => s.hydrate);
+  const userId = useAuthStore((s) => s.user?.id);
+  const remoteWorkshops = useWorkshopStore((s) => s.remoteWorkshops);
   const { location } = useUserLocation();
   const [refreshing, setRefreshing] = useState(false);
-  const onRefresh = useCallback(() => {
+  const onRefresh = useCallback(async () => {
+    if (!userId) return;
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 500);
-  }, []);
+    try {
+      await hydrateFavorites(userId);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [userId, hydrateFavorites]);
 
-  const favorites = useMemo(
-    () =>
-      WORKSHOPS.filter((w) => ids.includes(w.id)).map((w) => ({
+  const favorites = useMemo(() => {
+    const byId = new Map<string, (typeof WORKSHOPS)[number]>();
+    for (const w of WORKSHOPS) byId.set(w.id, w);
+    for (const w of remoteWorkshops) byId.set(w.id, w);
+    return ids
+      .map((id) => byId.get(id))
+      .filter((w): w is (typeof WORKSHOPS)[number] => Boolean(w))
+      .map((w) => ({
         workshop: w,
         distance: location ? haversineKm(location.lat, location.lng, w.lat, w.lng) : undefined,
-      })),
-    [ids, location]
-  );
+      }));
+  }, [ids, location, remoteWorkshops]);
 
   if (favorites.length === 0) {
     return (
