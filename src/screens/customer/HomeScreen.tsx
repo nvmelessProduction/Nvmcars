@@ -6,12 +6,12 @@ import { ScreenContainer } from "@/components/ScreenContainer";
 import { ServiceChip } from "@/components/ServiceChip";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { Logo } from "@/components/Logo";
-import { Card } from "@/components/Card";
 import { HOME_SERVICES } from "@/data/services";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useActiveCar } from "@/store/useCarStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
+import { withOpacity } from "@/theme/tokens";
 import type { HomeStackParamList } from "@/navigation/types";
 
 type Nav = NativeStackNavigationProp<HomeStackParamList, "Home">;
@@ -22,14 +22,14 @@ export function HomeScreen() {
   const t = useT();
   const user = useAuthStore((s) => s.user);
   const car = useActiveCar();
-  const firstName = user?.name?.split(" ")[0] ?? "ciao";
+  const firstName = user?.name?.split(" ")[0] ?? "";
 
   return (
     <ScreenContainer dark>
       <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
         <View
           style={{
-            backgroundColor: "#0F172A",
+            backgroundColor: colors.bgHeader,
             paddingHorizontal: 22,
             paddingTop: 48,
             paddingBottom: 36,
@@ -48,18 +48,32 @@ export function HomeScreen() {
             }}
           >
             <View>
-              <Text style={{ color: "#CBD5E1", fontSize: 13 }}>{t.home.hello},</Text>
-              <Text style={{ color: "#FFF", fontSize: 24, fontWeight: "800" }}>
-                {firstName} 👋
+              <Text style={{ color: colors.onHeaderMuted, fontSize: 13 }}>{t.home.hello},</Text>
+              <Text style={{ color: colors.onHeader, fontSize: 24, fontWeight: "800" }}>
+                {firstName ? `${firstName} 👋` : "👋"}
               </Text>
             </View>
           </View>
 
           <Animated.View entering={FadeInDown.delay(80).duration(400)} style={{ marginTop: 28 }}>
-            <Text style={{ color: "#FFF", fontSize: 28, fontWeight: "800", lineHeight: 34 }}>
+            <Text
+              style={{
+                color: colors.onHeader,
+                fontSize: 28,
+                fontWeight: "800",
+                lineHeight: 34,
+              }}
+            >
               {t.home.needCheck}
             </Text>
-            <Text style={{ color: "#94A3B8", marginTop: 10, fontSize: 14, lineHeight: 20 }}>
+            <Text
+              style={{
+                color: colors.onHeaderMuted,
+                marginTop: 10,
+                fontSize: 14,
+                lineHeight: 20,
+              }}
+            >
               {t.home.invisible}
             </Text>
           </Animated.View>
@@ -68,6 +82,8 @@ export function HomeScreen() {
         <View style={{ paddingHorizontal: 16, marginTop: -16 }}>
           <Animated.View entering={FadeIn.delay(120).duration(400)}>
             <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={car ? t.home.myCar : t.home.addCar}
               onPress={() => navigation.navigate("MyCar")}
               style={{
                 backgroundColor: car ? colors.bgElevated : colors.accent,
@@ -84,7 +100,14 @@ export function HomeScreen() {
               <View style={{ flex: 1 }}>
                 {car ? (
                   <>
-                    <Text style={{ fontSize: 11, color: colors.textMuted, fontWeight: "700", letterSpacing: 0.8 }}>
+                    <Text
+                      style={{
+                        fontSize: 11,
+                        color: colors.textMuted,
+                        fontWeight: "700",
+                        letterSpacing: 0.8,
+                      }}
+                    >
                       {t.home.myCar.toUpperCase()}
                     </Text>
                     <Text style={{ fontSize: 16, fontWeight: "700", color: colors.text }}>
@@ -96,19 +119,32 @@ export function HomeScreen() {
                   </>
                 ) : (
                   <>
-                    <Text style={{ fontSize: 11, color: "rgba(255,255,255,0.85)", fontWeight: "700", letterSpacing: 0.8 }}>
-                      NUOVO
+                    <Text
+                      style={{
+                        fontSize: 11,
+                        color: withOpacity("#FFFFFF", 0.85),
+                        fontWeight: "700",
+                        letterSpacing: 0.8,
+                      }}
+                    >
+                      {t.home.newLabel.toUpperCase()}
                     </Text>
-                    <Text style={{ fontSize: 16, fontWeight: "800", color: "#FFF" }}>
+                    <Text style={{ fontSize: 16, fontWeight: "800", color: "#FFFFFF" }}>
                       {t.home.addCar}
                     </Text>
-                    <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", marginTop: 2 }}>
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        color: withOpacity("#FFFFFF", 0.85),
+                        marginTop: 2,
+                      }}
+                    >
                       {t.home.addCarHint}
                     </Text>
                   </>
                 )}
               </View>
-              <Text style={{ fontSize: 20, color: car ? colors.textMuted : "#FFF" }}>›</Text>
+              <Text style={{ fontSize: 20, color: car ? colors.textMuted : "#FFFFFF" }}>›</Text>
             </Pressable>
           </Animated.View>
         </View>

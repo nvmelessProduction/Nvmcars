@@ -87,6 +87,7 @@ export const it = {
     myCar: "La mia auto",
     addCar: "Aggiungi la tua auto",
     addCarHint: "Inserisci la targa per ricevere prezzi specifici per il tuo modello.",
+    newLabel: "Nuovo",
   },
   workshop: {
     workshopsNear: "Officine vicine",

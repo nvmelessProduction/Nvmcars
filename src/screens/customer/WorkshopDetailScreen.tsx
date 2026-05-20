@@ -70,7 +70,11 @@ export function WorkshopDetailScreen() {
           />
           <Pressable
             onPress={() => toggleFavorite(workshopId)}
-            hitSlop={8}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel={
+              isFavorite ? t.workshop.removeFromFavorites : t.workshop.addToFavorites
+            }
             style={{
               position: "absolute",
               top: 14,
@@ -78,7 +82,7 @@ export function WorkshopDetailScreen() {
               width: 44,
               height: 44,
               borderRadius: 22,
-              backgroundColor: "rgba(15,23,42,0.6)",
+              backgroundColor: colors.scrim,
               alignItems: "center",
               justifyContent: "center",
             }}
@@ -101,7 +105,7 @@ export function WorkshopDetailScreen() {
                   backgroundColor: open ? colors.success : colors.danger,
                 }}
               >
-                <Text style={{ color: "#FFF", fontSize: 11, fontWeight: "700" }}>
+                <Text style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "700" }}>
                   {open ? t.workshop.openNow : t.workshop.closedNow}
                 </Text>
               </View>

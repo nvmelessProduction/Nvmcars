@@ -89,6 +89,7 @@ export const en: Translations = {
     myCar: "My car",
     addCar: "Add your car",
     addCarHint: "Enter your plate to get prices tailored to your model.",
+    newLabel: "New",
   },
   workshop: {
     workshopsNear: "Nearby workshops",

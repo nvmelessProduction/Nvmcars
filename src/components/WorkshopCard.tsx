@@ -5,7 +5,9 @@ import { formatKm } from "@/utils/distance";
 import { getServiceLabel } from "@/data/services";
 import { useFavoritesStore } from "@/store/useFavoritesStore";
 import { useColors } from "@/store/useThemeStore";
+import { useT } from "@/i18n";
 import { isOpenNow } from "@/data/workshops";
+import { hitSlop, withOpacity } from "@/theme/tokens";
 
 type Props = {
   workshop: Workshop;
@@ -25,6 +27,7 @@ export function WorkshopCard({
   index = 0,
 }: Props) {
   const colors = useColors();
+  const t = useT();
   const favoriteIds = useFavoritesStore((s) => s.ids);
   const isFavorite = favoriteIds.includes(workshop.id);
   const toggleFavorite = useFavoritesStore((s) => s.toggle);
@@ -56,15 +59,17 @@ export function WorkshopCard({
           />
           <Pressable
             onPress={() => toggleFavorite(workshop.id)}
-            hitSlop={8}
+            hitSlop={hitSlop.medium}
+            accessibilityRole="button"
+            accessibilityLabel={isFavorite ? t.workshop.removeFromFavorites : t.workshop.addToFavorites}
             style={{
               position: "absolute",
               top: 10,
               right: 10,
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              backgroundColor: "rgba(15, 23, 42, 0.55)",
+              width: 44,
+              height: 44,
+              borderRadius: 22,
+              backgroundColor: colors.scrim,
               alignItems: "center",
               justifyContent: "center",
             }}
@@ -78,12 +83,12 @@ export function WorkshopCard({
               left: 10,
               paddingHorizontal: 10,
               paddingVertical: 4,
-              backgroundColor: open ? "rgba(16,185,129,0.95)" : "rgba(239,68,68,0.95)",
+              backgroundColor: withOpacity(open ? colors.success : colors.danger, 0.95),
               borderRadius: 20,
             }}
           >
-            <Text style={{ color: "#FFF", fontSize: 11, fontWeight: "700" }}>
-              {open ? "Aperto" : "Chiuso"}
+            <Text style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "700" }}>
+              {open ? t.workshop.openNow : t.workshop.closedNow}
             </Text>
           </View>
         </View>
