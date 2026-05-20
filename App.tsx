@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { RootNavigator } from "@/navigation/RootNavigator";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useIsDark } from "@/store/useThemeStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useCarStore } from "@/store/useCarStore";
@@ -28,14 +29,16 @@ const STRIPE_PUBLISHABLE = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "";
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <AppBootstrap>
-        <StripeWrapper>
-          <RootNavigator />
-          <ThemedStatusBar />
-        </StripeWrapper>
-      </AppBootstrap>
-    </SafeAreaProvider>
+    <ErrorBoundary>
+      <SafeAreaProvider>
+        <AppBootstrap>
+          <StripeWrapper>
+            <RootNavigator />
+            <ThemedStatusBar />
+          </StripeWrapper>
+        </AppBootstrap>
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }
 

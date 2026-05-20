@@ -5,15 +5,22 @@ type Props = TextInputProps & {
   label: string;
   hint?: string;
   error?: string;
+  /** Marca campo come obbligatorio (mostra asterisco). */
+  required?: boolean;
 };
 
-export function TextField({ label, hint, error, style, ...rest }: Props) {
+export function TextField({ label, hint, error, required, style, ...rest }: Props) {
   const colors = useColors();
   return (
     <View style={{ gap: 6 }}>
-      <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textMuted }}>{label}</Text>
+      <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textMuted }}>
+        {label}
+        {required ? <Text style={{ color: colors.danger }}> *</Text> : null}
+      </Text>
       <TextInput
         placeholderTextColor={colors.textMuted}
+        accessibilityLabel={label}
+        accessibilityHint={hint}
         style={[
           {
             backgroundColor: colors.bgElevated,
@@ -32,7 +39,14 @@ export function TextField({ label, hint, error, style, ...rest }: Props) {
       {hint && !error ? (
         <Text style={{ fontSize: 12, color: colors.textMuted }}>{hint}</Text>
       ) : null}
-      {error ? <Text style={{ fontSize: 12, color: colors.danger }}>{error}</Text> : null}
+      {error ? (
+        <Text
+          accessibilityLiveRegion="polite"
+          style={{ fontSize: 12, color: colors.danger, fontWeight: "600" }}
+        >
+          {error}
+        </Text>
+      ) : null}
     </View>
   );
 }
