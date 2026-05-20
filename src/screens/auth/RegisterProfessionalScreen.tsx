@@ -54,8 +54,8 @@ export function RegisterProfessionalScreen() {
       }
       if (res.needsEmailVerification) {
         Alert.alert(
-          "Conferma la tua email",
-          `Ti abbiamo inviato un'email a ${email}. Cliccala per attivare l'account.`
+          t.auth.checkEmailTitle,
+          t.auth.checkEmailBody.replace("{email}", email)
         );
       }
       return;

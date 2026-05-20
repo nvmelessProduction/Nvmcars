@@ -26,7 +26,7 @@ export function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email.trim() || !password) {
-      Alert.alert(t.common.error, "Email e password sono richiesti.");
+      Alert.alert(t.common.error, t.auth.emailPasswordRequired);
       return;
     }
     if (isSupabaseConfigured) {
@@ -36,11 +36,11 @@ export function LoginScreen() {
     }
     // Modalità offline: scelta demo
     Alert.alert(
-      "Modalità demo (offline)",
-      "Backend non configurato. Scegli un account di prova:",
+      t.auth.demoModeTitle,
+      t.auth.demoModeBody,
       [
         {
-          text: "Cliente Demo",
+          text: t.auth.demoCustomer,
           onPress: () =>
             loginAs({
               id: "demo-customer",
@@ -51,7 +51,7 @@ export function LoginScreen() {
             }),
         },
         {
-          text: "Pro Demo",
+          text: t.auth.demoPro,
           onPress: () =>
             loginAs({
               id: "demo-pro",
@@ -80,7 +80,7 @@ export function LoginScreen() {
             {t.auth.welcomeBack}
           </Text>
           <Text style={{ fontSize: 14, color: colors.textMuted, marginTop: 6, marginBottom: 24 }}>
-            Accedi al tuo account Nvmcars.
+            {t.auth.loginSubtitle}
           </Text>
 
           <View style={{ gap: 14 }}>

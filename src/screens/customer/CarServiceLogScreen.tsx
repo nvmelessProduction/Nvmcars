@@ -57,7 +57,7 @@ export function CarServiceLogScreen() {
               <Text
                 style={{ fontSize: 11, color: colors.textMuted, fontWeight: "700", letterSpacing: 0.8 }}
               >
-                AUTO
+                {t.car.carSectionLabel.toUpperCase()}
               </Text>
               <Text style={{ fontSize: 20, fontWeight: "800", color: colors.text, marginTop: 4 }}>
                 {car.make} {car.model}
@@ -77,30 +77,39 @@ export function CarServiceLogScreen() {
                 <Text
                   style={{ fontSize: 11, color: colors.textMuted, fontWeight: "700", letterSpacing: 0.8 }}
                 >
-                  ⏰ PROMEMORIA
+                  ⏰ {t.car.reminderHeader.toUpperCase()}
                 </Text>
                 <View style={{ marginTop: 10, gap: 8 }}>
                   {myReminders.map((r) => {
                     const dueDate = new Date(r.dueAt);
                     const daysLeft = Math.ceil((r.dueAt - Date.now()) / (1000 * 60 * 60 * 24));
+                    const kindLabel =
+                      r.kind === "revision"
+                        ? t.car.reminderKindRevision
+                        : r.kind === "service"
+                          ? t.car.reminderKindService
+                          : r.kind === "insurance"
+                            ? t.car.reminderKindInsurance
+                            : t.car.reminderKindTax;
+                    const dueSuffix =
+                      daysLeft > 0
+                        ? ` · ${t.car.reminderDaysLeft.replace("{n}", String(daysLeft))}`
+                        : daysLeft === 0
+                          ? ` · ${t.car.reminderDueToday}`
+                          : ` · ${t.car.reminderOverdue.replace("{n}", String(-daysLeft))}`;
                     return (
                       <View key={r.id}>
                         <Text style={{ color: colors.text, fontWeight: "700", fontSize: 14 }}>
-                          {r.kind === "revision"
-                            ? "Revisione"
-                            : r.kind === "service"
-                              ? "Tagliando"
-                              : r.kind === "insurance"
-                                ? "Assicurazione"
-                                : "Bollo"}
+                          {kindLabel}
                         </Text>
                         <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 2 }}>
-                          Scadenza: {dueDate.toLocaleDateString("it-IT", { day: "2-digit", month: "long", year: "numeric" })}
-                          {daysLeft > 0
-                            ? ` · tra ${daysLeft} ${daysLeft === 1 ? "giorno" : "giorni"}`
-                            : daysLeft === 0
-                              ? " · oggi"
-                              : ` · scaduta da ${-daysLeft} giorni`}
+                          {t.car.reminderDueDate}:{" "}
+                          {dueDate.toLocaleDateString("it-IT", {
+                            day: "2-digit",
+                            month: "long",
+                            year: "numeric",
+                          })}
+                          {dueSuffix}
                         </Text>
                       </View>
                     );
@@ -110,7 +119,7 @@ export function CarServiceLogScreen() {
             ) : null}
 
             <Text style={{ fontSize: 13, color: colors.textMuted, fontWeight: "700", letterSpacing: 0.6, marginTop: 4 }}>
-              📋 {t.car.serviceLog.toUpperCase()}
+              📋 {t.car.serviceLogSectionLabel.toUpperCase()}
             </Text>
           </View>
         }

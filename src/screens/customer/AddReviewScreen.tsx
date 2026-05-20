@@ -39,7 +39,7 @@ export function AddReviewScreen() {
   const handleSubmit = () => {
     if (!user) return;
     if (comment.trim().length < 5) {
-      Alert.alert(t.common.error, "Scrivi almeno qualche parola sulla tua esperienza.");
+      Alert.alert(t.common.error, t.reviews.commentTooShort);
       return;
     }
     addReview({
@@ -50,19 +50,30 @@ export function AddReviewScreen() {
       rating,
       comment: comment.trim(),
     });
-    Alert.alert("Grazie!", "La tua recensione è stata pubblicata.", [
+    Alert.alert(t.reviews.thanksTitle, t.reviews.thanksBody, [
       { text: t.common.ok, onPress: () => navigation.goBack() },
     ]);
   };
+
+  const ratingLabel = (r: number) =>
+    r === 5
+      ? t.reviews.rating5
+      : r === 4
+        ? t.reviews.rating4
+        : r === 3
+          ? t.reviews.rating3
+          : r === 2
+            ? t.reviews.rating2
+            : t.reviews.rating1;
 
   return (
     <ScreenContainer>
       <KAV>
         <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 32 }}>
           <Card>
-            <Text style={{ fontSize: 13, color: colors.textMuted }}>Stai recensendo</Text>
+            <Text style={{ fontSize: 13, color: colors.textMuted }}>{t.reviews.youAreReviewing}</Text>
             <Text style={{ fontSize: 18, fontWeight: "700", color: colors.text, marginTop: 4 }}>
-              {workshop?.name ?? "Officina"}
+              {workshop?.name ?? t.pro.customerLabel}
             </Text>
           </Card>
 
@@ -73,15 +84,7 @@ export function AddReviewScreen() {
             <View style={{ alignItems: "center", paddingVertical: 16 }}>
               <RatingStars value={rating} onChange={setRating} size={42} />
               <Text style={{ marginTop: 10, fontSize: 14, color: colors.textMuted }}>
-                {rating === 5
-                  ? "Eccellente"
-                  : rating === 4
-                  ? "Molto buono"
-                  : rating === 3
-                  ? "Discreto"
-                  : rating === 2
-                  ? "Insufficiente"
-                  : "Pessimo"}
+                {ratingLabel(rating)}
               </Text>
             </View>
           </Card>
