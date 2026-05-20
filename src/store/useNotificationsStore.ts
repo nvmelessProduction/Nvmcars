@@ -65,7 +65,8 @@ const seedNotifications: Notification[] = [
 export const useNotificationsStore = create<NotificationsState>()(
   persist(
     (set, get) => ({
-      notifications: seedNotifications,
+      // In Supabase live: niente seed (carichiamo dal DB).
+      notifications: isSupabaseConfigured ? [] : seedNotifications,
       realtimeUnsub: null,
       hydrate: async (userId) => {
         if (!isSupabaseConfigured) return;

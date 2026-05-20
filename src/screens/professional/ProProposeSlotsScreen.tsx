@@ -129,7 +129,13 @@ export function ProProposeSlotsScreen() {
   return (
     <ScreenContainer>
       <KAV style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 40 }}>
+        <ScrollView
+          contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 80 }}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+          automaticallyAdjustKeyboardInsets
+          contentInsetAdjustmentBehavior="automatic"
+        >
           <Card>
             <Text style={{ fontSize: 18, fontWeight: "800", color: colors.text }}>
               📅 {t.pro.proposeSlots}

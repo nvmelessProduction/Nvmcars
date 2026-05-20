@@ -88,6 +88,9 @@ export function ProPriceListScreen() {
         <ScrollView
           contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 100 }}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+          automaticallyAdjustKeyboardInsets
+          contentInsetAdjustmentBehavior="automatic"
         >
           <Card>
             <Text style={{ fontSize: 20, fontWeight: "800", color: colors.text }}>

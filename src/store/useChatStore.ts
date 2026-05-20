@@ -91,8 +91,9 @@ function previewFor(msg: ChatMessage): string {
 export const useChatStore = create<ChatState>()(
   persist(
     (set, get) => ({
-      conversations: seedConversations,
-      messages: seedMessages,
+      // In Supabase live: niente seed (carichiamo dal DB).
+      conversations: isSupabaseConfigured ? [] : seedConversations,
+      messages: isSupabaseConfigured ? [] : seedMessages,
       realtimeSubs: {},
 
       hydrateConversations: async (filter) => {

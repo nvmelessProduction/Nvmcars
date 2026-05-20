@@ -15,6 +15,7 @@ import { useActiveCar } from "@/store/useCarStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
 import { useWorkshopStore } from "@/store/useWorkshopStore";
+import { isSupabaseConfigured } from "@/lib/supabase";
 import { resolvePrice } from "@/utils/pricing";
 import type { Workshop } from "@/types";
 import type { HomeStackParamList } from "@/navigation/types";
@@ -49,11 +50,12 @@ export function WorkshopListScreen() {
   }, [hydrateAll]);
 
   const items = useMemo(() => {
-    // Sorgente: se ci sono remote (Supabase), uso solo quelli; altrimenti mock + ownWorkshops
-    const source: Workshop[] =
-      remoteWorkshops.length > 0
-        ? remoteWorkshops.map((w) => ownWorkshops[w.id] ?? w)
-        : WORKSHOPS.map((w) => ownWorkshops[w.id] ?? w);
+    // In Supabase live: usa SOLO remoteWorkshops + own. Niente mock.
+    // In mock: usa WORKSHOPS hardcoded + own.
+    const base: Workshop[] = isSupabaseConfigured
+      ? remoteWorkshops.map((w) => ownWorkshops[w.id] ?? w)
+      : WORKSHOPS.map((w) => ownWorkshops[w.id] ?? w);
+    const source = [...base];
     for (const own of Object.values(ownWorkshops)) {
       if (!source.some((m) => m.id === own.id)) source.push(own);
     }

@@ -76,7 +76,9 @@ function upsert(list: Booking[], b: Booking): Booking[] {
 export const useBookingsStore = create<BookingsState>()(
   persist(
     (set, get) => ({
-      bookings: seedBookings,
+      // In modalità Supabase live: niente seed (i bookings vengono dal DB).
+      // In modalità mock: usa seed per dare un'app già "popolata" alla demo.
+      bookings: isSupabaseConfigured ? [] : seedBookings,
       hydratedFor: null,
       realtimeUnsub: null,
 

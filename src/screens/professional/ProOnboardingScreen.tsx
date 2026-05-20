@@ -299,6 +299,9 @@ export function ProOnboardingScreen() {
         <ScrollView
           contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 140 }}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+          automaticallyAdjustKeyboardInsets
+          contentInsetAdjustmentBehavior="automatic"
         >
           {step === 0 ? (
             <Card>
