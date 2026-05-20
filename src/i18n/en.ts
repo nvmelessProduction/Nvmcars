@@ -283,6 +283,19 @@ export const en: Translations = {
     payAtShopChoice: "Pay at the shop",
     cardSimulationNote: "Demo mode: no real charge will be processed.",
     receiptDownload: "Download receipt",
+    amountPaid: "Amount paid",
+    reference: "Ref",
+    quoteNotFound: "Quote not found",
+    cardholderInvalid: "Invalid cardholder",
+    cardNumberInvalid: "Invalid card number",
+    cardExpiryInvalid: "Invalid expiry",
+    cvvInvalid: "Invalid CVV",
+    confirmPayAtShopTitle: "Confirm pay at the shop",
+    confirmPayAtShopBody:
+      "You'll settle directly with the shop on pickup. No Nvmcars fee.",
+    bookingConfirmedTitle: "Booking confirmed",
+    bookingConfirmedBody:
+      "Have a great service! You'll pay directly at the shop on pickup.",
   },
   reviews: {
     leaveReview: "Leave a review",

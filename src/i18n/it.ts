@@ -281,6 +281,19 @@ export const it = {
     payAtShopChoice: "Paga in officina",
     cardSimulationNote: "Modalità demo: nessun addebito reale verrà eseguito.",
     receiptDownload: "Scarica ricevuta",
+    amountPaid: "Importo pagato",
+    reference: "Ref",
+    quoteNotFound: "Preventivo non trovato",
+    cardholderInvalid: "Intestatario non valido",
+    cardNumberInvalid: "Numero carta non valido",
+    cardExpiryInvalid: "Scadenza non valida",
+    cvvInvalid: "CVV non valido",
+    confirmPayAtShopTitle: "Conferma pagamento in officina",
+    confirmPayAtShopBody:
+      "Concorderai il pagamento direttamente con l'officina al ritiro. Nessuna commissione Nvmcars.",
+    bookingConfirmedTitle: "Prenotazione confermata",
+    bookingConfirmedBody:
+      "Buona riparazione! Pagherai direttamente in officina al ritiro.",
   },
   reviews: {
     leaveReview: "Lascia una recensione",

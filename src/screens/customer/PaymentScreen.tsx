@@ -49,7 +49,7 @@ export function PaymentScreen() {
     return (
       <ScreenContainer>
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
-          <Text style={{ color: colors.textMuted }}>Preventivo non trovato.</Text>
+          <Text style={{ color: colors.textMuted }}>{t.payment.quoteNotFound}.</Text>
         </View>
       </ScreenContainer>
     );
@@ -69,18 +69,18 @@ export function PaymentScreen() {
   };
 
   const validate = () => {
-    if (cardholder.trim().length < 3) return "Intestatario non valido.";
+    if (cardholder.trim().length < 3) return t.payment.cardholderInvalid;
     const num = cardNumber.replace(/\s+/g, "");
-    if (num.length < 12 || num.length > 19) return "Numero carta non valido.";
-    if (!/^\d{2}\/\d{2}$/.test(expiry)) return "Scadenza non valida.";
-    if (cvv.length < 3 || cvv.length > 4) return "CVV non valido.";
+    if (num.length < 12 || num.length > 19) return t.payment.cardNumberInvalid;
+    if (!/^\d{2}\/\d{2}$/.test(expiry)) return t.payment.cardExpiryInvalid;
+    if (cvv.length < 3 || cvv.length > 4) return t.payment.cvvInvalid;
     return null;
   };
 
   const onPayInShop = () => {
     Alert.alert(
-      "Conferma pagamento in officina",
-      "Concorderai il pagamento direttamente con l'officina al ritiro. Nessuna commissione Nvmcars.",
+      t.payment.confirmPayAtShopTitle,
+      t.payment.confirmPayAtShopBody,
       [
         { text: t.common.cancel, style: "cancel" },
         {
@@ -92,11 +92,11 @@ export function PaymentScreen() {
               conversationId: quote.conversationId,
               senderId: quote.customerId,
               kind: "system",
-              text: `Pagamento concordato in officina. (Ref ${paymentRef})`,
+              text: `${t.payment.payAtShopChoice}. (${t.payment.reference} ${paymentRef})`,
             });
             Alert.alert(
-              "Prenotazione confermata",
-              "Buona riparazione! Pagherai direttamente in officina al ritiro.",
+              t.payment.bookingConfirmedTitle,
+              t.payment.bookingConfirmedBody,
               [{ text: "OK", onPress: () => navigation.popToTop() }]
             );
           },
