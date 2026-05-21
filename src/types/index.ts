@@ -247,6 +247,13 @@ export type QuoteLineItem = {
   description: string;
   quantity: number;
   unitPrice: number;
+  autodocProduct?: {
+    productId: string;
+    brand: string;
+    name: string;
+    priceCents: number;
+    url: string;
+  };
 };
 
 export type Quote = {

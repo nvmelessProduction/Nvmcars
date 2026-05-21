@@ -8,7 +8,8 @@ import { TextField } from "@/components/TextField";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
-import { isSupabaseConfigured } from "@/lib/supabase";
+import { isSupabaseConfigured, supabase } from "@/lib/supabase";
+import { track } from "@/lib/analytics";
 
 const schema = z.object({
   name: z.string().min(2, "Nome troppo corto."),
@@ -27,6 +28,7 @@ export function RegisterCustomerScreen() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [referralCode, setReferralCode] = useState("");
 
   const handleSubmit = async () => {
     const parsed = schema.safeParse({ name, email, phone, password });
@@ -34,12 +36,24 @@ export function RegisterCustomerScreen() {
       Alert.alert(t.common.error, parsed.error.issues[0]!.message);
       return;
     }
+    track("signup_started", { role: "customer", hasReferral: !!referralCode });
     if (isSupabaseConfigured) {
       const res = await signupCustomer({ name, email: email.trim(), phone, password });
       if (!res.ok) {
         Alert.alert(t.common.error, res.reason);
         return;
       }
+      // Riscatta referral code se presente (best-effort, non blocca signup)
+      if (referralCode.trim()) {
+        try {
+          await supabase.rpc("redeem_referral_code", {
+            p_code: referralCode.trim().toUpperCase(),
+          });
+        } catch {
+          /* non-blocking */
+        }
+      }
+      track("signup_completed", { role: "customer" });
       if (res.needsEmailVerification) {
         Alert.alert(
           t.auth.checkEmailTitle,
@@ -49,6 +63,7 @@ export function RegisterCustomerScreen() {
       return;
     }
     registerCustomer({ name, email, phone });
+    track("signup_completed", { role: "customer", offline: true });
   };
 
   return (
@@ -91,6 +106,14 @@ export function RegisterCustomerScreen() {
               onChangeText={setPassword}
               placeholder="Min. 6 caratteri"
               secureTextEntry
+            />
+            <TextField
+              label="Codice referral (opzionale)"
+              value={referralCode}
+              onChangeText={(v) => setReferralCode(v.toUpperCase())}
+              placeholder="NVM-XXXXXX"
+              autoCapitalize="characters"
+              hint="Se hai un codice di un amico, ricevi 5€ di credito alla prima richiesta."
             />
           </View>
 

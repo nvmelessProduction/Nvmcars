@@ -135,13 +135,33 @@ Riprese dal piano (sezione 8):
 
 ## 10. Verifica funzionale dopo deploy
 
-- [ ] Login utente customer → vede HomeScreen
-- [ ] Login utente pro → vede ProDashboard
-- [ ] Naviga a ProUpgrade → tre piani visibili, click "Attiva Pro" → Stripe Checkout si apre
-- [ ] Naviga a Referral → codice generato, condivisione funziona
-- [ ] Naviga a DIY List → 3 guide free visibili, premium con lucchetto
-- [ ] Naviga a Parts Search → digita "pastiglie freno", risultati mock visibili
-- [ ] Profilo customer → "Esporta dati" → JSON con dati corretti
-- [ ] Profilo customer → "Cancella account" → flusso completo OK
+### Smoke test customer
+- [ ] Login customer → vede HomeScreen
+- [ ] Profilo customer → vede sezione "FAI DA TE" con DIY/Ricambi/Referral
+- [ ] DIY Garage → 3 guide free visibili, premium con lucchetto
+- [ ] Aprire una guida free → procedura visibile + lista pezzi con link Autodoc
+- [ ] Aprire una guida premium senza DIY Pro → paywall
+- [ ] Cliccare "Attiva DIY Pro" → Stripe Checkout 4,99€/mese si apre
+- [ ] Ricambi auto → ricerca "pastiglie freno" → risultati (mock se AUTODOC_API_KEY mancante)
+- [ ] Referral → codice generato, condivisione funziona
+- [ ] Sign-up con codice referral → riscatto automatico, +5€ credito
+- [ ] Quote ricevuto con `autodoc_product` taggato → card verde "Risparmio possibile"
+- [ ] Esporta dati → JSON con sezioni DB + locali
+- [ ] Cancella account → eseguito + logout
+
+### Smoke test pro
+- [ ] Login pro → vede ProDashboard
+- [ ] Pro su piano free + 0 richieste → banner "0/5 RICHIESTE QUESTO MESE"
+- [ ] Pro su piano free + 5 richieste → banner rosso "Sei al limite"
+- [ ] ProUpgrade → 3 piani visibili (Free, Pro 29€, Premium 79€) + offerta pioniere
+- [ ] Click "Attiva Pro" → Stripe Checkout subscription
+- [ ] ProStats senza Pro → paywall
+- [ ] ProCalendar senza Pro → paywall
+- [ ] SubscriptionManage → vede subscription attivi, può disdire
+- [ ] ProBoost → 4 piani, "Acquista" → Stripe Checkout one-time
+- [ ] ProMfaEnroll → QR code mostrato, codice TOTP verifica OK
+- [ ] Logout e re-login con MFA → MfaChallengeScreen prima del dashboard
+- [ ] Programma Expert visibile solo a Premium → certifica una guida DIY
+- [ ] CreateQuote → "Cerca pezzo su Autodoc" funziona, attacca prodotto al line item
+- [ ] WorkshopList → officine con boost attivo hanno badge ⭐ PROMOSSO in cima
 - [ ] Pagamento di una quote → application_fee 5% applicato
-- [ ] MFA pro → QR code mostrato, codice TOTP verifica OK

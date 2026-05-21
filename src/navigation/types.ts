@@ -112,6 +112,8 @@ export type ProProfileStackParamList = {
   ProBoost: undefined;
   ProMfaEnroll: undefined;
   Referral: undefined;
+  SubscriptionManage: undefined;
+  ProDIYReviewer: undefined;
 };
 
 export type ProTabParamList = {

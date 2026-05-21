@@ -8,6 +8,7 @@ import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
 import { useBookingsStore } from "@/store/useBookingsStore";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useSubscriptionStore, isProActive, FREE_MONTHLY_REQUESTS_LIMIT } from "@/store/useSubscriptionStore";
 import { notifyEvent } from "@/store/useNotificationsStore";
 import { useServiceLogStore } from "@/store/useServiceLogStore";
 import { useResolvedWorkshop } from "@/store/useWorkshopStore";
@@ -46,6 +47,9 @@ export function ProRequestsScreen() {
   const [filter, setFilter] = useState<Filter>("pending");
   const [refreshing, setRefreshing] = useState(false);
 
+  const proTier = useSubscriptionStore((s) => s.proTier);
+  const proActive = isProActive(proTier);
+
   const workshopId = user && user.role === "professional" ? user.workshopId : null;
 
   const onRefresh = useCallback(async () => {
@@ -82,6 +86,17 @@ export function ProRequestsScreen() {
     () => [...all.filter((b) => matchesFilter(b.status, filter))].sort((a, b) => b.createdAt - a.createdAt),
     [all, filter]
   );
+
+  // Contatore richieste del mese corrente per il gate Free
+  const monthStart = useMemo(() => {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), 1).getTime();
+  }, []);
+  const monthRequests = useMemo(
+    () => all.filter((b) => b.createdAt >= monthStart).length,
+    [all, monthStart]
+  );
+  const atLimit = !proActive && monthRequests >= FREE_MONTHLY_REQUESTS_LIMIT;
 
   const handleReject = (b: Booking) => {
     Alert.alert("Rifiutare la richiesta?", "Il cliente sarà avvisato.", [
@@ -139,6 +154,30 @@ export function ProRequestsScreen() {
   return (
     <ScreenContainer>
       <View style={{ flex: 1 }}>
+        {!proActive ? (
+          <Pressable
+            onPress={() => navigation.getParent()?.navigate("ProProfileTab", { screen: "ProUpgrade" })}
+            style={{
+              marginHorizontal: 16,
+              marginTop: 12,
+              padding: 12,
+              borderRadius: 12,
+              backgroundColor: atLimit ? "rgba(239,68,68,0.12)" : colors.bgElevated,
+              borderWidth: 1,
+              borderColor: atLimit ? colors.danger : colors.border,
+            }}
+          >
+            <Text style={{ fontSize: 11, fontWeight: "800", color: atLimit ? colors.danger : colors.textMuted, letterSpacing: 0.6 }}>
+              PIANO FREE · {monthRequests}/{FREE_MONTHLY_REQUESTS_LIMIT} RICHIESTE QUESTO MESE
+            </Text>
+            <Text style={{ fontSize: 12, color: colors.text, marginTop: 4, lineHeight: 17 }}>
+              {atLimit
+                ? "Sei al limite. Le nuove richieste sono in coda, sblocca con Pro per riceverle subito."
+                : "Sblocca richieste illimitate, calendario, statistiche con Pro."}
+            </Text>
+          </Pressable>
+        ) : null}
+
         <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
           <View style={{ flexDirection: "row", gap: 6 }}>
             {(

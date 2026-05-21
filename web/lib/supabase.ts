@@ -55,3 +55,37 @@ export async function getAllActiveWorkshopsForSitemap(): Promise<Pick<PublicWork
     .limit(5000);
   return data ?? [];
 }
+
+export type PublicDiyGuide = {
+  id: string;
+  slug: string;
+  title: string;
+  category: string;
+  difficulty: string;
+  duration_min: number;
+  intro: string;
+  content_markdown: string;
+  cover_image_url?: string | null;
+  is_premium: boolean;
+};
+
+export async function getDiyGuideBySlug(slug: string): Promise<PublicDiyGuide | null> {
+  if (!isConfigured) return null;
+  const { data } = await supabasePublic
+    .from("diy_guides")
+    .select("id, slug, title, category, difficulty, duration_min, intro, content_markdown, cover_image_url, is_premium")
+    .eq("slug", slug)
+    .eq("published", true)
+    .maybeSingle();
+  return data ?? null;
+}
+
+export async function getAllPublishedDiyGuides(): Promise<Pick<PublicDiyGuide, "slug">[]> {
+  if (!isConfigured) return [];
+  const { data } = await supabasePublic
+    .from("diy_guides")
+    .select("slug")
+    .eq("published", true)
+    .limit(500);
+  return data ?? [];
+}

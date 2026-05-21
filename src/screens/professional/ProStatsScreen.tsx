@@ -3,6 +3,7 @@ import { ScrollView, Text, View } from "react-native";
 import Animated, { FadeInUp } from "react-native-reanimated";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { Card } from "@/components/Card";
+import { ProFeatureGate } from "@/components/ProFeatureGate";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useBookingsStore } from "@/store/useBookingsStore";
 import { useColors } from "@/store/useThemeStore";
@@ -10,6 +11,20 @@ import { useT } from "@/i18n";
 import { getServiceLabel } from "@/data/services";
 
 export function ProStatsScreen() {
+  return (
+    <ScreenContainer>
+      <ProFeatureGate
+        requires="pro"
+        title="Statistiche avanzate"
+        description="Vedi conversione richieste, servizi più richiesti, andamento mensile. Sblocca con il piano Pro."
+      >
+        <ProStatsContent />
+      </ProFeatureGate>
+    </ScreenContainer>
+  );
+}
+
+function ProStatsContent() {
   const colors = useColors();
   const t = useT();
   const user = useAuthStore((s) => s.user);
@@ -53,9 +68,8 @@ export function ProStatsScreen() {
   const maxWeekly = Math.max(...weekly, 1);
 
   return (
-    <ScreenContainer>
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 32 }}>
-        <Card>
+    <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 32 }}>
+      <Card>
           <Text style={{ fontSize: 11, color: colors.textMuted, fontWeight: "700", letterSpacing: 0.8 }}>
             CONVERSION RATE
           </Text>
@@ -175,6 +189,5 @@ export function ProStatsScreen() {
           )}
         </Card>
       </ScrollView>
-    </ScreenContainer>
   );
 }

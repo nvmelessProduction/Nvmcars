@@ -17,6 +17,7 @@ import { useT } from "@/i18n";
 import { useWorkshopStore } from "@/store/useWorkshopStore";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { resolvePrice } from "@/utils/pricing";
+import { useActiveBoosts, makeBoostLookup } from "@/hooks/useActiveBoosts";
 import type { Workshop } from "@/types";
 import type { HomeStackParamList } from "@/navigation/types";
 
@@ -42,6 +43,8 @@ export function WorkshopListScreen() {
   const remoteWorkshops = useWorkshopStore((s) => s.remoteWorkshops);
   const hydrateAll = useWorkshopStore((s) => s.hydrateAll);
   const hydrating = useWorkshopStore((s) => s.hydrating);
+  const { boosts } = useActiveBoosts({ serviceKey: service });
+  const isBoosted = useMemo(() => makeBoostLookup(boosts), [boosts]);
   useEffect(() => {
     hydrateAll();
   }, [hydrateAll]);
@@ -81,11 +84,15 @@ export function WorkshopListScreen() {
     });
 
     return withMeta.sort((a, b) => {
+      // Boost wins always: officine boostate vanno in cima a parità di filtro.
+      const aBoost = isBoosted(a.workshop.id) ? 1 : 0;
+      const bBoost = isBoosted(b.workshop.id) ? 1 : 0;
+      if (aBoost !== bBoost) return bBoost - aBoost;
       if (sort === "distance") return a.distanceKm - b.distanceKm;
       if (sort === "price") return a.price - b.price;
       return b.workshop.rating - a.workshop.rating;
     });
-  }, [service, location, sort, city, car, ownWorkshops]);
+  }, [service, location, sort, city, car, ownWorkshops, remoteWorkshops, isBoosted]);
 
   if (loading) {
     return (
@@ -194,6 +201,7 @@ export function WorkshopListScreen() {
               highlightedService={service}
               priceOverride={item.price === Infinity ? undefined : item.price}
               index={index}
+              boosted={isBoosted(item.workshop.id)}
               onPress={() =>
                 navigation.navigate("WorkshopDetail", {
                   workshopId: item.workshop.id,

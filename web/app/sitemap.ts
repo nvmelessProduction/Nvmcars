@@ -1,10 +1,14 @@
 import type { MetadataRoute } from "next";
-import { getAllActiveWorkshopsForSitemap } from "@/lib/supabase";
+import { getAllActiveWorkshopsForSitemap, getAllPublishedDiyGuides } from "@/lib/supabase";
 
 const BASE = "https://nvmcars.it";
+const SERVICES = ["tagliando", "cambio-gomme", "freni", "revisione", "carrozzeria", "diagnosi"];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const workshops = await getAllActiveWorkshopsForSitemap();
+  const [workshops, diyGuides] = await Promise.all([
+    getAllActiveWorkshopsForSitemap(),
+    getAllPublishedDiyGuides(),
+  ]);
   const citySet = new Set<string>();
   for (const w of workshops) citySet.add(w.city.toLowerCase());
 
@@ -27,5 +31,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: "weekly",
   }));
 
-  return [...staticPages, ...cityPages, ...workshopPages];
+  const servicePages: MetadataRoute.Sitemap = SERVICES.map((s) => ({
+    url: `${BASE}/servizi/${s}`,
+    priority: 0.7,
+    changeFrequency: "monthly",
+  }));
+
+  const diyPages: MetadataRoute.Sitemap = diyGuides.map((g) => ({
+    url: `${BASE}/diy/${g.slug}`,
+    priority: 0.6,
+    changeFrequency: "monthly",
+  }));
+
+  return [...staticPages, ...cityPages, ...workshopPages, ...servicePages, ...diyPages];
 }

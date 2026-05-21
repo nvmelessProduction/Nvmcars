@@ -364,6 +364,25 @@ export function ProOnboardingScreen() {
                 Necessari per la fatturazione italiana. P.IVA e codice fiscale vengono verificati
                 con algoritmo di checksum (non è verificata l'esistenza presso la Camera di Commercio).
               </Text>
+              <View
+                style={{
+                  marginTop: 10,
+                  padding: 10,
+                  borderRadius: 10,
+                  backgroundColor: "rgba(0,170,255,0.08)",
+                  borderWidth: 1,
+                  borderColor: colors.accent,
+                }}
+              >
+                <Text style={{ fontSize: 11, fontWeight: "800", color: colors.accent, letterSpacing: 0.4 }}>
+                  ℹ️ COMPLIANCE UE (DAC7)
+                </Text>
+                <Text style={{ fontSize: 12, color: colors.text, marginTop: 4, lineHeight: 17 }}>
+                  Come marketplace siamo obbligati a riportare all&apos;Agenzia delle Entrate
+                  i dati fiscali dei venditori. P.IVA, codice fiscale e IBAN sono usati solo
+                  per la dichiarazione DAC7 annuale — non vengono mai mostrati ai clienti.
+                </Text>
+              </View>
               <Pressable
                 onPress={() => {
                   setLegalName("Officina Test S.r.l.");

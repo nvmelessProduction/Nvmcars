@@ -11,6 +11,7 @@ import { useNotificationsStore } from "@/store/useNotificationsStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
 import { useWorkshopStore, useOwnWorkshop } from "@/store/useWorkshopStore";
+import { useSubscriptionStore, isProActive, isPremiumActive } from "@/store/useSubscriptionStore";
 import type { ProProfileStackParamList } from "@/navigation/types";
 
 type Nav = NativeStackNavigationProp<ProProfileStackParamList, "ProProfile">;
@@ -28,6 +29,7 @@ export function ProProfileScreen() {
   const missingOnboardingSteps = useWorkshopStore((s) => s.missingOnboardingSteps);
   const workshopId = user && user.role === "professional" ? user.workshopId : undefined;
   const workshop = useOwnWorkshop(workshopId);
+  const proTier = useSubscriptionStore((s) => s.proTier);
 
   useEffect(() => {
     if (workshopId) ensureWorkshop(workshopId, user?.id);
@@ -187,6 +189,54 @@ export function ProProfileScreen() {
           onPress={() => navigation.navigate("ProSettings")}
           colors={colors}
         />
+
+        <View style={{ marginTop: 4 }}>
+          <Text style={{ fontSize: 11, fontWeight: "800", color: colors.textMuted, letterSpacing: 0.6, marginBottom: 8 }}>
+            CRESCITA
+          </Text>
+        </View>
+        <ActionRow
+          icon={isPremiumActive(proTier) ? "👑" : isProActive(proTier) ? "⚡" : "⭐"}
+          title={
+            isPremiumActive(proTier) ? "Piano Premium attivo" :
+            isProActive(proTier) ? "Piano Pro attivo" : "Sblocca i piani Pro"
+          }
+          subtitle={
+            isProActive(proTier) ? "Gestisci o cambia piano" : "Richieste illimitate, calendario, statistiche"
+          }
+          onPress={() => navigation.navigate(isProActive(proTier) ? "SubscriptionManage" as never : "ProUpgrade" as never)}
+          colors={colors}
+        />
+        <ActionRow
+          icon="🚀"
+          title="Boost officina"
+          subtitle="Compari in cima ai risultati per X giorni"
+          onPress={() => navigation.navigate("ProBoost")}
+          colors={colors}
+        />
+        <ActionRow
+          icon="🎁"
+          title="Invita amici"
+          subtitle="5€ di credito per ogni officina invitata"
+          onPress={() => navigation.navigate("Referral")}
+          colors={colors}
+        />
+        <ActionRow
+          icon="🔒"
+          title="Sicurezza (MFA)"
+          subtitle="Aggiungi autenticazione a due fattori"
+          onPress={() => navigation.navigate("ProMfaEnroll")}
+          colors={colors}
+        />
+        {isPremiumActive(proTier) ? (
+          <ActionRow
+            icon="🎓"
+            title="Programma Expert (Premium)"
+            subtitle="Certifica le guide DIY come meccanico esperto"
+            onPress={() => navigation.navigate("ProDIYReviewer")}
+            colors={colors}
+          />
+        ) : null}
 
         {workshop?.fiscalData ? (
           <Card>

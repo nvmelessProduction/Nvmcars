@@ -78,6 +78,33 @@ export function CustomerProfileScreen() {
           colors={colors}
         />
 
+        <View style={{ marginTop: 4 }}>
+          <Text style={{ fontSize: 11, fontWeight: "800", color: colors.textMuted, letterSpacing: 0.6, marginBottom: 8 }}>
+            FAI DA TE
+          </Text>
+        </View>
+        <Row
+          icon="🔧"
+          title="DIY Garage"
+          subtitle="Tutorial passo-passo per ripararla da solo"
+          onPress={() => navigation.navigate("DiyList")}
+          colors={colors}
+        />
+        <Row
+          icon="📦"
+          title="Ricambi auto"
+          subtitle="Cerca pezzi compatibili con la tua auto"
+          onPress={() => navigation.navigate("PartsSearch")}
+          colors={colors}
+        />
+        <Row
+          icon="🎁"
+          title="Invita amici"
+          subtitle="5€ di credito per ogni amico iscritto"
+          onPress={() => navigation.navigate("Referral")}
+          colors={colors}
+        />
+
         <Card>
           <InfoRow label={t.auth.phone} value={user.phone} colors={colors} />
           <InfoRow label={t.profile.accountType} value={t.profile.customer} colors={colors} />

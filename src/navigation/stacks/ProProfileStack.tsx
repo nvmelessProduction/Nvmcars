@@ -17,6 +17,8 @@ import { ProUpgradeScreen } from "@/screens/professional/ProUpgradeScreen";
 import { ProBoostScreen } from "@/screens/professional/ProBoostScreen";
 import { ProMfaEnrollScreen } from "@/screens/professional/ProMfaEnrollScreen";
 import { ReferralScreen } from "@/screens/shared/ReferralScreen";
+import { SubscriptionManageScreen } from "@/screens/shared/SubscriptionManageScreen";
+import { ProDIYReviewerScreen } from "@/screens/professional/ProDIYReviewerScreen";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
 import type { ProProfileStackParamList } from "../types";
@@ -125,6 +127,16 @@ export function ProProfileStack() {
         name="Referral"
         component={ReferralScreen}
         options={{ title: "Invita amici" }}
+      />
+      <Stack.Screen
+        name="SubscriptionManage"
+        component={SubscriptionManageScreen}
+        options={{ title: "Abbonamenti" }}
+      />
+      <Stack.Screen
+        name="ProDIYReviewer"
+        component={ProDIYReviewerScreen}
+        options={{ title: "Programma Expert" }}
       />
     </Stack.Navigator>
   );

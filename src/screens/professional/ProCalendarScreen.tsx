@@ -3,6 +3,7 @@ import { Alert, Modal, Pressable, ScrollView, Text, TextInput, View } from "reac
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { Card } from "@/components/Card";
 import { PrimaryButton } from "@/components/PrimaryButton";
+import { ProFeatureGate } from "@/components/ProFeatureGate";
 import { useColors } from "@/store/useThemeStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useT } from "@/i18n";
@@ -37,6 +38,20 @@ function isDateInVacation(d: Date, from: string, to: string): boolean {
 }
 
 export function ProCalendarScreen() {
+  return (
+    <ScreenContainer>
+      <ProFeatureGate
+        requires="pro"
+        title="Calendario completo"
+        description="Gestisci ferie, slot, disponibilità, blocchi orari. Sblocca con il piano Pro."
+      >
+        <ProCalendarContent />
+      </ProFeatureGate>
+    </ScreenContainer>
+  );
+}
+
+function ProCalendarContent() {
   const colors = useColors();
   const t = useT();
   const user = useAuthStore((s) => s.user);
@@ -99,7 +114,7 @@ export function ProCalendarScreen() {
   };
 
   return (
-    <ScreenContainer>
+    <>
       <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 32 }}>
         <Card>
           <Text style={{ fontSize: 13, color: colors.textMuted, lineHeight: 19 }}>
@@ -282,7 +297,7 @@ export function ProCalendarScreen() {
           setModalOpen(false);
         }}
       />
-    </ScreenContainer>
+    </>
   );
 }
 

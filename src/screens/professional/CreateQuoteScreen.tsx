@@ -13,11 +13,26 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
 import type { ProRequestsStackParamList } from "@/navigation/types";
+import { searchProducts, AutodocProduct } from "@/services/autodoc";
 
 type Nav = NativeStackNavigationProp<ProRequestsStackParamList, "CreateQuote">;
 type Route = RouteProp<ProRequestsStackParamList, "CreateQuote">;
 
-type DraftLine = { id: string; description: string; quantity: string; unitPrice: string };
+type AutodocAttachment = {
+  productId: string;
+  brand: string;
+  name: string;
+  priceCents: number;
+  url: string;
+};
+
+type DraftLine = {
+  id: string;
+  description: string;
+  quantity: string;
+  unitPrice: string;
+  autodoc?: AutodocAttachment;
+};
 
 const newLineId = () => `dl-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`;
 
@@ -39,6 +54,51 @@ export function CreateQuoteScreen() {
   const [lines, setLines] = useState<DraftLine[]>([
     { id: newLineId(), description: "", quantity: "1", unitPrice: "" },
   ]);
+  const [searchingForLine, setSearchingForLine] = useState<string | null>(null);
+  const [searchResults, setSearchResults] = useState<AutodocProduct[]>([]);
+  const [searching, setSearching] = useState(false);
+
+  const startProductSearch = async (lineId: string, description: string) => {
+    if (!description.trim()) {
+      Alert.alert("Aggiungi descrizione", "Scrivi prima il nome del pezzo (es. 'pastiglie freno').");
+      return;
+    }
+    setSearchingForLine(lineId);
+    setSearching(true);
+    try {
+      const products = await searchProducts(description.trim());
+      setSearchResults(products);
+      if (products.length === 0) {
+        Alert.alert("Nessun risultato", "Prova con un termine più generico.");
+      }
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const attachProduct = (lineId: string, p: AutodocProduct) => {
+    setLines((prev) =>
+      prev.map((l) =>
+        l.id === lineId
+          ? {
+              ...l,
+              autodoc: {
+                productId: p.id,
+                brand: p.brand,
+                name: p.name,
+                priceCents: p.priceCents,
+                url: p.url,
+              },
+            }
+          : l
+      )
+    );
+    setSearchingForLine(null);
+    setSearchResults([]);
+  };
+
+  const detachProduct = (lineId: string) =>
+    setLines((prev) => prev.map((l) => (l.id === lineId ? { ...l, autodoc: undefined } : l)));
 
   const computed = useMemo(() => {
     const subtotal = lines.reduce((acc, l) => {
@@ -74,6 +134,7 @@ export function CreateQuoteScreen() {
         description: l.description.trim(),
         quantity: Number(l.quantity) || 0,
         unitPrice: Number(l.unitPrice) || 0,
+        autodocProduct: l.autodoc,
       }))
       .filter((l) => l.description && l.quantity > 0 && l.unitPrice > 0);
     if (cleanLines.length === 0) {
@@ -181,6 +242,71 @@ export function CreateQuoteScreen() {
                       />
                     </View>
                   </View>
+
+                  {line.autodoc ? (
+                    <View style={{ marginTop: 10, padding: 10, borderRadius: 10, backgroundColor: colors.bgHeader }}>
+                      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                        <View style={{ flex: 1, marginRight: 8 }}>
+                          <Text style={{ fontSize: 10, color: "#94A3B8", fontWeight: "800" }}>
+                            🔧 PEZZO AUTODOC
+                          </Text>
+                          <Text style={{ fontSize: 12, color: "#FFF", marginTop: 2 }} numberOfLines={2}>
+                            {line.autodoc.brand} · {line.autodoc.name}
+                          </Text>
+                          <Text style={{ fontSize: 11, color: "#10B981", marginTop: 2, fontWeight: "700" }}>
+                            Online: € {(line.autodoc.priceCents / 100).toFixed(2)}
+                          </Text>
+                        </View>
+                        <Pressable onPress={() => detachProduct(line.id)} hitSlop={8}>
+                          <Text style={{ color: "#EF4444", fontSize: 11, fontWeight: "700" }}>Rimuovi</Text>
+                        </Pressable>
+                      </View>
+                    </View>
+                  ) : (
+                    <Pressable
+                      onPress={() => startProductSearch(line.id, line.description)}
+                      style={{
+                        marginTop: 10,
+                        paddingVertical: 8,
+                        borderRadius: 10,
+                        borderWidth: 1,
+                        borderStyle: "dashed",
+                        borderColor: colors.border,
+                        alignItems: "center",
+                      }}
+                    >
+                      <Text style={{ color: colors.accent, fontSize: 12, fontWeight: "700" }}>
+                        🔧 Cerca pezzo su Autodoc
+                      </Text>
+                    </Pressable>
+                  )}
+
+                  {searchingForLine === line.id ? (
+                    <View style={{ marginTop: 10, gap: 6 }}>
+                      <Text style={{ fontSize: 11, color: colors.textMuted, fontWeight: "700", letterSpacing: 0.6 }}>
+                        {searching ? "RICERCA…" : `${searchResults.length} RISULTATI`}
+                      </Text>
+                      {searchResults.slice(0, 5).map((p) => (
+                        <Pressable
+                          key={p.id}
+                          onPress={() => attachProduct(line.id, p)}
+                          style={{ padding: 10, borderRadius: 10, backgroundColor: colors.bgElevated, borderWidth: 1, borderColor: colors.border }}
+                        >
+                          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                            <Text style={{ fontSize: 12, color: colors.text, flex: 1, marginRight: 8 }} numberOfLines={2}>
+                              {p.brand} · {p.name}
+                            </Text>
+                            <Text style={{ fontSize: 13, fontWeight: "800", color: colors.text }}>
+                              € {(p.priceCents / 100).toFixed(2)}
+                            </Text>
+                          </View>
+                        </Pressable>
+                      ))}
+                      <Pressable onPress={() => { setSearchingForLine(null); setSearchResults([]); }} style={{ alignItems: "center", paddingTop: 4 }}>
+                        <Text style={{ fontSize: 11, color: colors.textMuted }}>Annulla ricerca</Text>
+                      </Pressable>
+                    </View>
+                  ) : null}
                 </Card>
               ))}
             </View>

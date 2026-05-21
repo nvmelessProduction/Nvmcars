@@ -9,7 +9,8 @@ import { Card } from "@/components/Card";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
-import { isSupabaseConfigured } from "@/lib/supabase";
+import { isSupabaseConfigured, supabase } from "@/lib/supabase";
+import { track } from "@/lib/analytics";
 
 const schema = z.object({
   name: z.string().min(2, "Nome officina troppo corto."),
@@ -32,6 +33,7 @@ export function RegisterProfessionalScreen() {
   const [vatNumber, setVatNumber] = useState("");
   const [password, setPassword] = useState("");
   const [inviteCode, setInviteCode] = useState("");
+  const [referralCode, setReferralCode] = useState("");
 
   const handleSubmit = async () => {
     const parsed = schema.safeParse({ name, email, phone, vatNumber, password, inviteCode });
@@ -39,6 +41,7 @@ export function RegisterProfessionalScreen() {
       Alert.alert(t.common.error, parsed.error.issues[0]!.message);
       return;
     }
+    track("signup_started", { role: "professional", hasReferral: !!referralCode });
     if (isSupabaseConfigured) {
       const res = await signupProfessional({
         name,
@@ -52,6 +55,16 @@ export function RegisterProfessionalScreen() {
         Alert.alert(t.auth.invalidInvite, res.reason);
         return;
       }
+      if (referralCode.trim()) {
+        try {
+          await supabase.rpc("redeem_referral_code", {
+            p_code: referralCode.trim().toUpperCase(),
+          });
+        } catch {
+          /* non-blocking */
+        }
+      }
+      track("signup_completed", { role: "professional" });
       if (res.needsEmailVerification) {
         Alert.alert(
           t.auth.checkEmailTitle,
@@ -130,6 +143,14 @@ export function RegisterProfessionalScreen() {
               onChangeText={setPassword}
               placeholder="Min. 6 caratteri"
               secureTextEntry
+            />
+            <TextField
+              label="Codice referral (opzionale)"
+              value={referralCode}
+              onChangeText={(v) => setReferralCode(v.toUpperCase())}
+              placeholder="NVM-XXXXXX"
+              autoCapitalize="characters"
+              hint="Se un'officina ti ha invitato, ricevi 5€ di credito iscrivendoti."
             />
           </View>
 

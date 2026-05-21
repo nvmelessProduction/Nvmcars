@@ -17,6 +17,7 @@ type Props = {
   highlightedService?: ServiceKey;
   priceOverride?: number;
   index?: number;
+  boosted?: boolean;
 };
 
 export function WorkshopCard({
@@ -26,6 +27,7 @@ export function WorkshopCard({
   highlightedService,
   priceOverride,
   index = 0,
+  boosted = false,
 }: Props) {
   const colors = useColors();
   const t = useT();
@@ -93,6 +95,23 @@ export function WorkshopCard({
               {open ? t.workshop.openNow : t.workshop.closedNow}
             </Text>
           </View>
+          {boosted ? (
+            <View
+              style={{
+                position: "absolute",
+                top: 10,
+                left: 10,
+                paddingHorizontal: 10,
+                paddingVertical: 4,
+                backgroundColor: "rgba(245,158,11,0.95)",
+                borderRadius: 20,
+              }}
+            >
+              <Text style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "800" }}>
+                ⭐ PROMOSSO
+              </Text>
+            </View>
+          ) : null}
         </View>
 
         <View style={{ padding: 14, gap: 8 }}>

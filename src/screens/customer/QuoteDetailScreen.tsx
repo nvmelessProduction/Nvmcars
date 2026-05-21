@@ -1,6 +1,6 @@
-import { useLayoutEffect } from "react";
+import { useLayoutEffect, useMemo } from "react";
 import { useNavigation, useRoute, type RouteProp } from "@react-navigation/native";
-import { Alert, ScrollView, Text, View } from "react-native";
+import { Alert, Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { Card } from "@/components/Card";
 import { PrimaryButton } from "@/components/PrimaryButton";
@@ -10,6 +10,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
 import { WORKSHOPS } from "@/data/workshops";
+import { trackAndOpen } from "@/services/autodoc";
 
 type Route = RouteProp<{ QuoteDetail: { quoteId: string } }, "QuoteDetail">;
 
@@ -41,6 +42,41 @@ export function QuoteDetailScreen() {
   const isCustomer = user?.id === quote.customerId;
   const isPro = user?.role === "professional";
   const canAct = isCustomer && quote.status === "pending";
+
+  // Calcola risparmio teorico se il cliente comprasse i pezzi da Autodoc.
+  // Stima: il pezzo è circa il 35% del prezzo unitario officina (resto = manodopera).
+  // Se prezzo Autodoc < prezzo stimato officina × qty → mostra alternativa.
+  const partsSavings = useMemo(() => {
+    let total = 0;
+    const items: { lineId: string; saving: number; productPriceCents: number; partUrl: string; lineDesc: string }[] = [];
+    for (const li of quote.lineItems) {
+      if (!li.autodocProduct) continue;
+      const estimatedShopPartCents = Math.round(li.unitPrice * li.quantity * 100 * 0.35);
+      const autodocCents = li.autodocProduct.priceCents * li.quantity;
+      const saving = (estimatedShopPartCents - autodocCents) / 100;
+      if (saving > 5) {
+        total += saving;
+        items.push({
+          lineId: li.id,
+          saving,
+          productPriceCents: li.autodocProduct.priceCents,
+          partUrl: li.autodocProduct.url,
+          lineDesc: li.description,
+        });
+      }
+    }
+    return { total, items };
+  }, [quote.lineItems]);
+
+  const handleOpenAutodoc = async (url: string) => {
+    const finalUrl = await trackAndOpen({
+      product: undefined,
+      searchQuery: url,
+      context: "quote",
+      contextId: quote.id,
+    });
+    Linking.openURL(finalUrl).catch(() => undefined);
+  };
 
   const onAccept = () => {
     setStatus(quote.id, "accepted", { acceptedAt: Date.now() });
@@ -108,24 +144,50 @@ export function QuoteDetailScreen() {
             <View
               key={li.id}
               style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
                 paddingVertical: 8,
                 borderBottomWidth: 1,
                 borderBottomColor: colors.border,
               }}
             >
-              <View style={{ flex: 1, paddingRight: 12 }}>
-                <Text style={{ color: colors.text, fontSize: 14, fontWeight: "600" }}>
-                  {li.description}
-                </Text>
-                <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 2 }}>
-                  {li.quantity} × € {li.unitPrice.toFixed(2)}
+              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                <View style={{ flex: 1, paddingRight: 12 }}>
+                  <Text style={{ color: colors.text, fontSize: 14, fontWeight: "600" }}>
+                    {li.description}
+                  </Text>
+                  <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 2 }}>
+                    {li.quantity} × € {li.unitPrice.toFixed(2)}
+                  </Text>
+                </View>
+                <Text style={{ color: colors.text, fontSize: 15, fontWeight: "700" }}>
+                  € {(li.quantity * li.unitPrice).toFixed(2)}
                 </Text>
               </View>
-              <Text style={{ color: colors.text, fontSize: 15, fontWeight: "700" }}>
-                € {(li.quantity * li.unitPrice).toFixed(2)}
-              </Text>
+              {li.autodocProduct && isCustomer ? (
+                <Pressable
+                  onPress={() => handleOpenAutodoc(li.autodocProduct!.url)}
+                  style={{
+                    marginTop: 8,
+                    padding: 10,
+                    borderRadius: 10,
+                    backgroundColor: "rgba(16,185,129,0.08)",
+                    borderWidth: 1,
+                    borderColor: "rgba(16,185,129,0.3)",
+                  }}
+                >
+                  <Text style={{ fontSize: 10, fontWeight: "800", color: "#10B981", letterSpacing: 0.5 }}>
+                    💡 ALTERNATIVA — COMPRA IL PEZZO TU
+                  </Text>
+                  <Text style={{ fontSize: 12, color: colors.text, marginTop: 4, lineHeight: 17 }} numberOfLines={2}>
+                    {li.autodocProduct.brand} · {li.autodocProduct.name}
+                  </Text>
+                  <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
+                    <Text style={{ fontSize: 14, fontWeight: "900", color: "#10B981" }}>
+                      € {((li.autodocProduct.priceCents * li.quantity) / 100).toFixed(2)} su Autodoc
+                    </Text>
+                    <Text style={{ fontSize: 11, color: "#10B981", fontWeight: "700" }}>Apri →</Text>
+                  </View>
+                </Pressable>
+              ) : null}
             </View>
           ))}
 
@@ -159,6 +221,21 @@ export function QuoteDetailScreen() {
             </Text>
           </View>
         </Card>
+
+        {partsSavings.total > 5 && isCustomer ? (
+          <Card padding={16} style={{ borderColor: "#10B981", backgroundColor: "rgba(16,185,129,0.06)" }}>
+            <Text style={{ fontSize: 11, fontWeight: "800", color: "#10B981", letterSpacing: 0.6 }}>
+              💡 RISPARMIO POSSIBILE
+            </Text>
+            <Text style={{ fontSize: 22, fontWeight: "900", color: colors.text, marginTop: 4 }}>
+              fino a € {partsSavings.total.toFixed(2)}
+            </Text>
+            <Text style={{ fontSize: 12, color: colors.textMuted, marginTop: 6, lineHeight: 17 }}>
+              Acquistando tu i pezzi su Autodoc e facendoli montare in officina. Concorda lo sconto
+              sulla manodopera direttamente in chat con l&apos;officina.
+            </Text>
+          </Card>
+        ) : null}
 
         <Text style={{ fontSize: 12, color: colors.textMuted, textAlign: "center" }}>
           {t.quote.validUntil}:{" "}
