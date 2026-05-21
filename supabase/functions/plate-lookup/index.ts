@@ -7,17 +7,15 @@
 // Secrets:
 //   TARGATO_API_KEY
 //   TARGATO_API_URL  (default: https://api.targato.it/v1/lookup)
+//   (opzionali) UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN
 
 // @ts-ignore
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-// @ts-ignore
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { corsHeaders, handleCors } from "../_shared/cors.ts";
+import { handleCors } from "../_shared/cors.ts";
+import { parseBody, jsonError, jsonOk, z } from "../_shared/validate.ts";
+import { rateLimit, clientIp } from "../_shared/rateLimit.ts";
+import { adminClient, requireUser } from "../_shared/auth.ts";
 
-// @ts-ignore
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-// @ts-ignore
-const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 // @ts-ignore
 const TARGATO_KEY = Deno.env.get("TARGATO_API_KEY") ?? "";
 // @ts-ignore
@@ -25,60 +23,62 @@ const TARGATO_URL = Deno.env.get("TARGATO_API_URL") ?? "https://api.targato.it/v
 
 const PLATE_RE = /^[A-Z]{2}\d{3}[A-Z]{2}$/i;
 
+const BodySchema = z.object({
+  plate: z
+    .string()
+    .min(7)
+    .max(10)
+    .transform((s) => s.replace(/\s/g, "").toUpperCase())
+    .refine((s) => PLATE_RE.test(s), "invalid_plate"),
+});
+
 serve(async (req: Request) => {
   const cors = handleCors(req);
   if (cors) return cors;
 
+  const auth = await requireUser(req);
+  if (!auth.ok) return auth.response;
+
+  // Rate limit doppio: per user e per IP (anti credit-stuffing)
+  const ipLimited = await rateLimit({
+    key: `plate-ip:${clientIp(req)}`,
+    limit: 10,
+    windowSec: 3600,
+  });
+  if (ipLimited) return ipLimited;
+
+  const userLimited = await rateLimit({
+    key: `plate-user:${auth.userId}`,
+    limit: 5,
+    windowSec: 3600,
+  });
+  if (userLimited) return userLimited;
+
+  const parsed = await parseBody(req, BodySchema);
+  if (!parsed.ok) return parsed.response;
+  const { plate } = parsed.data;
+
   try {
-    const { plate } = await req.json();
-    if (!plate || !PLATE_RE.test(String(plate).replace(/\s/g, ""))) {
-      return new Response(JSON.stringify({ ok: false, reason: "Targa non valida" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const supabaseUser = auth.client;
 
-    const authHeader = req.headers.get("Authorization") ?? "";
-    const supabaseUser = createClient(SUPABASE_URL, SERVICE_KEY, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    const { data: userData } = await supabaseUser.auth.getUser();
-    const user = userData?.user;
-    if (!user) {
-      return new Response(JSON.stringify({ ok: false, reason: "Non autorizzato" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // rate-limit: max 1 lookup per utente totale
+    // Quota assoluta: max 1 lookup per utente totale (gratis)
     const { count } = await supabaseUser
       .from("plate_lookups")
       .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id);
+      .eq("user_id", auth.userId);
     if ((count ?? 0) >= 1) {
-      return new Response(
-        JSON.stringify({ ok: false, reason: "Hai già usato la tua ricerca gratuita." }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return jsonError(429, "free_quota_exhausted");
     }
 
-    // Chiamata API Targato.it
     let plateData: any = null;
     let costCents = 0;
     if (TARGATO_KEY) {
       const res = await fetch(`${TARGATO_URL}?plate=${encodeURIComponent(plate)}`, {
         headers: { Authorization: `Bearer ${TARGATO_KEY}` },
       });
-      if (!res.ok) {
-        return new Response(
-          JSON.stringify({ ok: false, reason: "Targa non trovata" }),
-          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
+      if (!res.ok) return jsonError(404, "plate_not_found");
       plateData = await res.json();
-      costCents = 10; // approx €0.10 / req
+      costCents = 10;
     } else {
       // Provider non configurato → fallback dati fittizi (mai usare in prod)
       plateData = {
@@ -92,27 +92,22 @@ serve(async (req: Request) => {
       };
     }
 
-    // Salva audit + consuma quota
-    const adminClient = createClient(SUPABASE_URL, SERVICE_KEY);
-    await adminClient.from("plate_lookups").insert({
-      user_id: user.id,
+    const admin = adminClient();
+    await admin.from("plate_lookups").insert({
+      user_id: auth.userId,
       plate,
       result: plateData,
       provider: TARGATO_KEY ? "targato.it" : "mock",
       cost_cents: costCents,
     });
-    await adminClient
+    await admin
       .from("profiles")
       .update({ plate_lookups_used: 1 })
-      .eq("id", user.id);
+      .eq("id", auth.userId);
 
-    return new Response(JSON.stringify({ ok: true, data: plateData }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonOk({ ok: true, data: plateData });
   } catch (e) {
-    return new Response(JSON.stringify({ ok: false, reason: String(e) }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    console.error("plate-lookup error", e);
+    return jsonError(500, "internal_error");
   }
 });

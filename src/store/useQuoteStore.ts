@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { Quote, QuoteLineItem, QuoteStatus } from "@/types";
 
-export const COMMISSION_PCT = 0.02;
+export const COMMISSION_PCT = 0.05;
 
 type QuoteState = {
   quotes: Quote[];

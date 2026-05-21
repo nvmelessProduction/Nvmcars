@@ -2,56 +2,60 @@
 // Manda push via Expo Push Service ai push_token del profilo destinatario.
 //
 // Deploy:
-//   supabase functions deploy send-push --no-verify-jwt
-// (no-verify-jwt perché chiamata da database trigger / cron)
-//
+//   supabase functions deploy send-push
 // Body:
-//   { userId: string, title: string, body: string, data?: object }
+//   { userId: string, title: string, body?: string, data?: object }
 //
-// Per il flusso prod, conviene chiamarla da:
-//   - Trigger SQL su notifications insert
-//   - Cron job per reminder
+// NOTA: rimosso --no-verify-jwt per evitare che chiunque possa spammare push.
+// Chiamala dal client autenticato o da Edge Function admin con service-role.
 
 // @ts-ignore
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-// @ts-ignore
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { corsHeaders, handleCors } from "../_shared/cors.ts";
+import { handleCors } from "../_shared/cors.ts";
+import { parseBody, jsonError, jsonOk, z } from "../_shared/validate.ts";
+import { rateLimit } from "../_shared/rateLimit.ts";
+import { adminClient, requireUser } from "../_shared/auth.ts";
 
-// @ts-ignore
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-// @ts-ignore
-const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 // @ts-ignore
 const EXPO_TOKEN = Deno.env.get("EXPO_ACCESS_TOKEN") ?? "";
-
 const EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";
+
+const BodySchema = z.object({
+  userId: z.string().uuid(),
+  title: z.string().min(1).max(120),
+  body: z.string().max(500).optional(),
+  data: z.record(z.unknown()).optional(),
+});
 
 serve(async (req: Request) => {
   const cors = handleCors(req);
   if (cors) return cors;
 
-  try {
-    const { userId, title, body, data } = await req.json();
-    if (!userId || !title) {
-      return new Response(JSON.stringify({ error: "Missing userId/title" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+  const auth = await requireUser(req);
+  if (!auth.ok) return auth.response;
 
-    const admin = createClient(SUPABASE_URL, SERVICE_KEY);
+  // 60 push / minuto per chiamante (anti-spam)
+  const limited = await rateLimit({
+    key: `push:${auth.userId}`,
+    limit: 60,
+    windowSec: 60,
+  });
+  if (limited) return limited;
+
+  const parsed = await parseBody(req, BodySchema);
+  if (!parsed.ok) return parsed.response;
+  const { userId, title, body, data } = parsed.data;
+
+  try {
+    const admin = adminClient();
     const { data: profile } = await admin
       .from("profiles")
-      .select("push_token, language")
+      .select("push_token")
       .eq("id", userId)
       .single();
 
     if (!profile?.push_token) {
-      return new Response(JSON.stringify({ ok: false, reason: "No push token" }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonOk({ ok: false, reason: "no_push_token" });
     }
 
     const message = {
@@ -76,13 +80,9 @@ serve(async (req: Request) => {
     });
     const result = await res.json();
 
-    return new Response(JSON.stringify({ ok: true, result }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonOk({ ok: true, result });
   } catch (e) {
-    return new Response(JSON.stringify({ error: String(e) }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    console.error("send-push error", e);
+    return jsonError(500, "internal_error");
   }
 });
