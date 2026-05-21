@@ -37,6 +37,7 @@ import { geocodeAddress } from "@/utils/geocode";
 import { pickFromGallery } from "@/utils/mediaPicker";
 import type { ServiceKey, WorkshopHours } from "@/types";
 import type { ProProfileStackParamList } from "@/navigation/types";
+import { updateDac7Fields } from "@/services/profile";
 
 type Nav = NativeStackNavigationProp<ProProfileStackParamList, "ProOnboarding">;
 
@@ -254,6 +255,16 @@ export function ProOnboardingScreen() {
       lng: geoCoords?.lng ?? 0,
     });
     setStatus(workshopId, "active");
+    // DAC7: replico i campi obbligatori nel profilo (utili per compliance UE)
+    if (user?.id) {
+      updateDac7Fields(user.id, {
+        taxId: taxCode,
+        vatNumber: vat,
+        iban,
+        legalAddress: `${address}, ${cap} ${city} (${province})`.trim(),
+        countryCode: "ITA",
+      }).catch(() => undefined);
+    }
     Alert.alert(t.pro.publishedTitle, t.pro.publishedBody, [
       { text: "OK", onPress: () => navigation.replace("ProProfile") },
     ]);

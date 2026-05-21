@@ -1,5 +1,5 @@
 // Edge Function: Stripe Webhook
-// Riceve eventi da Stripe e aggiorna quote.status quando il pagamento è completato.
+// Riceve eventi da Stripe e aggiorna lo stato delle quotes/subscriptions.
 //
 // Deploy:
 //   supabase functions deploy stripe-webhook --no-verify-jwt
@@ -7,9 +7,14 @@
 //   STRIPE_SECRET_KEY
 //   STRIPE_WEBHOOK_SECRET
 //
-// Configurare in Stripe Dashboard:
-//   Endpoint: https://YOUR-PROJECT.supabase.co/functions/v1/stripe-webhook
-//   Events: payment_intent.succeeded, payment_intent.payment_failed, account.updated
+// Eventi configurati in Stripe Dashboard:
+//   - payment_intent.succeeded
+//   - payment_intent.payment_failed
+//   - account.updated
+//   - customer.subscription.created
+//   - customer.subscription.updated
+//   - customer.subscription.deleted
+//   - invoice.payment_failed
 
 // @ts-ignore
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
@@ -43,10 +48,21 @@ serve(async (req: Request) => {
   }
 
   try {
-    if (event.type === "payment_intent.succeeded") {
-      const pi = event.data.object as Stripe.PaymentIntent;
-      const quoteId = pi.metadata?.quote_id;
-      if (quoteId) {
+    switch (event.type) {
+      case "payment_intent.succeeded": {
+        const pi = event.data.object as Stripe.PaymentIntent;
+
+        // Boost: attiva il record workshop_boosts
+        if (pi.metadata?.kind === "boost" && pi.metadata?.boost_id) {
+          await admin
+            .from("workshop_boosts")
+            .update({ status: "active", stripe_payment_intent: pi.id })
+            .eq("id", pi.metadata.boost_id);
+          break;
+        }
+
+        const quoteId = pi.metadata?.quote_id;
+        if (!quoteId) break;
         await admin
           .from("quotes")
           .update({
@@ -57,7 +73,6 @@ serve(async (req: Request) => {
           })
           .eq("id", quoteId);
 
-        // Notifica l'officina
         const { data: q } = await admin
           .from("quotes")
           .select("workshop_id, customer_id, title")
@@ -88,23 +103,72 @@ serve(async (req: Request) => {
             related_kind: "quote",
           });
         }
+        break;
       }
-    }
 
-    if (event.type === "account.updated") {
-      const account = event.data.object as Stripe.Account;
-      await admin
-        .from("workshops")
-        .update({
-          stripe_charges_enabled: account.charges_enabled,
-        })
-        .eq("stripe_account_id", account.id);
+      case "account.updated": {
+        const account = event.data.object as Stripe.Account;
+        await admin
+          .from("workshops")
+          .update({ stripe_charges_enabled: account.charges_enabled })
+          .eq("stripe_account_id", account.id);
+        break;
+      }
+
+      case "customer.subscription.created":
+      case "customer.subscription.updated": {
+        const sub = event.data.object as Stripe.Subscription;
+        const userId = sub.metadata?.user_id;
+        const tier = sub.metadata?.tier;
+        if (!userId || !tier) break;
+        const period_end = (sub as any).current_period_end as number | undefined;
+        const period_start = (sub as any).current_period_start as number | undefined;
+        await admin.from("subscriptions").upsert(
+          {
+            user_id: userId,
+            tier,
+            stripe_subscription_id: sub.id,
+            stripe_customer_id: typeof sub.customer === "string" ? sub.customer : sub.customer.id,
+            current_period_start: period_start ? new Date(period_start * 1000).toISOString() : null,
+            current_period_end: period_end ? new Date(period_end * 1000).toISOString() : null,
+            cancel_at_period_end: sub.cancel_at_period_end,
+            status: sub.status,
+            trial_end: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
+          },
+          { onConflict: "user_id,tier" }
+        );
+        break;
+      }
+
+      case "customer.subscription.deleted": {
+        const sub = event.data.object as Stripe.Subscription;
+        await admin
+          .from("subscriptions")
+          .update({ status: "canceled" })
+          .eq("stripe_subscription_id", sub.id);
+        break;
+      }
+
+      case "invoice.payment_failed": {
+        const inv = event.data.object as Stripe.Invoice;
+        const subId = typeof (inv as any).subscription === "string"
+          ? (inv as any).subscription
+          : null;
+        if (subId) {
+          await admin
+            .from("subscriptions")
+            .update({ status: "past_due" })
+            .eq("stripe_subscription_id", subId);
+        }
+        break;
+      }
     }
 
     return new Response(JSON.stringify({ received: true }), {
       headers: { "Content-Type": "application/json" },
     });
   } catch (e) {
+    console.error("stripe-webhook error", e);
     return new Response(`Handler error: ${e}`, { status: 500 });
   }
 });

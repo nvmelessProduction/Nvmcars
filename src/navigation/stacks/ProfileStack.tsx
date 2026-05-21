@@ -10,6 +10,11 @@ import { PrivacyPolicyScreen } from "@/screens/legal/PrivacyPolicyScreen";
 import { TermsOfServiceScreen } from "@/screens/legal/TermsOfServiceScreen";
 import { DataExportScreen } from "@/screens/legal/DataExportScreen";
 import { DeleteAccountScreen } from "@/screens/legal/DeleteAccountScreen";
+import { DIYListScreen } from "@/screens/customer/DIYListScreen";
+import { DIYDetailScreen } from "@/screens/customer/DIYDetailScreen";
+import { DiyUpgradeScreen } from "@/screens/customer/DiyUpgradeScreen";
+import { PartsSearchScreen } from "@/screens/customer/PartsSearchScreen";
+import { ReferralScreen } from "@/screens/shared/ReferralScreen";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
 import type { ProfileStackParamList } from "../types";
@@ -71,6 +76,31 @@ export function ProfileStack() {
         name="DeleteAccount"
         component={DeleteAccountScreen}
         options={{ title: t.settings.deleteAccount }}
+      />
+      <Stack.Screen
+        name="DiyList"
+        component={DIYListScreen}
+        options={{ title: "DIY Garage" }}
+      />
+      <Stack.Screen
+        name="DiyDetail"
+        component={DIYDetailScreen}
+        options={{ title: "Guida" }}
+      />
+      <Stack.Screen
+        name="DiyUpgrade"
+        component={DiyUpgradeScreen}
+        options={{ title: "DIY Pro" }}
+      />
+      <Stack.Screen
+        name="PartsSearch"
+        component={PartsSearchScreen}
+        options={{ title: "Ricambi" }}
+      />
+      <Stack.Screen
+        name="Referral"
+        component={ReferralScreen}
+        options={{ title: "Invita amici" }}
       />
     </Stack.Navigator>
   );

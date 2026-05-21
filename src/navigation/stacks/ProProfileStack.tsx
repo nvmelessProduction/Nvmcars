@@ -13,6 +13,10 @@ import { PrivacyPolicyScreen } from "@/screens/legal/PrivacyPolicyScreen";
 import { TermsOfServiceScreen } from "@/screens/legal/TermsOfServiceScreen";
 import { DataExportScreen } from "@/screens/legal/DataExportScreen";
 import { DeleteAccountScreen } from "@/screens/legal/DeleteAccountScreen";
+import { ProUpgradeScreen } from "@/screens/professional/ProUpgradeScreen";
+import { ProBoostScreen } from "@/screens/professional/ProBoostScreen";
+import { ProMfaEnrollScreen } from "@/screens/professional/ProMfaEnrollScreen";
+import { ReferralScreen } from "@/screens/shared/ReferralScreen";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
 import type { ProProfileStackParamList } from "../types";
@@ -101,6 +105,26 @@ export function ProProfileStack() {
         name="DeleteAccount"
         component={DeleteAccountScreen}
         options={{ title: t.settings.deleteAccount }}
+      />
+      <Stack.Screen
+        name="ProUpgrade"
+        component={ProUpgradeScreen}
+        options={{ title: "Piani Pro" }}
+      />
+      <Stack.Screen
+        name="ProBoost"
+        component={ProBoostScreen}
+        options={{ title: "Boost" }}
+      />
+      <Stack.Screen
+        name="ProMfaEnroll"
+        component={ProMfaEnrollScreen}
+        options={{ title: "MFA" }}
+      />
+      <Stack.Screen
+        name="Referral"
+        component={ReferralScreen}
+        options={{ title: "Invita amici" }}
       />
     </Stack.Navigator>
   );

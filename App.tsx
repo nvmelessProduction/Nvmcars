@@ -12,9 +12,12 @@ import { useBookingsStore } from "@/store/useBookingsStore";
 import { useChatStore } from "@/store/useChatStore";
 import { useNotificationsStore } from "@/store/useNotificationsStore";
 import { useFavoritesStore } from "@/store/useFavoritesStore";
+import { useSubscriptionStore } from "@/store/useSubscriptionStore";
+import { useDiyStore } from "@/store/useDiyStore";
 import * as authService from "@/services/auth";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { initSentry } from "@/lib/sentry";
+import { initAnalytics, identify, reset } from "@/lib/analytics";
 import { requestTrackingPermissionIfNeeded } from "@/utils/tracking";
 import { registerForPushNotificationsAsync } from "@/utils/pushNotifications";
 
@@ -67,12 +70,24 @@ function AppBootstrap({ children }: { children: React.ReactNode }) {
   const hydrateConversations = useChatStore((s) => s.hydrateConversations);
   const hydrateNotifications = useNotificationsStore((s) => s.hydrate);
   const hydrateFavorites = useFavoritesStore((s) => s.hydrate);
+  const hydrateSubscriptions = useSubscriptionStore((s) => s.hydrate);
+  const hydrateDiy = useDiyStore((s) => s.hydrate);
 
   // Init globali una volta
   useEffect(() => {
     initSentry();
+    initAnalytics();
     requestTrackingPermissionIfNeeded().catch(() => undefined);
   }, []);
+
+  // Identify utente in PostHog quando cambia
+  useEffect(() => {
+    if (user) {
+      identify(user.id, { role: user.role });
+    } else {
+      reset();
+    }
+  }, [user]);
 
   // Sync session Supabase ↔ store
   useEffect(() => {
@@ -94,6 +109,8 @@ function AppBootstrap({ children }: { children: React.ReactNode }) {
       registerForPushNotificationsAsync(user.id).catch(() => undefined);
       hydrateNotifications(user.id).catch(() => undefined);
       hydrateWorkshops().catch(() => undefined);
+      hydrateSubscriptions(user.id).catch(() => undefined);
+      hydrateDiy().catch(() => undefined);
       if (user.role === "customer") {
         hydrateCars(user.id).catch(() => undefined);
         hydrateBookings({ customerId: user.id }).catch(() => undefined);
@@ -115,6 +132,8 @@ function AppBootstrap({ children }: { children: React.ReactNode }) {
     hydrateConversations,
     hydrateNotifications,
     hydrateFavorites,
+    hydrateSubscriptions,
+    hydrateDiy,
   ]);
 
   return <>{children}</>;

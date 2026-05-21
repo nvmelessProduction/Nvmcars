@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body {
+  background: #0A0E1A;
+  color: #F8FAFC;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+a { color: inherit; text-decoration: none; }

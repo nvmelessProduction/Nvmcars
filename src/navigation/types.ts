@@ -50,6 +50,11 @@ export type ProfileStackParamList = {
   TermsOfService: undefined;
   DataExport: undefined;
   DeleteAccount: undefined;
+  DiyList: undefined;
+  DiyDetail: { slug: string };
+  DiyUpgrade: undefined;
+  PartsSearch: undefined;
+  Referral: undefined;
 };
 
 export type CustomerTabParamList = {
@@ -103,6 +108,10 @@ export type ProProfileStackParamList = {
   TermsOfService: undefined;
   DataExport: undefined;
   DeleteAccount: undefined;
+  ProUpgrade: undefined;
+  ProBoost: undefined;
+  ProMfaEnroll: undefined;
+  Referral: undefined;
 };
 
 export type ProTabParamList = {

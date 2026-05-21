@@ -10,18 +10,36 @@
     },
     "preview": {
       "distribution": "internal",
+      "channel": "preview",
       "android": {
         "buildType": "apk"
+      },
+      "ios": {
+        "simulator": false
       }
     },
     "production": {
       "autoIncrement": true,
+      "channel": "production",
       "android": {
         "buildType": "app-bundle"
+      },
+      "ios": {
+        "resourceClass": "m-medium"
       }
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "appleId": "PLACEHOLDER-APPLE-ID@nvmcars.it",
+        "ascAppId": "PLACEHOLDER-ASC-APP-ID",
+        "appleTeamId": "PLACEHOLDER-APPLE-TEAM-ID"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./google-service-account.json",
+        "track": "internal"
+      }
+    }
   }
 }
