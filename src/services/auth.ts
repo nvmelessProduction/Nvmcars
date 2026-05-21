@@ -26,12 +26,35 @@ export type AuthResult =
   | { ok: false; reason: string };
 
 async function fetchProfile(userId: string): Promise<AuthUser | null> {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", userId)
-    .single();
-  if (error || !data) return null;
+  // Usa RPC security-definer che ritorna il profilo completo (incluso campi
+  // sensibili) SOLO se auth.uid() = id. Necessario perché la migration 0011
+  // ha revocato SELECT su email/phone/iban dal role authenticated per evitare
+  // leak verso counterparty via policy.
+  let data: any = null;
+  const rpcRes = await supabase.rpc("get_my_profile");
+  if (!rpcRes.error && rpcRes.data) {
+    data = Array.isArray(rpcRes.data) ? rpcRes.data[0] : rpcRes.data;
+  } else {
+    // Fallback per backend non ancora migrato a 0011
+    const { data: legacy } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
+    data = legacy;
+  }
+  if (!data) return null;
+
+  // Promozione admin: se flag is_admin = true a livello DB, l'utente è admin.
+  if (data.is_admin === true) {
+    return {
+      id: data.id,
+      role: "admin",
+      email: data.email ?? "",
+      name: data.name,
+    };
+  }
+
   if (data.role === "professional") {
     return {
       id: data.id,

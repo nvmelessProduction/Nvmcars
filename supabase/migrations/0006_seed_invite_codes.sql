@@ -33,10 +33,9 @@ insert into public.invite_codes (code, expires_at) values
   ('NVMTEST001',    now() + interval '1 year'),
   ('NVMTEST002',    now() + interval '1 year'),
   ('NVMTEST003',    now() + interval '1 year')
-on conflict (code) do update
-  set expires_at = excluded.expires_at,
-      used_by   = null,
-      used_at   = null;
+on conflict (code) do nothing;
+-- NB: usavamo `do update set used_by = null` che resettava i codici usati
+-- a ogni replay della migration. Bug critico in prod, corretto con `do nothing`.
 
 -- Verifica:
 select code, used_by, expires_at from public.invite_codes order by code;

@@ -48,6 +48,20 @@ serve(async (req: Request) => {
 
   try {
     const admin = adminClient();
+
+    // Anti-abuse: solo admin può mandare push a userId arbitrari.
+    // Utenti normali possono mandare push SOLO a se stessi (es. test notifica).
+    // I push "applicativi" (chat reply, quote received, ecc.) vanno fatti
+    // server-side da trigger SQL o da altre edge function con service_role.
+    if (userId !== auth.userId) {
+      const { data: caller } = await admin
+        .from("profiles")
+        .select("is_admin")
+        .eq("id", auth.userId)
+        .single();
+      if (!caller?.is_admin) return jsonError(403, "forbidden");
+    }
+
     const { data: profile } = await admin
       .from("profiles")
       .select("push_token")

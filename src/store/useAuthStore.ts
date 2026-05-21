@@ -154,9 +154,14 @@ export const useAuthStore = create<AuthState>()(
       loginWithPassword: async (email, password) => {
         set({ authLoading: true });
         try {
-          // ADMIN PATH (bypassa Supabase): email in whitelist + password locale.
-          // Non serve avere l'account nel DB Supabase. Canale interno operativo.
-          if (isAdminEmail(email)) {
+          // ADMIN PATH LEGACY (deprecated): bypass Supabase con password hardcoded.
+          // PROBLEMA SICUREZZA: la password è leggibile decompilando l'APK.
+          // Attivabile solo con flag esplicito EXPO_PUBLIC_ENABLE_LEGACY_ADMIN=true.
+          // Modo corretto: registrarsi normalmente, poi su Supabase Dashboard settare
+          //   UPDATE profiles SET is_admin = true WHERE email = 'admin@nvmcars.it';
+          // Il successivo login normale promuove a admin via fetchProfile().
+          const enableLegacy = process.env.EXPO_PUBLIC_ENABLE_LEGACY_ADMIN === "true";
+          if (enableLegacy && isAdminEmail(email)) {
             if (!isValidAdminPassword(password)) {
               return { ok: false, reason: "Password admin errata" };
             }
@@ -171,7 +176,8 @@ export const useAuthStore = create<AuthState>()(
             return { ok: true, user: adminUser };
           }
 
-          // Utenti normali: passano per Supabase (o mock).
+          // Utenti normali: passano per Supabase.
+          // Se il profilo ha is_admin = true, fetchProfile lo promuove automaticamente.
           const res = await authService.login({ email, password });
           if (res.ok) {
             // Reset snapshot: login normale non è un impersonate.
@@ -214,6 +220,14 @@ export const useAuthStore = create<AuthState>()(
         await authService.logout();
         // Reset COMPLETO: anche lo snapshot admin, altrimenti il banner persiste.
         set({ user: null, switchSnapshot: null });
+        // Pulisce tutti i dati locali per evitare leak fra utenti che condividono il device.
+        // Import dinamici per evitare cicli di dipendenze fra store.
+        try {
+          const { clearAllUserStores } = await import("@/lib/clearStores");
+          await clearAllUserStores();
+        } catch (e) {
+          console.warn("logout cleanup failed:", e);
+        }
       },
     }),
     {

@@ -44,7 +44,8 @@ serve(async (req: Request) => {
   try {
     event = await stripe.webhooks.constructEventAsync(body, sig, WEBHOOK_SECRET);
   } catch (e) {
-    return new Response(`Webhook signature failed: ${e}`, { status: 400 });
+    console.error("stripe-webhook signature failed", e);
+    return new Response("signature_failed", { status: 400 });
   }
 
   try {
@@ -169,6 +170,7 @@ serve(async (req: Request) => {
     });
   } catch (e) {
     console.error("stripe-webhook error", e);
-    return new Response(`Handler error: ${e}`, { status: 500 });
+    // Niente dettagli interni nel response body (Stripe li loggerebbe).
+    return new Response("handler_error", { status: 500 });
   }
 });

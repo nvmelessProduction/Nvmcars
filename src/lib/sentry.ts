@@ -64,11 +64,28 @@ function scrub(value: unknown, depth = 0): unknown {
 
 function beforeSend(event: any): any {
   try {
-    if (event.request?.headers) {
-      delete event.request.headers["Authorization"];
-      delete event.request.headers["authorization"];
-      delete event.request.headers["Cookie"];
-      delete event.request.headers["cookie"];
+    if (event.request) {
+      if (event.request.headers) {
+        delete event.request.headers["Authorization"];
+        delete event.request.headers["authorization"];
+        delete event.request.headers["Cookie"];
+        delete event.request.headers["cookie"];
+      }
+      // URL può contenere query con PII (es. ?email=...)
+      if (typeof event.request.url === "string") {
+        try {
+          const u = new URL(event.request.url);
+          if (u.search) u.search = "?[REDACTED]";
+          event.request.url = u.toString();
+        } catch {
+          event.request.url = "[URL_REDACTED]";
+        }
+      }
+      // body può contenere JSON con dati personali
+      if (event.request.data) event.request.data = "[BODY_REDACTED]";
+      // @ts-ignore
+      if (event.request.body) event.request.body = "[BODY_REDACTED]";
+      if (event.request.query_string) event.request.query_string = "[REDACTED]";
     }
     if (event.user) {
       // Tieni solo lo user id, niente email/phone/IP

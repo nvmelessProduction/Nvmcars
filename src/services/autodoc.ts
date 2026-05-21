@@ -18,6 +18,25 @@ import { track } from "@/lib/analytics";
 const AFFILIATE_ID = process.env.EXPO_PUBLIC_AUTODOC_AFFILIATE_ID ?? "";
 const AUTODOC_BASE = "https://www.autodoc.it";
 
+// Whitelist domini consentiti. Se l'API/backend ritornasse un URL malevolo
+// (es. compromise di Autodoc API), non aprirlo: cadiamo sul dominio safe.
+const ALLOWED_HOSTS = [
+  "autodoc.it",
+  "www.autodoc.it",
+  "awin1.com",
+  "www.awin1.com",
+];
+
+function isUrlSafe(target: string): boolean {
+  try {
+    const u = new URL(target);
+    if (u.protocol !== "https:") return false;
+    return ALLOWED_HOSTS.some((h) => u.hostname === h || u.hostname.endsWith(`.${h}`));
+  } catch {
+    return false;
+  }
+}
+
 export type AutodocProduct = {
   id: string;
   name: string;
@@ -28,11 +47,18 @@ export type AutodocProduct = {
   rating?: number;
 };
 
-/** Costruisce un URL affiliato tracciato per un prodotto/ricerca su Autodoc. */
+/** Costruisce un URL affiliato tracciato per un prodotto/ricerca su Autodoc.
+ *  Se l'URL costruito non passa la whitelist, ritorna la home Autodoc. */
 export function buildAffiliateUrl(targetPath: string): string {
   const target = targetPath.startsWith("http")
     ? targetPath
     : `${AUTODOC_BASE}${targetPath.startsWith("/") ? "" : "/"}${targetPath}`;
+
+  // Validation: se il target non è HTTPS o dominio sicuro, fallback safe.
+  if (!isUrlSafe(target)) {
+    return AUTODOC_BASE;
+  }
+
   if (!AFFILIATE_ID) return target;
   // Awin deep-link format
   const encoded = encodeURIComponent(target);
