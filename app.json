@@ -1,0 +1,50 @@
+{
+  "expo": {
+    "name": "Nvmcars",
+    "slug": "nvmcars",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "scheme": "nvmcars",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.nvmcars.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Nvmcars usa la tua posizione per trovare le officine più vicine a te.",
+        "NSCameraUsageDescription": "Nvmcars usa la fotocamera per inviare foto e video della tua auto all'officina.",
+        "NSPhotoLibraryUsageDescription": "Nvmcars accede alla libreria foto per allegare immagini ai messaggi.",
+        "NSMicrophoneUsageDescription": "Nvmcars usa il microfono per registrare video da inviare all'officina."
+      }
+    },
+    "android": {
+      "package": "com.nvmcars.app",
+      "versionCode": 1,
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "RECORD_AUDIO",
+        "READ_MEDIA_IMAGES",
+        "READ_MEDIA_VIDEO"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Nvmcars usa la tua posizione per trovare le officine più vicine a te."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Nvmcars accede alla libreria foto per allegare immagini ai messaggi.",
+          "cameraPermission": "Nvmcars usa la fotocamera per inviare foto e video della tua auto all'officina.",
+          "microphonePermission": "Nvmcars usa il microfono per registrare video da inviare all'officina."
+        }
+      ]
+    ]
+  }
+}
