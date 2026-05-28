@@ -47,3 +47,6 @@ yarn-error.*
 
 # Misc
 *.tsbuildinfo
+
+# Generated artifacts (rigenerati da scripts/gen-pdf.js)
+BUSINESS_PLAN.html
