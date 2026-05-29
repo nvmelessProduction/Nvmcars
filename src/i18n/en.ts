@@ -240,6 +240,10 @@ export const en: Translations = {
     sendQuote: "Send quote",
     autoReplyHint: "The workshop is closed. They'll reply as soon as possible.",
     tapToPlay: "Tap to play",
+    today: "Today",
+    yesterday: "Yesterday",
+    startConversation: "Start the conversation",
+    startConversationHint: "Send a message to get in touch.",
   },
   quote: {
     quote: "Quote",

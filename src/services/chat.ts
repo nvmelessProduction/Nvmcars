@@ -99,37 +99,9 @@ export async function sendMessageRemote(msg: {
     .single();
   if (error || !data) return null;
 
-  // Update last_message preview + unread counters (best-effort, non-atomic).
-  const preview =
-    msg.text ??
-    (msg.kind === "image"
-      ? "📷 Foto"
-      : msg.kind === "video"
-        ? "🎬 Video"
-        : msg.kind === "quote"
-          ? "💶 Preventivo"
-          : "");
-  const { data: conv } = await supabase
-    .from("conversations")
-    .select("customer_id, customer_unread, workshop_unread")
-    .eq("id", msg.conversationId)
-    .single();
-  if (conv) {
-    const sentByCustomer = conv.customer_id === msg.senderId;
-    await supabase
-      .from("conversations")
-      .update({
-        last_message_preview: preview,
-        last_message_at: new Date().toISOString(),
-        customer_unread: sentByCustomer
-          ? conv.customer_unread
-          : (conv.customer_unread ?? 0) + 1,
-        workshop_unread: sentByCustomer
-          ? (conv.workshop_unread ?? 0) + 1
-          : conv.workshop_unread,
-      })
-      .eq("id", msg.conversationId);
-  }
+  // I metadati della conversazione (anteprima, ultimo messaggio, non-letti)
+  // sono mantenuti dal trigger DB `messages_after_insert` (migration 0013),
+  // in modo atomico e server-authoritative.
   return rowToMessage(data);
 }
 

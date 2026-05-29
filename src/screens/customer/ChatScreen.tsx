@@ -12,12 +12,14 @@ import {
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { KAV } from "@/components/KAV";
 import { ChatBubble } from "@/components/ChatBubble";
+import { ChatDateSeparator } from "@/components/ChatDateSeparator";
 import { AttachSheet } from "@/components/AttachSheet";
 import { useChatStore } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
 import { WORKSHOPS } from "@/data/workshops";
+import { buildChatItems } from "@/utils/chatThread";
 import { pickFromGallery, recordVideo, takePhoto } from "@/utils/mediaPicker";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import type { HomeStackParamList } from "@/navigation/types";
@@ -89,6 +91,10 @@ export function ChatScreen() {
         .sort((a, b) => a.createdAt - b.createdAt),
     [allMessages, convId]
   );
+  const items = useMemo(
+    () => buildChatItems(messages, Date.now(), { today: t.chat.today, yesterday: t.chat.yesterday }),
+    [messages, t]
+  );
 
   if (!user || !workshop) return null;
 
@@ -138,22 +144,37 @@ export function ChatScreen() {
       <KAV>
         <FlatList
           ref={listRef}
-          data={messages}
+          data={items}
           keyExtractor={(item) => item.id}
           style={{ flex: 1 }}
-          contentContainerStyle={{ padding: 16, gap: 8 }}
+          contentContainerStyle={{ padding: 16, gap: 8, flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
-          renderItem={({ item }) => (
-            <ChatBubble
-              message={item}
-              mine={item.senderId === user.id}
-              onPressQuote={(qid) => navigation.navigate("QuoteDetail", { quoteId: qid })}
-              onPressMedia={(uri, isVideo) => {
-                if (isVideo) Linking.openURL(uri).catch(() => undefined);
-              }}
-            />
-          )}
+          ListEmptyComponent={
+            <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingVertical: 64, gap: 6 }}>
+              <Text style={{ fontSize: 32 }}>💬</Text>
+              <Text style={{ color: colors.text, fontSize: 16, fontWeight: "700" }}>
+                {t.chat.startConversation}
+              </Text>
+              <Text style={{ color: colors.textMuted, fontSize: 13, textAlign: "center" }}>
+                {t.chat.startConversationHint}
+              </Text>
+            </View>
+          }
+          renderItem={({ item }) =>
+            item.type === "date" ? (
+              <ChatDateSeparator label={item.label} />
+            ) : (
+              <ChatBubble
+                message={item.message}
+                mine={item.message.senderId === user.id}
+                onPressQuote={(qid) => navigation.navigate("QuoteDetail", { quoteId: qid })}
+                onPressMedia={(uri, isVideo) => {
+                  if (isVideo) Linking.openURL(uri).catch(() => undefined);
+                }}
+              />
+            )
+          }
           onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
         />
 

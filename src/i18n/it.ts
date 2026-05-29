@@ -238,6 +238,10 @@ export const it = {
     sendQuote: "Invia preventivo",
     autoReplyHint: "L'officina è chiusa. Risponderà appena possibile.",
     tapToPlay: "Tocca per riprodurre",
+    today: "Oggi",
+    yesterday: "Ieri",
+    startConversation: "Inizia la conversazione",
+    startConversationHint: "Scrivi un messaggio per metterti in contatto.",
   },
   quote: {
     quote: "Preventivo",

@@ -24,6 +24,10 @@ export function ChatBubble({ message, mine, onPressQuote, onPressMedia }: Props)
     hour: "2-digit",
     minute: "2-digit",
   });
+  // Indicatore di consegna, solo sui messaggi inviati da me.
+  const statusGlyph =
+    message.status === "sending" ? " 🕐" : message.status === "failed" ? " ⚠️" : " ✓";
+  const timeWithStatus = mine ? `${time}${statusGlyph}` : time;
 
   if (message.kind === "system") {
     return (
@@ -133,7 +137,7 @@ export function ChatBubble({ message, mine, onPressQuote, onPressMedia }: Props)
             textAlign: mine ? "right" : "left",
           }}
         >
-          {time}
+          {timeWithStatus}
         </Text>
       </Animated.View>
     );
@@ -170,7 +174,7 @@ export function ChatBubble({ message, mine, onPressQuote, onPressMedia }: Props)
             textAlign: mine ? "right" : "left",
           }}
         >
-          {time}
+          {timeWithStatus}
         </Text>
       </Animated.View>
     );
@@ -224,7 +228,7 @@ export function ChatBubble({ message, mine, onPressQuote, onPressMedia }: Props)
             textAlign: mine ? "right" : "left",
           }}
         >
-          {time}
+          {timeWithStatus}
         </Text>
       </Animated.View>
     );

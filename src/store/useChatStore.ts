@@ -153,7 +153,18 @@ export const useChatStore = create<ChatState>()(
         set({ conversations: [...get().conversations, created] });
         if (isSupabaseConfigured) {
           chatService.ensureConversationRemote(customerId, workshopId).then((remote) => {
-            if (remote) {
+            if (remote && remote.id !== id) {
+              // Rimappa l'id locale (cv-...) all'UUID remoto e migra i messaggi
+              // già accodati, così non spariscono dal thread né restano orfani.
+              set({
+                conversations: get().conversations.map((c) =>
+                  c.id === id ? { ...remote } : c
+                ),
+                messages: get().messages.map((m) =>
+                  m.conversationId === id ? { ...m, conversationId: remote.id } : m
+                ),
+              });
+            } else if (remote) {
               set({
                 conversations: get().conversations.map((c) =>
                   c.id === id ? { ...remote } : c
@@ -177,6 +188,7 @@ export const useChatStore = create<ChatState>()(
           mediaHeight: input.mediaHeight,
           quoteId: input.quoteId,
           createdAt: Date.now(),
+          status: isSupabaseConfigured ? "sending" : undefined,
         };
         set({
           messages: [...get().messages, message],
@@ -195,6 +207,12 @@ export const useChatStore = create<ChatState>()(
           }),
         });
         if (isSupabaseConfigured) {
+          const markFailed = () =>
+            set({
+              messages: get().messages.map((m) =>
+                m.id === message.id ? { ...m, status: "failed" } : m
+              ),
+            });
           const persistRemote = async () => {
             // I media vanno caricati su Supabase Storage prima dell'insert:
             // altrimenti `media_url` resterebbe un file:// locale, invisibile
@@ -209,16 +227,18 @@ export const useChatStore = create<ChatState>()(
                 input.mediaUri,
                 message.kind === "video"
               );
-              if (uploaded) {
-                remoteMediaUri = uploaded;
-                // Allinea anche il messaggio ottimistico locale all'URL remoto,
-                // così sopravvive a un clear della cache locale.
-                set({
-                  messages: get().messages.map((m) =>
-                    m.id === message.id ? { ...m, mediaUri: uploaded } : m
-                  ),
-                });
+              if (!uploaded) {
+                markFailed();
+                return;
               }
+              remoteMediaUri = uploaded;
+              // Allinea anche il messaggio ottimistico locale all'URL remoto,
+              // così sopravvive a un clear della cache locale.
+              set({
+                messages: get().messages.map((m) =>
+                  m.id === message.id ? { ...m, mediaUri: uploaded } : m
+                ),
+              });
             }
             const remote = await chatService.sendMessageRemote({
               conversationId: input.conversationId,
@@ -230,15 +250,18 @@ export const useChatStore = create<ChatState>()(
               mediaHeight: input.mediaHeight,
               quoteId: input.quoteId,
             });
-            if (remote) {
-              set({
-                messages: get().messages.map((m) =>
-                  m.id === message.id ? { ...remote } : m
-                ),
-              });
+            if (!remote) {
+              markFailed();
+              return;
             }
+            // Sostituisce il messaggio ottimistico con quello persistito e
+            // de-duplica un eventuale eco realtime già arrivato (stesso id DB).
+            const stored: ChatMessage = { ...remote, status: "sent" };
+            const withoutTemp = get().messages.filter((m) => m.id !== message.id);
+            const already = withoutTemp.some((m) => m.id === stored.id);
+            set({ messages: already ? withoutTemp : [...withoutTemp, stored] });
           };
-          persistRemote().catch(() => undefined);
+          persistRemote().catch(() => markFailed());
         }
         return message;
       },

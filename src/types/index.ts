@@ -227,6 +227,9 @@ export type Notification = {
 
 export type ChatMessageKind = "text" | "image" | "video" | "quote" | "system";
 
+/** Stato di consegna di un messaggio inviato da me (UI). */
+export type ChatMessageStatus = "sending" | "sent" | "failed";
+
 export type ChatMessage = {
   id: string;
   conversationId: string;
@@ -238,6 +241,7 @@ export type ChatMessage = {
   mediaHeight?: number;
   quoteId?: string;
   createdAt: number;
+  status?: ChatMessageStatus;
 };
 
 export type QuoteStatus = "pending" | "accepted" | "rejected" | "paid" | "expired";
