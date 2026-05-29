@@ -141,6 +141,7 @@ export function ProChatScreen() {
           ref={listRef}
           data={messages}
           keyExtractor={(item) => item.id}
+          style={{ flex: 1 }}
           contentContainerStyle={{ padding: 16, gap: 8 }}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"

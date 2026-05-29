@@ -195,16 +195,41 @@ export const useChatStore = create<ChatState>()(
           }),
         });
         if (isSupabaseConfigured) {
-          chatService.sendMessageRemote({
-            conversationId: input.conversationId,
-            senderId: input.senderId,
-            kind: input.kind ?? "text",
-            text: input.text,
-            mediaUri: input.mediaUri,
-            mediaWidth: input.mediaWidth,
-            mediaHeight: input.mediaHeight,
-            quoteId: input.quoteId,
-          }).then((remote) => {
+          const persistRemote = async () => {
+            // I media vanno caricati su Supabase Storage prima dell'insert:
+            // altrimenti `media_url` resterebbe un file:// locale, invisibile
+            // sull'altro dispositivo. Carichiamo e usiamo l'URL firmato.
+            let remoteMediaUri = input.mediaUri;
+            if (
+              input.mediaUri &&
+              (message.kind === "image" || message.kind === "video")
+            ) {
+              const uploaded = await chatService.uploadChatMedia(
+                input.conversationId,
+                input.mediaUri,
+                message.kind === "video"
+              );
+              if (uploaded) {
+                remoteMediaUri = uploaded;
+                // Allinea anche il messaggio ottimistico locale all'URL remoto,
+                // così sopravvive a un clear della cache locale.
+                set({
+                  messages: get().messages.map((m) =>
+                    m.id === message.id ? { ...m, mediaUri: uploaded } : m
+                  ),
+                });
+              }
+            }
+            const remote = await chatService.sendMessageRemote({
+              conversationId: input.conversationId,
+              senderId: input.senderId,
+              kind: message.kind,
+              text: input.text,
+              mediaUri: remoteMediaUri,
+              mediaWidth: input.mediaWidth,
+              mediaHeight: input.mediaHeight,
+              quoteId: input.quoteId,
+            });
             if (remote) {
               set({
                 messages: get().messages.map((m) =>
@@ -212,7 +237,8 @@ export const useChatStore = create<ChatState>()(
                 ),
               });
             }
-          }).catch(() => undefined);
+          };
+          persistRemote().catch(() => undefined);
         }
         return message;
       },
