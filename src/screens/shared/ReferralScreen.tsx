@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Alert, Pressable, Share, Text, View, ScrollView, TextInput } from "react-native";
+import { Alert, Share, Text, View, ScrollView, TextInput } from "react-native";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { Card } from "@/components/Card";
 import { PrimaryButton } from "@/components/PrimaryButton";

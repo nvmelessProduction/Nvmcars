@@ -12,7 +12,6 @@
 
 let PostHog: any = null;
 try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   PostHog = require("posthog-react-native").default;
 } catch {
   PostHog = null;

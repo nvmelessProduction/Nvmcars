@@ -12,7 +12,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 let SecureStore: typeof import("expo-secure-store") | null = null;
 try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   SecureStore = require("expo-secure-store");
 } catch {
   SecureStore = null;

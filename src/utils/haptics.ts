@@ -1,7 +1,6 @@
 // Wrapper sicuro per expo-haptics: se la dep non è installata, è no-op.
 let haptics: any = null;
 try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   haptics = require("expo-haptics");
 } catch {
   haptics = null;

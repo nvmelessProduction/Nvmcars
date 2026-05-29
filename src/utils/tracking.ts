@@ -4,7 +4,6 @@ import { Platform } from "react-native";
 
 let att: any = null;
 try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   att = require("expo-tracking-transparency");
 } catch {
   att = null;

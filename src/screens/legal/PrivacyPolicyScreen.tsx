@@ -8,7 +8,7 @@ export function PrivacyPolicyScreen() {
   const colors = useColors();
   const t = useT();
 
-  const sections: Array<{ title: string; body: string }> = [
+  const sections: { title: string; body: string }[] = [
     { title: t.legal.privacyDataCollectedTitle, body: t.legal.privacyDataCollectedBody },
     { title: t.legal.privacyUseTitle, body: t.legal.privacyUseBody },
     { title: t.legal.privacyShareTitle, body: t.legal.privacyShareBody },

@@ -54,7 +54,7 @@ export function ProEditWorkshopScreen() {
   }, [workshop?.id]);
 
   const handleSave = async () => {
-    const checks: Array<{ ok: true } | { ok: false; reason: string }> = [
+    const checks: ({ ok: true } | { ok: false; reason: string })[] = [
       validateMinLength(name, 3, "Nome officina"),
       validateMinLength(address, 5, "Indirizzo"),
       validateCAP(cap),

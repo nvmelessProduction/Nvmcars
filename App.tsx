@@ -24,7 +24,6 @@ import { registerForPushNotificationsAsync } from "@/utils/pushNotifications";
 // Stripe Provider — caricato dinamicamente solo se la dep è installata
 let StripeProvider: any = null;
 try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   StripeProvider = require("@stripe/stripe-react-native").StripeProvider;
 } catch {
   StripeProvider = null;

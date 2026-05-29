@@ -4,7 +4,6 @@
 
 let sentry: any = null;
 try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   sentry = require("@sentry/react-native");
 } catch {
   sentry = null;

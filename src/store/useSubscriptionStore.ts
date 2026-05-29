@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { monthKey } from "@/utils/period";
 
 export type SubscriptionTier = "free" | "pro" | "premium" | "diy_pro";
 
@@ -18,6 +19,7 @@ type SubscriptionState = {
   proTier: SubscriptionTier;       // computed: tier dell'officina
   customerTier: SubscriptionTier;  // computed: tier del cliente (free o diy_pro)
   monthlyRequestCount: number;     // contatore richieste mese corrente
+  requestCountMonth: string;       // periodo (YYYY-MM) a cui si riferisce il contatore
   loading: boolean;
   hydrate: (userId: string) => Promise<void>;
   startCheckout: (
@@ -25,6 +27,8 @@ type SubscriptionState = {
   ) => Promise<{ ok: true; url: string } | { ok: false; reason: string }>;
   cancel: (subscriptionId: string) => Promise<{ ok: boolean; reason?: string }>;
   bumpRequestCount: () => void;
+  /** Conteggio richieste del mese corrente, 0 se il periodo è cambiato. */
+  getMonthlyRequestCount: () => number;
 };
 
 function computeTiers(subs: Subscription[]) {
@@ -47,6 +51,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
       proTier: "free",
       customerTier: "free",
       monthlyRequestCount: 0,
+      requestCountMonth: monthKey(),
       loading: false,
 
       hydrate: async (userId: string) => {
@@ -106,13 +111,26 @@ export const useSubscriptionStore = create<SubscriptionState>()(
       },
 
       bumpRequestCount: () => {
-        set({ monthlyRequestCount: get().monthlyRequestCount + 1 });
+        const now = monthKey();
+        const sameMonth = get().requestCountMonth === now;
+        set({
+          monthlyRequestCount: (sameMonth ? get().monthlyRequestCount : 0) + 1,
+          requestCountMonth: now,
+        });
+      },
+
+      getMonthlyRequestCount: () => {
+        const { requestCountMonth, monthlyRequestCount } = get();
+        return requestCountMonth === monthKey() ? monthlyRequestCount : 0;
       },
     }),
     {
       name: "nvmcars-subscription",
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (s) => ({ monthlyRequestCount: s.monthlyRequestCount }),
+      partialize: (s) => ({
+        monthlyRequestCount: s.monthlyRequestCount,
+        requestCountMonth: s.requestCountMonth,
+      }),
     }
   )
 );

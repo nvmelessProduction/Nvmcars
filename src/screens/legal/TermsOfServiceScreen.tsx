@@ -8,7 +8,7 @@ export function TermsOfServiceScreen() {
   const colors = useColors();
   const t = useT();
 
-  const sections: Array<{ title: string; body: string }> = [
+  const sections: { title: string; body: string }[] = [
     { title: t.legal.terms1Title, body: t.legal.terms1Body },
     { title: t.legal.terms2Title, body: t.legal.terms2Body },
     { title: t.legal.terms3Title, body: t.legal.terms3Body },

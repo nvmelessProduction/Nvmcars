@@ -14,8 +14,8 @@ export type DiyGuide = {
   intro: string;
   contentMarkdown: string;
   videoUrl?: string;
-  partsList: Array<{ name: string; autodocQuery: string; qty: number }>;
-  toolsList: Array<{ name: string; avgPriceEur?: number }>;
+  partsList: { name: string; autodocQuery: string; qty: number }[];
+  toolsList: { name: string; avgPriceEur?: number }[];
   warnings?: string;
   isPremium: boolean;
   viewCount: number;

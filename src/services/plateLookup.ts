@@ -1,5 +1,5 @@
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
-import type { Car, CarCategory, FuelType } from "@/types";
+import type { CarCategory, FuelType } from "@/types";
 import { lookupPlate as mockLookup } from "@/data/plateLookup";
 
 export type PlateLookupResult = {

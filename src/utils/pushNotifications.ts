@@ -5,7 +5,6 @@ import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 let notifications: any = null;
 try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   notifications = require("expo-notifications");
   notifications.setNotificationHandler({
     handleNotification: async () => ({

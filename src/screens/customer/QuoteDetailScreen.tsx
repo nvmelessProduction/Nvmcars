@@ -28,28 +28,15 @@ export function QuoteDetailScreen() {
     navigation.setOptions({ title: t.quote.quote });
   }, [navigation, t]);
 
-  if (!quote) {
-    return (
-      <ScreenContainer>
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
-          <Text style={{ color: colors.textMuted }}>Preventivo non trovato.</Text>
-        </View>
-      </ScreenContainer>
-    );
-  }
-
-  const workshop = WORKSHOPS.find((w) => w.id === quote.workshopId);
-  const isCustomer = user?.id === quote.customerId;
-  const isPro = user?.role === "professional";
-  const canAct = isCustomer && quote.status === "pending";
-
   // Calcola risparmio teorico se il cliente comprasse i pezzi da Autodoc.
   // Stima: il pezzo è circa il 35% del prezzo unitario officina (resto = manodopera).
   // Se prezzo Autodoc < prezzo stimato officina × qty → mostra alternativa.
+  // NB: questo hook deve stare PRIMA di qualsiasi early return (Rules of Hooks),
+  // perché `quote` può passare da assente a presente dopo l'hydration dello store.
   const partsSavings = useMemo(() => {
     let total = 0;
     const items: { lineId: string; saving: number; productPriceCents: number; partUrl: string; lineDesc: string }[] = [];
-    for (const li of quote.lineItems) {
+    for (const li of quote?.lineItems ?? []) {
       if (!li.autodocProduct) continue;
       const estimatedShopPartCents = Math.round(li.unitPrice * li.quantity * 100 * 0.35);
       const autodocCents = li.autodocProduct.priceCents * li.quantity;
@@ -66,7 +53,22 @@ export function QuoteDetailScreen() {
       }
     }
     return { total, items };
-  }, [quote.lineItems]);
+  }, [quote?.lineItems]);
+
+  if (!quote) {
+    return (
+      <ScreenContainer>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
+          <Text style={{ color: colors.textMuted }}>Preventivo non trovato.</Text>
+        </View>
+      </ScreenContainer>
+    );
+  }
+
+  const workshop = WORKSHOPS.find((w) => w.id === quote.workshopId);
+  const isCustomer = user?.id === quote.customerId;
+  const isPro = user?.role === "professional";
+  const canAct = isCustomer && quote.status === "pending";
 
   const handleOpenAutodoc = async (url: string) => {
     const finalUrl = await trackAndOpen({

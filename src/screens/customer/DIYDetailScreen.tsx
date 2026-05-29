@@ -3,7 +3,6 @@ import { Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { useRoute, RouteProp, useNavigation } from "@react-navigation/native";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { Card } from "@/components/Card";
-import { PrimaryButton } from "@/components/PrimaryButton";
 import { ProFeatureGate } from "@/components/ProFeatureGate";
 import { useColors } from "@/store/useThemeStore";
 import { useDiyStore } from "@/store/useDiyStore";

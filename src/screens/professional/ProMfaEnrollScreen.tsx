@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Alert, Image, Linking, ScrollView, Text, View, TextInput } from "react-native";
+import { Alert, Image, ScrollView, Text, View, TextInput } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { Card } from "@/components/Card";

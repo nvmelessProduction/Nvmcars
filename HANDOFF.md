@@ -17,7 +17,9 @@ Marketplace italiano che mette in contatto **automobilisti** (Cliente) e **offic
 
 **Branch di sviluppo**: `main` è ora la fonte di verità. Tutto il codice è stato consolidato qui da un unico branch base; i vecchi branch (`claude/nvmcars-mobile-app-setup-Vle5S`, `claude/fix-critical-bugs-QDk1X`) sono storia.
 
-> **Stato build (consolidamento 2026-05):** `npm run typecheck` → 0 errori · `npx expo export` → bundle OK (1498 moduli) · web `npm run build` (Next.js) verificato. Asset PNG store generati via `npm run gen:assets`.
+> **Stato build (consolidamento 2026-05):** `npm run lint` → 0 errori · `npm run typecheck` → 0 errori · `npm test` → 45 test verdi · `npx expo export` → bundle OK (1498 moduli) · web `npm run build` (Next.js) verificato. Asset PNG store generati via `npm run gen:assets`. CI in `.github/workflows/ci.yml` (lint + typecheck + test + build su mobile e web).
+>
+> **Tooling di qualità aggiunto:** Vitest (test logica di business pura: pricing, validatori IT, geo, stati prenotazione, periodo), ESLint (config Expo), CI GitHub Actions. Bug corretti: hook condizionale in `QuoteDetailScreen` (Rules of Hooks), carburante mock incoerente in `plateLookup`, contatore mensile richieste mai resettato in `useSubscriptionStore`.
 
 ---
 

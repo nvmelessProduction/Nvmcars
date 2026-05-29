@@ -11,7 +11,11 @@ export type PlateLookupResult = {
   category: CarCategory;
 };
 
-const FUELS: FuelType[] = ["benzina", "diesel", "ibrido", "elettrico", "gpl", "metano"];
+// Carburanti assegnabili a un veicolo a combustione: esclude "elettrico", che
+// è scelto solo dal ramo isElectric. Indicizzare su questo evita di marcare
+// come elettrica (cilindrata 0) un'auto a combustione e rende raggiungibili
+// anche gpl/metano.
+const COMBUSTION_FUELS: FuelType[] = ["benzina", "diesel", "ibrido", "gpl", "metano"];
 
 function hash(s: string): number {
   let h = 0;
@@ -39,7 +43,7 @@ export function lookupPlate(rawPlate: string): PlateLookupResult | null {
   const isElectric = /tesla|byd/i.test(make) || /e-tron|ID\.|EQ|EV|Ioniq|Mach-E|Leaf|Born|ZOE|elettrica|Spring|Taycan|bZ|EX/i.test(model);
   const fuel: FuelType = isElectric
     ? "elettrico"
-    : (FUELS[(h >> 5) % 4] as FuelType);
+    : COMBUSTION_FUELS[(h >> 5) % COMBUSTION_FUELS.length];
 
   let displacement = 1400;
   if (fuel === "elettrico") displacement = 0;

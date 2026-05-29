@@ -43,7 +43,7 @@ type Nav = NativeStackNavigationProp<ProProfileStackParamList, "ProOnboarding">;
 
 const TOTAL_STEPS = 6;
 
-const DAY_LABELS_IT: Array<{ key: keyof WorkshopHours; label: string }> = [
+const DAY_LABELS_IT: { key: keyof WorkshopHours; label: string }[] = [
   { key: "monday", label: "Lun" },
   { key: "tuesday", label: "Mar" },
   { key: "wednesday", label: "Mer" },
