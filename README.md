@@ -221,7 +221,7 @@ eas build --platform android --profile preview
 1. Sul telefono A: login come Cliente → apri dettaglio officina → tocca **"Chatta in app"** → manda un messaggio. L'officina risponde automaticamente dopo 1 secondo.
 2. Sul telefono B: login come Pro → tab Richieste → filtro Confermate → tocca **💬 Chat** sulla richiesta → vedi i messaggi del cliente → rispondi.
 
-> 💡 **Nota**: la chat funziona via store locale (Zustand persistito). I messaggi tra cliente e pro sono visibili solo sullo stesso dispositivo. Per chat real-time tra device serve Firebase Firestore (M2 della roadmap).
+> 💡 **Nota**: senza Supabase configurato la chat usa lo store locale (Zustand persistito) e i messaggi sono visibili solo sullo stesso dispositivo. **Con Supabase configurato** (variabili `EXPO_PUBLIC_SUPABASE_URL` / `EXPO_PUBLIC_SUPABASE_ANON_KEY`) la chat è **real-time tra dispositivi** via Supabase Realtime — richiede la migration `0012_realtime_chat.sql` applicata (abilita la publication realtime sulle tabelle `messages`/`conversations`).
 
 ### 🌙 Test 5 — Dark mode + i18n
 1. Impostazioni → Tema "Scuro" → verifica che tutte le schermate (Home, Lista, Dettaglio, Profilo, Pro Dashboard, ecc.) abbiano colori dark coerenti.

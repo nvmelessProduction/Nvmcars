@@ -134,13 +134,15 @@ export function ChatScreen() {
   };
 
   return (
-    <ScreenContainer>
+    <ScreenContainer edges={["bottom"]}>
       <KAV>
         <FlatList
           ref={listRef}
           data={messages}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ padding: 16, gap: 8 }}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
           renderItem={({ item }) => (
             <ChatBubble
               message={item}

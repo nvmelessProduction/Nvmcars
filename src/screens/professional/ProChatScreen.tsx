@@ -106,7 +106,7 @@ export function ProChatScreen() {
   };
 
   return (
-    <ScreenContainer>
+    <ScreenContainer edges={["bottom"]}>
       <KAV>
         <View
           style={{
@@ -142,6 +142,8 @@ export function ProChatScreen() {
           data={messages}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ padding: 16, gap: 8 }}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
           renderItem={({ item }) => (
             <ChatBubble
               message={item}
@@ -152,6 +154,7 @@ export function ProChatScreen() {
               }}
             />
           )}
+          onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
         />
 
         <View
