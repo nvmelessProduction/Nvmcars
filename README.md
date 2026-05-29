@@ -19,7 +19,8 @@ App mobile (iOS + Android) per la prenotazione e il confronto di prezzi di servi
 | Validazione form | Zod |
 | Mappe / GPS | react-native-maps + expo-location |
 | i18n | Sistema interno IT/EN |
-| Backend (futuro) | Firebase Auth + Firestore |
+| Backend | **Supabase** (Postgres + Auth + Storage + Edge Functions, region EU) |
+| Pagamenti | **Stripe Connect Express** (commissione 2%) |
 
 ---
 
@@ -136,7 +137,7 @@ Se hai già il progetto e devi solo aggiornarlo:
 ```powershell
 cd C:\Users\alber\Documents\Nvmcars
 git fetch origin
-git reset --hard origin/claude/nvmcars-mobile-app-setup-Vle5S
+git reset --hard origin/main
 Remove-Item -Recurse -Force node_modules -ErrorAction SilentlyContinue
 Remove-Item -Force package-lock.json -ErrorAction SilentlyContinue
 npm install
@@ -147,7 +148,7 @@ Se clone fresh:
 ```bash
 git clone <url-repo> Nvmcars
 cd Nvmcars
-git checkout claude/nvmcars-mobile-app-setup-Vle5S
+git checkout main
 npm install
 ```
 

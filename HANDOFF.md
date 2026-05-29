@@ -15,7 +15,9 @@ Marketplace italiano che mette in contatto **automobilisti** (Cliente) e **offic
 - Lingue: **IT primario**, EN come secondario completo
 - Mercato: **Italia**, parte da Milano
 
-**Branch di sviluppo**: `claude/nvmcars-mobile-app-setup-Vle5S` (commit e push solo qui)
+**Branch di sviluppo**: `main` è ora la fonte di verità. Tutto il codice è stato consolidato qui da un unico branch base; i vecchi branch (`claude/nvmcars-mobile-app-setup-Vle5S`, `claude/fix-critical-bugs-QDk1X`) sono storia.
+
+> **Stato build (consolidamento 2026-05):** `npm run typecheck` → 0 errori · `npx expo export` → bundle OK (1498 moduli) · web `npm run build` (Next.js) verificato. Asset PNG store generati via `npm run gen:assets`.
 
 ---
 
@@ -417,7 +419,7 @@ Quando Alberto apre nuova chat:
 
 **NON pubblicare niente negli store senza permesso esplicito.**
 **NON creare PR a meno che richiesta esplicitamente.**
-**Commit + push su `claude/nvmcars-mobile-app-setup-Vle5S` dopo ogni Round.**
+**Commit + push su `main` dopo ogni Round.**
 
 ---
 

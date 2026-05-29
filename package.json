@@ -6,6 +6,11 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
+    "web": "expo start --web",
+    "typecheck": "tsc --noEmit",
+    "doctor": "expo-doctor",
+    "gen:assets": "node scripts/gen-assets.js",
+    "export": "expo export --platform all --output-dir dist",
     "build:apk": "eas build --platform android --profile preview"
   },
   "dependencies": {
@@ -38,6 +43,7 @@
     "@types/react": "~19.1.0",
     "marked": "^18.0.4",
     "playwright": "^1.60.0",
+    "sharp": "^0.34.5",
     "typescript": "^5.3.3"
   },
   "private": true
