@@ -277,6 +277,7 @@ export const it = {
       accepted: "Accettato",
       rejected: "Rifiutato",
       paid: "Pagato",
+      refunded: "Rimborsato",
       expired: "Scaduto",
     },
     payInApp: "Paga in app",

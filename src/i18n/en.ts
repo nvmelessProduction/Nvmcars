@@ -279,6 +279,7 @@ export const en: Translations = {
       accepted: "Accepted",
       rejected: "Rejected",
       paid: "Paid",
+      refunded: "Refunded",
       expired: "Expired",
     },
     payInApp: "Pay in-app",

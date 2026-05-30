@@ -244,7 +244,7 @@ export type ChatMessage = {
   status?: ChatMessageStatus;
 };
 
-export type QuoteStatus = "pending" | "accepted" | "rejected" | "paid" | "expired";
+export type QuoteStatus = "pending" | "accepted" | "rejected" | "paid" | "refunded" | "expired";
 
 export type QuoteLineItem = {
   id: string;
