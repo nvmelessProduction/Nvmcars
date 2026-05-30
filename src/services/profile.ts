@@ -28,12 +28,11 @@ export async function updateDac7Fields(userId: string, fields: Dac7Fields): Prom
   return { ok: true };
 }
 
-export async function getDac7Status(userId: string): Promise<{ complete: boolean }> {
+export async function getDac7Status(_userId: string): Promise<{ complete: boolean }> {
   if (!isSupabaseConfigured) return { complete: false };
-  const { data } = await supabase
-    .from("profiles")
-    .select("dac7_complete")
-    .eq("id", userId)
-    .maybeSingle();
-  return { complete: !!data?.dac7_complete };
+  // `dac7_complete` non è tra le colonne con grant SELECT diretto (0011);
+  // si legge tramite la RPC security-definer get_my_profile() (utente corrente).
+  const { data } = await supabase.rpc("get_my_profile");
+  const row = Array.isArray(data) ? data[0] : data;
+  return { complete: !!row?.dac7_complete };
 }

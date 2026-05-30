@@ -76,6 +76,9 @@ export const useDiyStore = create<DiyState>()(
     {
       name: "nvmcars-diy",
       storage: createJSONStorage(() => AsyncStorage),
+      // Non persistere il flag `loading`: evita di rimanere bloccati in
+      // caricamento se l'app viene chiusa durante un fetch.
+      partialize: (state) => ({ guides: state.guides }),
     }
   )
 );

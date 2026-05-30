@@ -51,7 +51,9 @@ export function canProStart(status: BookingStatus): boolean {
 }
 
 export function canProComplete(status: BookingStatus): boolean {
-  return status === "in_progress" || status === "confirmed" || status === "accepted";
+  // Si completa solo un lavoro effettivamente avviato: confirmed → in_progress
+  // → completed. Evita di saltare lo stato "in lavorazione" (e startedAt).
+  return status === "in_progress";
 }
 
 export function canCustomerReview(status: BookingStatus): boolean {
@@ -83,5 +85,7 @@ const NOTIFICATION_META: Record<NotificationType, { icon: string; color: string 
 };
 
 export function notificationMeta(type: NotificationType): { icon: string; color: string } {
-  return NOTIFICATION_META[type];
+  // Fallback difensivo: un tipo non mappato (es. drift dal backend) non deve
+  // far crashare il rendering della lista notifiche.
+  return NOTIFICATION_META[type] ?? { icon: "🔔", color: "#6B7280" };
 }

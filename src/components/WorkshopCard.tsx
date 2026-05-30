@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Image, Pressable, Text, View } from "react-native";
 import Animated, { FadeInUp } from "react-native-reanimated";
 import type { ServiceKey, Workshop } from "@/types";
@@ -41,6 +42,7 @@ export function WorkshopCard({
       ? workshop.services[highlightedService]
       : Math.min(...Object.values(workshop.services)));
   const open = isOpenNow(workshop.hours);
+  const [imgError, setImgError] = useState(false);
 
   return (
     <Animated.View entering={FadeInUp.delay(index * 60).duration(350)}>
@@ -56,11 +58,26 @@ export function WorkshopCard({
         }}
       >
         <View>
-          <Image
-            source={{ uri: workshop.photo }}
-            style={{ width: "100%", height: 140, backgroundColor: colors.border }}
-            resizeMode="cover"
-          />
+          {workshop.photo && !imgError ? (
+            <Image
+              source={{ uri: workshop.photo }}
+              style={{ width: "100%", height: 140, backgroundColor: colors.border }}
+              resizeMode="cover"
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            <View
+              style={{
+                width: "100%",
+                height: 140,
+                backgroundColor: colors.bgHeader,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text style={{ fontSize: 36 }}>🔧</Text>
+            </View>
+          )}
           <Pressable
             onPress={() => toggleFavorite(userId, workshop.id)}
             hitSlop={hitSlop.medium}
@@ -103,11 +120,11 @@ export function WorkshopCard({
                 left: 10,
                 paddingHorizontal: 10,
                 paddingVertical: 4,
-                backgroundColor: "rgba(245,158,11,0.95)",
+                backgroundColor: withOpacity(colors.warning, 0.95),
                 borderRadius: 20,
               }}
             >
-              <Text style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "800" }}>
+              <Text style={{ color: "#0F172A", fontSize: 11, fontWeight: "800" }}>
                 ⭐ PROMOSSO
               </Text>
             </View>
@@ -117,10 +134,10 @@ export function WorkshopCard({
         <View style={{ padding: 14, gap: 8 }}>
           <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" }}>
             <View style={{ flex: 1, paddingRight: 10 }}>
-              <Text style={{ fontSize: 17, fontWeight: "700", color: colors.text }}>
+              <Text numberOfLines={1} style={{ fontSize: 17, fontWeight: "700", color: colors.text }}>
                 {workshop.name}
               </Text>
-              <Text style={{ fontSize: 13, color: colors.textMuted, marginTop: 2 }}>
+              <Text numberOfLines={1} style={{ fontSize: 13, color: colors.textMuted, marginTop: 2 }}>
                 {workshop.city}
               </Text>
             </View>

@@ -41,8 +41,12 @@ export function ProDashboardScreen() {
 
   const workshop = workshopId ? WORKSHOPS.find((w) => w.id === workshopId) : null;
 
-  const pending = allBookings.filter((b) => b.status === "pending").length;
-  const accepted = allBookings.filter((b) => b.status === "accepted").length;
+  const pending = allBookings.filter(
+    (b) => b.status === "pending" || b.status === "requested"
+  ).length;
+  const accepted = allBookings.filter(
+    (b) => b.status === "accepted" || b.status === "confirmed" || b.status === "in_progress"
+  ).length;
   const completed = allBookings.filter((b) => b.status === "completed").length;
   const totalRevenue = allBookings
     .filter((b) => b.status === "completed")

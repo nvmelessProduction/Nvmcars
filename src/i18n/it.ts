@@ -238,6 +238,7 @@ export const it = {
     sendQuote: "Invia preventivo",
     autoReplyHint: "L'officina è chiusa. Risponderà appena possibile.",
     tapToPlay: "Tocca per riprodurre",
+    attachFile: "Allega file",
     today: "Oggi",
     yesterday: "Ieri",
     startConversation: "Inizia la conversazione",

@@ -56,6 +56,7 @@ describe("transizioni di stato", () => {
     expect(canProStart("confirmed")).toBe(true);
     expect(canProStart("requested")).toBe(false);
     expect(canProComplete("in_progress")).toBe(true);
+    expect(canProComplete("confirmed")).toBe(false);
     expect(canProComplete("requested")).toBe(false);
   });
 

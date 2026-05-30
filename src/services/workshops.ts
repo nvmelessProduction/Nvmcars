@@ -71,13 +71,24 @@ const defaultHours: WorkshopHours = {
   sunday: { open: "00:00", close: "00:00", closed: true },
 };
 
+// Colonne pubbliche (browse cliente): esclude fiscal_data, owner_data e
+// stripe_account_id, che sono PII/sensibili e non servono in lista.
+const WORKSHOP_PUBLIC_COLUMNS =
+  "id, owner_id, name, city, address, cap, province, phone, lat, lng, rating, " +
+  "reviews_count, photo_url, photos, logo_url, description, hours, status, " +
+  "accepting_requests, in_officina_payment, stripe_charges_enabled, " +
+  "response_time_hours, auto_reply_out_of_hours";
+
 export async function listVisibleWorkshops(): Promise<Workshop[]> {
   if (!isSupabaseConfigured) return [];
-  const { data: workshops, error } = await supabase
+  const { data, error } = await supabase
     .from("workshops")
-    .select("*")
+    .select(WORKSHOP_PUBLIC_COLUMNS)
     .in("status", ["active", "paused"]);
-  if (error || !workshops) return [];
+  // Il select con stringa di colonne dinamica non è un literal type: castiamo
+  // le righe (rowToWorkshop accetta già `any`).
+  const workshops = (data ?? []) as any[];
+  if (error || workshops.length === 0) return [];
   const ids = workshops.map((w) => w.id);
   if (ids.length === 0) return [];
   const [svcRes, ovRes, vacRes] = await Promise.all([

@@ -192,6 +192,8 @@ export function ProChatScreen() {
         >
           <Pressable
             onPress={() => setAttachOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel={t.chat.attachFile}
             style={{
               width: 40,
               height: 40,
@@ -226,6 +228,9 @@ export function ProChatScreen() {
           <Pressable
             onPress={onSend}
             disabled={!text.trim()}
+            accessibilityRole="button"
+            accessibilityLabel={t.chat.send}
+            accessibilityState={{ disabled: !text.trim() }}
             style={{
               backgroundColor: text.trim() ? colors.accent : colors.border,
               width: 44,
@@ -235,7 +240,7 @@ export function ProChatScreen() {
               justifyContent: "center",
             }}
           >
-            <Text style={{ color: "#FFF", fontSize: 18, fontWeight: "700" }}>➤</Text>
+            <Text style={{ color: text.trim() ? "#FFF" : colors.textMuted, fontSize: 18, fontWeight: "700" }}>➤</Text>
           </Pressable>
         </View>
       </KAV>

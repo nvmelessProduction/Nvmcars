@@ -118,16 +118,21 @@ export async function signupProfessional(
     };
     return { ok: true, user };
   }
-  // Verifica invite code lato server (tabella invite_codes)
-  const { data: invite, error: inviteErr } = await supabase
-    .from("invite_codes")
-    .select("code, workshop_id, used_by, expires_at")
-    .eq("code", input.inviteCode)
-    .single();
-  if (inviteErr || !invite) return { ok: false, reason: "Codice invito non valido" };
-  if (invite.used_by) return { ok: false, reason: "Codice invito già usato" };
-  if (invite.expires_at && new Date(invite.expires_at) < new Date()) {
-    return { ok: false, reason: "Codice invito scaduto" };
+  // Verifica invite code via RPC: la tabella invite_codes non è più leggibile
+  // direttamente dal client dopo l'hardening RLS (vedi migration 0008).
+  const { data: vrows, error: inviteErr } = await supabase.rpc("validate_invite_code", {
+    p_code: input.inviteCode,
+  });
+  const invite = (Array.isArray(vrows) ? vrows[0] : vrows) as
+    | { valid: boolean; reason: string; workshop_id: string | null }
+    | undefined;
+  if (inviteErr || !invite?.valid) {
+    const reasonMap: Record<string, string> = {
+      not_found: "Codice invito non valido",
+      already_used: "Codice invito già usato",
+      expired: "Codice invito scaduto",
+    };
+    return { ok: false, reason: reasonMap[invite?.reason ?? ""] ?? "Codice invito non valido" };
   }
 
   const { data, error } = await supabase.auth.signUp({
@@ -174,10 +179,8 @@ export async function signupProfessional(
     .eq("id", data.user.id);
   if (updateErr) return { ok: false, reason: updateErr.message };
 
-  await supabase
-    .from("invite_codes")
-    .update({ used_by: data.user.id, used_at: new Date().toISOString() })
-    .eq("code", input.inviteCode);
+  // Marca il codice come usato in modo atomico (RPC security definer).
+  await supabase.rpc("redeem_invite_code", { p_code: input.inviteCode });
 
   const profile = await fetchProfile(data.user.id);
   if (!profile) return { ok: false, reason: "Profile not created" };

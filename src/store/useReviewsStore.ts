@@ -65,7 +65,9 @@ const seedReviews: Review[] = [
 export const useReviewsStore = create<ReviewsState>()(
   persist(
     (set, get) => ({
-      reviews: seedReviews,
+      // Seed solo in modalità mock: con Supabase le recensioni arrivano dal DB
+      // (altrimenti i mock resterebbero mischiati ai dati reali).
+      reviews: isSupabaseConfigured ? [] : seedReviews,
       byWorkshop: (workshopId) =>
         get()
           .reviews.filter((r) => r.workshopId === workshopId)
@@ -102,6 +104,7 @@ export const useReviewsStore = create<ReviewsState>()(
     {
       name: "nvmcars-reviews",
       storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => ({ reviews: state.reviews }),
     }
   )
 );

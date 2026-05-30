@@ -71,6 +71,7 @@ export const useServiceLogStore = create<State>()(
     {
       name: "nvmcars-service-log",
       storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => ({ entries: state.entries, reminders: state.reminders }),
     }
   )
 );

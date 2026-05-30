@@ -145,7 +145,7 @@ export function AddCarScreen() {
     navigation.goBack();
   };
 
-  const models = make ? CAR_BRANDS[make].map((m) => m.model) : [];
+  const models = make ? (CAR_BRANDS[make]?.map((m) => m.model) ?? []) : [];
 
   return (
     <ScreenContainer>

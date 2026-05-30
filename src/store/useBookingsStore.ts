@@ -154,7 +154,8 @@ export const useBookingsStore = create<BookingsState>()(
 
       selectSlot: (id, slotId) => {
         const booking = get().bookings.find((b) => b.id === id);
-        const slot = booking?.proposedSlots?.find((s) => s.id === slotId);
+        if (!booking || booking.status !== "slot_proposed") return;
+        const slot = booking.proposedSlots?.find((s) => s.id === slotId);
         if (!slot) return;
         set({
           bookings: get().bookings.map((b) =>

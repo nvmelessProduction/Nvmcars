@@ -240,6 +240,7 @@ export const en: Translations = {
     sendQuote: "Send quote",
     autoReplyHint: "The workshop is closed. They'll reply as soon as possible.",
     tapToPlay: "Tap to play",
+    attachFile: "Attach file",
     today: "Today",
     yesterday: "Yesterday",
     startConversation: "Start the conversation",

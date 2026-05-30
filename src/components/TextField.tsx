@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Text, TextInput, TextInputProps, View } from "react-native";
 import { useColors } from "@/store/useThemeStore";
 
@@ -9,8 +10,10 @@ type Props = TextInputProps & {
   required?: boolean;
 };
 
-export function TextField({ label, hint, error, required, style, ...rest }: Props) {
+export function TextField({ label, hint, error, required, style, onFocus, onBlur, ...rest }: Props) {
   const colors = useColors();
+  const [focused, setFocused] = useState(false);
+  const borderColor = error ? colors.danger : focused ? colors.accent : colors.border;
   return (
     <View style={{ gap: 6 }}>
       <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textMuted }}>
@@ -21,10 +24,18 @@ export function TextField({ label, hint, error, required, style, ...rest }: Prop
         placeholderTextColor={colors.textMuted}
         accessibilityLabel={label}
         accessibilityHint={hint}
+        onFocus={(e) => {
+          setFocused(true);
+          onFocus?.(e);
+        }}
+        onBlur={(e) => {
+          setFocused(false);
+          onBlur?.(e);
+        }}
         style={[
           {
             backgroundColor: colors.bgElevated,
-            borderColor: error ? colors.danger : colors.border,
+            borderColor,
             borderWidth: 1,
             borderRadius: 14,
             paddingHorizontal: 14,

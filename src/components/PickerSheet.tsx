@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { FlatList, Modal, Pressable, Text, TextInput, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/store/useThemeStore";
 
 type Props = {
@@ -22,6 +23,7 @@ export function PickerSheet({
   onClose,
 }: Props) {
   const colors = useColors();
+  const insets = useSafeAreaInsets();
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
@@ -39,7 +41,7 @@ export function PickerSheet({
     >
       <Pressable
         onPress={onClose}
-        style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)" }}
+        style={{ flex: 1, backgroundColor: colors.scrim }}
       />
       <View
         style={{
@@ -108,7 +110,7 @@ export function PickerSheet({
           data={filtered}
           keyExtractor={(item) => item}
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32 + insets.bottom }}
           renderItem={({ item }) => {
             const active = item === selected;
             return (
