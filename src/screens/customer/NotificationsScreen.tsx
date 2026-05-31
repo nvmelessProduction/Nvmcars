@@ -72,7 +72,7 @@ export function NotificationsScreen() {
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />
             }
-            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24, gap: 10 }}
+            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 96, gap: 10 }}
             renderItem={({ item, index }) => (
               <Animated.View entering={FadeInRight.delay(index * 50).duration(300)}>
                 <Pressable onPress={() => markRead(item.id)}>

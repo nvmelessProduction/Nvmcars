@@ -64,7 +64,7 @@ export function ProDashboardScreen() {
 
   return (
     <ScreenContainer>
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 32 }}>
+      <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 96 }}>
         <Animated.View entering={FadeInDown.duration(300)}>
           <Text style={{ fontSize: 13, color: colors.textMuted }}>Benvenuto in Nvmcars</Text>
           <Text style={{ fontSize: 22, fontWeight: "800", color: colors.text }}>{user.name}</Text>

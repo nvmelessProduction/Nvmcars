@@ -104,7 +104,7 @@ export function MyBookingsScreen() {
           <FlatList
             data={filtered}
             keyExtractor={(item) => item.id}
-            contentContainerStyle={{ gap: 12, paddingBottom: 24 }}
+            contentContainerStyle={{ gap: 12, paddingBottom: 96 }}
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}

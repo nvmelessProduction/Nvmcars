@@ -29,7 +29,7 @@ export function CustomerProfileScreen() {
 
   return (
     <ScreenContainer>
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 32 }}>
+      <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 96 }}>
         <Card padding={20}>
           <View style={{ alignItems: "center", gap: 8 }}>
             <View

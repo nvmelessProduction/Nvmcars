@@ -63,7 +63,7 @@ export function ProNotificationsScreen() {
           <FlatList
             data={items}
             keyExtractor={(item) => item.id}
-            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24, gap: 10 }}
+            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 96, gap: 10 }}
             renderItem={({ item, index }) => (
               <Animated.View entering={FadeInRight.delay(index * 50).duration(300)}>
                 <Pressable onPress={() => markRead(item.id)}>

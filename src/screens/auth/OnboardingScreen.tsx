@@ -128,7 +128,7 @@ export function OnboardingScreen() {
                 width: i === index ? 24 : 8,
                 height: 8,
                 borderRadius: 4,
-                backgroundColor: i === index ? "#22D3EE" : "#334155",
+                backgroundColor: i === index ? "#FF7A1A" : "#334155",
               }}
             />
           ))}

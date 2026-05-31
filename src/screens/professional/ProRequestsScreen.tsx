@@ -229,7 +229,7 @@ export function ProRequestsScreen() {
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />
             }
-            contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 24 }}
+            contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 96 }}
             renderItem={({ item, index }) => {
               const meta = statusMeta(item.status);
               return (

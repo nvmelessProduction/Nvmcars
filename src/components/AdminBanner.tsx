@@ -44,7 +44,7 @@ export function AdminBanner() {
           alignItems: "center",
           gap: 6,
           borderWidth: 1.5,
-          borderColor: "#06B6D4",
+          borderColor: "#FF7A1A",
           shadowColor: "#000",
           shadowOpacity: 0.4,
           shadowRadius: 12,

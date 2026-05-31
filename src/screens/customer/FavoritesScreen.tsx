@@ -69,7 +69,7 @@ export function FavoritesScreen() {
       <FlatList
         data={favorites}
         keyExtractor={(item) => item.workshop.id}
-        contentContainerStyle={{ padding: 16 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 96 }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

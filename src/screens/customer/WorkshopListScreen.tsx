@@ -185,7 +185,7 @@ export function WorkshopListScreen() {
         <FlatList
           data={items}
           keyExtractor={(item) => item.workshop.id}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 32 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 96 }}
           refreshControl={
             <RefreshControl
               refreshing={hydrating}
