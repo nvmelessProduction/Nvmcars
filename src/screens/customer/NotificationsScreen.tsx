@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { useNavigation } from "@react-navigation/native";
 import { FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 import Animated, { FadeInRight } from "react-native-reanimated";
 import { ScreenContainer } from "@/components/ScreenContainer";
@@ -9,6 +10,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
 import { notificationMeta } from "@/utils/bookingStatus";
+import type { Notification } from "@/types";
 
 function timeAgo(ts: number): string {
   const diff = Date.now() - ts;
@@ -22,10 +24,38 @@ function timeAgo(ts: number): string {
 export function NotificationsScreen() {
   const colors = useColors();
   const t = useT();
+  const navigation = useNavigation<any>();
   const user = useAuthStore((s) => s.user);
   const all = useNotificationsStore((s) => s.notifications);
   const markRead = useNotificationsStore((s) => s.markRead);
   const markAllRead = useNotificationsStore((s) => s.markAllRead);
+
+  // Tocco su una notifica: la segna letta e, se collegata a un elemento,
+  // apre la schermata giusta. La navigazione cross-tab è difensiva: se la
+  // destinazione non è raggiungibile non deve mai far crashare l'app.
+  const handlePress = (n: Notification) => {
+    markRead(n.id);
+    if (!n.relatedId) return;
+    try {
+      if (n.relatedKind === "booking") {
+        navigation.navigate("BookingsTab", {
+          screen: "BookingDetail",
+          params: { bookingId: n.relatedId },
+        });
+      } else if (n.relatedKind === "quote") {
+        navigation.navigate("HomeTab", {
+          screen: "QuoteDetail",
+          params: { quoteId: n.relatedId },
+        });
+      } else if (n.relatedKind === "conversation") {
+        navigation.navigate("ProfileTab", {
+          screen: "CustomerChatsList",
+        });
+      }
+    } catch (e) {
+      console.warn("notification navigation failed (ignored):", e);
+    }
+  };
 
   const items = user
     ? all.filter((n) => n.userId === user.id).sort((a, b) => b.createdAt - a.createdAt)
@@ -75,7 +105,7 @@ export function NotificationsScreen() {
             contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 96, gap: 10 }}
             renderItem={({ item, index }) => (
               <Animated.View entering={FadeInRight.delay(index * 50).duration(300)}>
-                <Pressable onPress={() => markRead(item.id)}>
+                <Pressable onPress={() => handlePress(item)}>
                   <Card style={{ borderColor: item.read ? colors.border : colors.accent }}>
                     <View style={{ flexDirection: "row", gap: 12, alignItems: "flex-start" }}>
                       <Text style={{ fontSize: 30 }}>{notificationMeta(item.type).icon}</Text>
