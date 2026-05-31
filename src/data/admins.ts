@@ -17,6 +17,7 @@
 export const ADMIN_EMAILS = new Set<string>([
   "admin@nvmcars.it",
   "alberto@nvmcars.it",
+  "albertoniccoli0@gmail.com", 
   // aggiungi qui le email dei tuoi soci, es:
   // "socio1@nvmcars.it",
   // "socio2@nvmcars.it",
@@ -27,7 +28,7 @@ export const ADMIN_EMAILS = new Set<string>([
  * NON è una password forte di produzione: è una "passphrase operativa"
  * per voi 4 che ci lavorate. Cambiala periodicamente.
  */
-export const ADMIN_PASSWORD = "Nvmcars2026!";
+export const ADMIN_PASSWORD = "Test123";
 
 export function isAdminEmail(email: string | undefined | null): boolean {
   if (!email) return false;
