@@ -121,7 +121,7 @@ export function ReferralScreen() {
 
   return (
     <ScreenContainer>
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 32 }}>
+      <ScrollView keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 32 }}>
         <View>
           <Text style={{ fontSize: 22, fontWeight: "900", color: colors.text }}>
             🎁 Invita amici

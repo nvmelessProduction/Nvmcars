@@ -52,7 +52,7 @@ export function MfaChallengeScreen() {
 
   return (
     <ScreenContainer>
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 40 }}>
+      <ScrollView keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 40 }}>
         <View>
           <Text style={{ fontSize: 22, fontWeight: "900", color: colors.text }}>
             🔒 Verifica MFA

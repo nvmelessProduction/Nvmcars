@@ -45,7 +45,7 @@ export function PartsSearchScreen() {
 
   return (
     <ScreenContainer>
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 32 }}>
+      <ScrollView keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 32 }}>
         <Card padding={16}>
           <Text style={{ fontSize: 20, fontWeight: "900", color: colors.text }}>
             🔧 Ricambi auto

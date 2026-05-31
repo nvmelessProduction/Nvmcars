@@ -115,7 +115,7 @@ function ProCalendarContent() {
 
   return (
     <>
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 32 }}>
+      <ScrollView keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 32 }}>
         <Card>
           <Text style={{ fontSize: 13, color: colors.textMuted, lineHeight: 19 }}>
             Tocca un giorno per chiuderlo. Oppure aggiungi un periodo di ferie più lungo.

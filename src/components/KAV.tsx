@@ -1,5 +1,6 @@
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -7,6 +8,22 @@ import {
   type ViewStyle,
 } from "react-native";
 import { useHeaderHeight } from "@react-navigation/elements";
+
+/** Altezza corrente della tastiera (0 se chiusa). Solo per Android. */
+function useKeyboardHeight(): number {
+  const [height, setHeight] = useState(0);
+  useEffect(() => {
+    const showSub = Keyboard.addListener("keyboardDidShow", (e) =>
+      setHeight(e.endCoordinates?.height ?? 0)
+    );
+    const hideSub = Keyboard.addListener("keyboardDidHide", () => setHeight(0));
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+  return height;
+}
 
 type Props = {
   children: ReactNode;
@@ -16,16 +33,19 @@ type Props = {
 };
 
 /**
- * Wrapper KeyboardAvoidingView. Usalo SOLO se hai contenuto fisso (no ScrollView).
- * Per form con ScrollView, usa direttamente <KeyboardAwareScrollView> qui sotto
- * (è più affidabile).
+ * Wrapper per contenuto a layout FISSO con un input ancorato in basso
+ * (es. la barra di scrittura della chat). Usa "padding" su entrambe le
+ * piattaforme: su iOS con l'offset dell'header, su Android l'OS ridimensiona
+ * già la finestra (adjustResize) quindi non serve offset.
  */
 export function KAV({ children, style, extraOffset = 0 }: Props) {
   const headerHeight = useHeaderHeight();
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? headerHeight + extraOffset : extraOffset}
+      behavior="padding"
+      keyboardVerticalOffset={
+        Platform.OS === "ios" ? headerHeight + extraOffset : extraOffset
+      }
       style={[{ flex: 1 }, style]}
     >
       {children}
@@ -34,15 +54,16 @@ export function KAV({ children, style, extraOffset = 0 }: Props) {
 }
 
 /**
- * ScrollView keyboard-aware. Spinge automaticamente i TextInput sopra la
- * tastiera (su iOS via automaticallyAdjustKeyboardInsets, su Android via
- * KeyboardAvoidingView wrapper).
- *
- * Usa questa al posto di <ScrollView> ogni volta che hai un form.
+ * ScrollView keyboard-aware per i FORM.
+ * - iOS: `automaticallyAdjustKeyboardInsets` gestisce tutto da solo.
+ * - Android: aggiunge in fondo uno spazio pari all'altezza della tastiera, così
+ *   ogni campo (anche l'ultimo) può essere scrollato sopra la tastiera.
+ * In entrambi i casi: tocco fuori dai campi chiude la tastiera, e i tap sui
+ * pulsanti restano attivi (keyboardShouldPersistTaps="handled").
  */
 type KASVProps = ScrollViewProps & {
   children: ReactNode;
-  /** Offset extra in pixel da aggiungere all'altezza dell'header (default 0). */
+  /** Offset extra in pixel (default 0). */
   extraOffset?: number;
 };
 
@@ -53,10 +74,8 @@ export function KeyboardAwareScrollView({
   style,
   ...rest
 }: KASVProps) {
-  const headerHeight = useHeaderHeight();
+  const keyboardHeight = useKeyboardHeight();
 
-  // Su iOS la ScrollView nativa ha automaticallyAdjustKeyboardInsets
-  // (iOS 14+, RN 0.73+) che gestisce TUTTO da sola. Niente wrapper KAV.
   if (Platform.OS === "ios") {
     return (
       <ScrollView
@@ -73,22 +92,19 @@ export function KeyboardAwareScrollView({
     );
   }
 
-  // Android: wrapper KAV con behavior=height
+  // Android: spazio extra in fondo = altezza tastiera (+ offset) quando aperta.
   return (
-    <KeyboardAvoidingView
-      behavior="height"
-      keyboardVerticalOffset={headerHeight + extraOffset}
-      style={{ flex: 1 }}
+    <ScrollView
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="on-drag"
+      contentContainerStyle={[
+        contentContainerStyle,
+        keyboardHeight > 0 ? { paddingBottom: keyboardHeight + extraOffset } : null,
+      ]}
+      style={[{ flex: 1 }, style]}
+      {...rest}
     >
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="interactive"
-        contentContainerStyle={contentContainerStyle}
-        style={[{ flex: 1 }, style]}
-        {...rest}
-      >
-        {children}
-      </ScrollView>
-    </KeyboardAvoidingView>
+      {children}
+    </ScrollView>
   );
 }

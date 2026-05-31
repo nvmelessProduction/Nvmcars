@@ -104,6 +104,7 @@
     "android": {
       "package": "com.nvmcars.app",
       "versionCode": 1,
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon-adaptive.png",
         "backgroundColor": "#0A0A0B"
