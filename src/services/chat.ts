@@ -143,13 +143,25 @@ export async function uploadChatMedia(
 ): Promise<string | null> {
   if (!isSupabaseConfigured) return fileUri;
   try {
-    const res = await fetch(fileUri);
-    const blob = await res.blob();
-    const ext = fileUri.split(".").pop() ?? (isVideo ? "mp4" : "jpg");
+    // IMPORTANTE: su React Native `fetch(uri).blob()` produce spesso un file
+    // di 0 byte (il client storage non riesce a leggerne la dimensione).
+    // Il metodo affidabile è leggere l'ArrayBuffer e caricare quello.
+    const arrayBuffer = await fetch(fileUri).then((r) => r.arrayBuffer());
+    if (!arrayBuffer || arrayBuffer.byteLength === 0) return null;
+    const ext = (fileUri.split(".").pop() ?? (isVideo ? "mp4" : "jpg")).toLowerCase();
+    const contentType = isVideo
+      ? ext === "mov"
+        ? "video/quicktime"
+        : "video/mp4"
+      : ext === "png"
+        ? "image/png"
+        : ext === "heic"
+          ? "image/heic"
+          : "image/jpeg";
     const path = `${conversationId}/${Date.now()}.${ext}`;
     const { error } = await supabase.storage
       .from("chat-media")
-      .upload(path, blob, { contentType: blob.type || (isVideo ? "video/mp4" : "image/jpeg") });
+      .upload(path, arrayBuffer, { contentType, upsert: false });
     if (error) return null;
     // chat-media è private bucket → signed URL valido 7 giorni
     const { data: signed } = await supabase.storage

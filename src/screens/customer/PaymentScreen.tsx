@@ -105,13 +105,17 @@ export function PaymentScreen() {
       try {
         const intent = await createPaymentIntent(quote.id);
         if (!intent.ok) {
-          // Edge Function non disponibile / Stripe non onboarded → fallback mock
+          // Stripe non ancora attivo (officina non onboarded / Edge Function
+          // non deployata). NON simuliamo un pagamento: lo diciamo chiaramente.
           if (
             intent.reason.includes("not onboarded") ||
             intent.reason.includes("non configurato") ||
             intent.reason.includes("404")
           ) {
-            await runMockCardFlow();
+            Alert.alert(
+              "Pagamento con carta non ancora attivo",
+              "L'officina non ha ancora completato la configurazione dei pagamenti con carta. Puoi scegliere \"Paga in officina\"."
+            );
             return;
           }
           Alert.alert(t.payment.failure, intent.reason);
@@ -120,8 +124,10 @@ export function PaymentScreen() {
         const present = await presentStripePaymentSheet(intent.clientSecret, "Nvmcars");
         if (!present.ok) {
           if (present.reason?.includes("non installato")) {
-            // SDK non installato in questo build → fallback mock + nota
-            await runMockCardFlow();
+            Alert.alert(
+              "Pagamento con carta non disponibile",
+              "Questo build non include il modulo pagamenti. Puoi scegliere \"Paga in officina\"."
+            );
             return;
           }
           Alert.alert(t.payment.failure, present.reason ?? "Pagamento annullato");
@@ -199,14 +205,16 @@ export function PaymentScreen() {
             </View>
           </Card>
 
-          <Card padding={16} style={{ borderColor: colors.warning, borderWidth: 1.2 }}>
-            <Text style={{ fontSize: 13, color: colors.text, fontWeight: "700" }}>
-              🚧 {t.payment.comingSoon}
-            </Text>
-            <Text style={{ fontSize: 12, color: colors.textMuted, marginTop: 4, lineHeight: 17 }}>
-              {t.payment.comingSoonBody}
-            </Text>
-          </Card>
+          {!isSupabaseConfigured ? (
+            <Card padding={16} style={{ borderColor: colors.warning, borderWidth: 1.2 }}>
+              <Text style={{ fontSize: 13, color: colors.text, fontWeight: "700" }}>
+                🚧 {t.payment.comingSoon}
+              </Text>
+              <Text style={{ fontSize: 12, color: colors.textMuted, marginTop: 4, lineHeight: 17 }}>
+                {t.payment.comingSoonBody}
+              </Text>
+            </Card>
+          ) : null}
 
           <Card padding={16}>
             <Text style={{ fontSize: 12, fontWeight: "800", color: colors.textMuted, letterSpacing: 0.5, marginBottom: 12 }}>
@@ -228,10 +236,10 @@ export function PaymentScreen() {
               >
                 <Text style={{ fontSize: 24 }}>💳</Text>
                 <Text style={{ fontWeight: "800", color: colors.text, fontSize: 13, marginTop: 4 }}>
-                  Carta (Demo)
+                  {isSupabaseConfigured ? "Carta" : "Carta (Demo)"}
                 </Text>
                 <Text style={{ fontSize: 10, color: colors.textMuted, marginTop: 2 }}>
-                  Test mode
+                  {isSupabaseConfigured ? "Visa · Mastercard" : "Test mode"}
                 </Text>
               </Pressable>
               <Pressable
@@ -257,7 +265,19 @@ export function PaymentScreen() {
             </View>
           </Card>
 
-          {method === "card" ? (
+          {method === "card" && isSupabaseConfigured ? (
+            <Card padding={16}>
+              <Text style={{ fontSize: 13, color: colors.text, fontWeight: "700" }}>
+                💳 Pagamento sicuro con Stripe
+              </Text>
+              <Text style={{ fontSize: 12, color: colors.textMuted, marginTop: 4, lineHeight: 17 }}>
+                Premendo &quot;{t.payment.payNow}&quot; si aprirà il modulo sicuro di Stripe dove
+                inserire i dati della carta. Nvmcars non vede né salva il numero della carta.
+              </Text>
+            </Card>
+          ) : null}
+
+          {method === "card" && !isSupabaseConfigured ? (
             <Card padding={16}>
               <Text
                 style={{
