@@ -73,8 +73,9 @@ export function ProEditWorkshopScreen() {
       Alert.alert(t.common.error, "Aggiungi almeno una foto dell'officina");
       return;
     }
-    const geo = await geocodeAddress({ address, city, cap });
     if (!workshopId) return;
+    // Salva SUBITO (con le coordinate esistenti): il salvataggio non deve mai
+    // restare bloccato in attesa del geocoding della rete.
     updateWorkshop(workshopId, {
       name,
       address,
@@ -85,12 +86,19 @@ export function ProEditWorkshopScreen() {
       description,
       photo: photos[0]!,
       photos,
-      lat: geo?.lat ?? workshop?.lat ?? 0,
-      lng: geo?.lng ?? workshop?.lng ?? 0,
+      lat: workshop?.lat ?? 0,
+      lng: workshop?.lng ?? 0,
     });
     Alert.alert("Profilo salvato", "Le modifiche sono visibili ai clienti.", [
       { text: t.common.ok },
     ]);
+    // Raffina le coordinate in sottofondo (best-effort): se l'indirizzo è
+    // cambiato, aggiorna lat/lng senza bloccare l'utente.
+    geocodeAddress({ address, city, cap })
+      .then((geo) => {
+        if (geo) updateWorkshop(workshopId, { lat: geo.lat, lng: geo.lng });
+      })
+      .catch(() => undefined);
   };
 
   const handleAddPhoto = async () => {

@@ -13,26 +13,26 @@ const USER_DATA_KEYS = [
 ];
 
 // GDPR Art. 17 (right to erasure).
-// Cancella prima i dati lato Supabase (edge function delete-user-data),
-// poi pulisce lo storage locale. Se il backend non è configurato o fallisce,
-// procediamo comunque con la pulizia locale e propaghiamo l'errore.
+// Avvia la cancellazione lato Supabase (edge function delete-user-data) e pulisce
+// SEMPRE lo storage locale. La chiamata remota è best-effort e NON deve bloccare
+// la cancellazione/uscita: se la rete è lenta o assente, l'utente esce comunque
+// e i dati locali vengono rimossi (la cancellazione server viene comunque
+// tentata). Diversamente, un errore di rete lasciava l'utente "bloccato" e ancora
+// loggato — stesso difetto del vecchio logout.
 export async function wipeUserData(): Promise<void> {
-  let serverError: Error | null = null;
+  // 1) Tenta la cancellazione remota (best-effort, non blocca in caso di errore).
   if (isSupabaseConfigured) {
     try {
-      const { error } = await supabase.functions.invoke("delete-user-data", {
-        body: {},
-      });
-      if (error) serverError = new Error(error.message || "delete_failed");
+      await supabase.functions.invoke("delete-user-data", { body: {} });
     } catch (e) {
-      serverError = e instanceof Error ? e : new Error(String(e));
+      console.warn("delete-user-data failed (local wipe proceeds):", e);
     }
   }
-
-  await AsyncStorage.multiRemove(USER_DATA_KEYS);
-
-  if (serverError) {
-    throw serverError;
+  // 2) Pulizia locale: avviene SEMPRE.
+  try {
+    await AsyncStorage.multiRemove(USER_DATA_KEYS);
+  } catch (e) {
+    console.warn("local wipe error:", e);
   }
 }
 

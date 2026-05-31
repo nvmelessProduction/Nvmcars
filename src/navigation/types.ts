@@ -32,6 +32,12 @@ export type BookingsStackParamList = {
 export type FavoritesStackParamList = {
   FavoritesList: undefined;
   WorkshopDetail: { workshopId: string; service?: ServiceKey };
+  BookingForm: { workshopId: string; service: ServiceKey };
+  Chat: { workshopId: string };
+  AddReview: { workshopId: string; bookingId?: string };
+  QuoteDetail: { quoteId: string };
+  Payment: { quoteId: string };
+  PaymentSuccess: { quoteId: string };
 };
 
 export type NotificationsStackParamList = {

@@ -1,6 +1,7 @@
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { useColors } from "@/store/useThemeStore";
+import { useOnDark } from "@/theme/surface";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -22,22 +23,36 @@ export function PrimaryButton({
   icon,
 }: Props) {
   const colors = useColors();
+  const onDark = useOnDark();
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
   const isDisabled = disabled || loading;
 
   const bgByVariant = {
     primary: colors.accent,
-    secondary: colors.bgHeader,
+    // Su superficie scura "secondary" userebbe bgHeader ≈ sfondo (invisibile):
+    // usa una superficie elevata che si stacca sempre.
+    secondary: onDark ? colors.bgElevated : colors.bgHeader,
     ghost: "transparent",
     danger: colors.danger,
   }[variant];
 
+  // Ghost: testo leggibile sulla superficie sottostante (chiara su sfondo scuro).
   const textColor =
-    variant === "ghost" ? colors.text : "#FFFFFF";
+    variant === "ghost"
+      ? onDark
+        ? colors.onHeader
+        : colors.text
+      : variant === "secondary" && onDark
+        ? colors.text
+        : "#FFFFFF";
 
   const borderColor =
-    variant === "ghost" ? colors.border : "transparent";
+    variant === "ghost"
+      ? onDark
+        ? colors.onHeaderMuted
+        : colors.border
+      : "transparent";
 
   return (
     <AnimatedPressable

@@ -17,15 +17,16 @@ export function DeleteAccountScreen() {
 
   const performDelete = async () => {
     setBusy(true);
+    // wipeUserData è best-effort (non lancia); logout è ottimistico e azzera
+    // sempre la sessione. L'utente esce in ogni caso, anche con rete assente.
     try {
       await wipeUserData();
-      await logout();
-      Alert.alert(t.legal.deleteSuccessTitle, t.legal.deleteSuccessBody);
     } catch (e) {
-      Alert.alert(t.common.error, String(e));
-    } finally {
-      setBusy(false);
+      console.warn("wipeUserData error (ignored):", e);
     }
+    await logout();
+    setBusy(false);
+    Alert.alert(t.legal.deleteSuccessTitle, t.legal.deleteSuccessBody);
   };
 
   const handleDelete = () => {
