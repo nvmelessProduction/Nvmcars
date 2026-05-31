@@ -217,16 +217,23 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: async () => {
-        await authService.logout();
-        // Reset COMPLETO: anche lo snapshot admin, altrimenti il banner persiste.
+        // Disconnessione OTTIMISTICA: azzera subito lo stato locale, così la UI
+        // torna al login immediatamente anche se la rete è lenta/assente.
+        // (Prima il signOut remoto era atteso PRIMA del reset: se falliva o si
+        // bloccava, l'utente restava loggato → "clicco logout e non fa nulla".)
         set({ user: null, switchSnapshot: null });
-        // Pulisce tutti i dati locali per evitare leak fra utenti che condividono il device.
-        // Import dinamici per evitare cicli di dipendenze fra store.
+        // Pulisce i dati locali per evitare leak fra utenti sullo stesso device.
         try {
           const { clearAllUserStores } = await import("@/lib/clearStores");
           await clearAllUserStores();
         } catch (e) {
           console.warn("logout cleanup failed:", e);
+        }
+        // Disconnessione lato server in sottofondo (best-effort).
+        try {
+          await authService.logout();
+        } catch (e) {
+          console.warn("remote signOut failed (ignored):", e);
         }
       },
     }),
