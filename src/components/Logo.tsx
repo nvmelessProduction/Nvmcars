@@ -1,5 +1,5 @@
 import { Text, View } from "react-native";
-import Svg, { Path } from "react-native-svg";
+import Svg, { Defs, LinearGradient, Path, Stop } from "react-native-svg";
 
 type Props = {
   size?: number;
@@ -8,9 +8,11 @@ type Props = {
   color?: string;
 };
 
-const ACCENT_DARK = "#06B6D4";
-const ACCENT_LIGHT = "#22D3EE";
-const INK = "#0F172A";
+// Brand "Performance / Automotive": tile nero + N arancio.
+const TILE_DARK = "#0A0A0B";
+const ORANGE_TOP = "#FF8A2A";
+const ORANGE_BOT = "#FF5A00";
+const INK = "#18181B";
 const WHITE = "#FFFFFF";
 
 export function Logo({
@@ -20,91 +22,80 @@ export function Logo({
   color,
 }: Props) {
   const onDark = tone === "light";
-  const strokeColor = color ?? (onDark ? ACCENT_LIGHT : INK);
   const textColor = color ?? (onDark ? WHITE : INK);
 
   if (variant === "mark") {
-    return <Mark size={size} color={color ?? ACCENT_DARK} />;
+    return <NTile size={size} />;
   }
 
   if (variant === "wordmark") {
-    return <Wordmark size={size} color={textColor} prefix="n" />;
+    return <Wordmark size={size * 0.78} color={textColor} />;
   }
 
-  const markSize = size;
-  const textSize = size * 0.78;
+  const tileSize = size;
+  const textSize = size * 0.62;
 
   return (
     <View style={{ flexDirection: "row", alignItems: "center" }}>
-      <NMark size={markSize} color={strokeColor} />
-      <View style={{ width: markSize * 0.18 }} />
-      <Wordmark size={textSize} color={textColor} prefix="" />
+      <NTile size={tileSize} />
+      <View style={{ width: tileSize * 0.28 }} />
+      <Wordmark size={textSize} color={textColor} />
     </View>
   );
 }
 
-function Mark({ size, color }: { size: number; color: string }) {
+/** Quadrato arrotondato nero con la "N" arancio (monogramma di brand). */
+function NTile({ size }: { size: number }) {
   return (
-    <View
-      style={{
-        width: size,
-        height: size,
-        borderRadius: size * 0.225,
-        backgroundColor: color,
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <Svg
-        width={size * 0.62}
-        height={size * 0.62}
-        viewBox="0 0 100 100"
-        fill="none"
-      >
-        <Path
-          d="M 18 78 C 18 22, 82 22, 82 78"
-          stroke={WHITE}
-          strokeWidth={16}
-          strokeLinecap="round"
-        />
-      </Svg>
-    </View>
-  );
-}
-
-function NMark({ size, color }: { size: number; color: string }) {
-  return (
-    <Svg width={size * 0.78} height={size} viewBox="0 0 100 100" fill="none">
+    <Svg width={size} height={size} viewBox="0 0 100 100">
+      <Defs>
+        <LinearGradient id="nOrange" x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor={ORANGE_TOP} />
+          <Stop offset="1" stopColor={ORANGE_BOT} />
+        </LinearGradient>
+      </Defs>
+      {/* Tile */}
       <Path
-        d="M 18 78 C 18 22, 82 22, 82 78"
-        stroke={color}
-        strokeWidth={16}
-        strokeLinecap="round"
+        d="M0 26 C0 8 8 0 26 0 H74 C92 0 100 8 100 26 V74 C100 92 92 100 74 100 H26 C8 100 0 92 0 74 Z"
+        fill={TILE_DARK}
       />
+      {/* Monogramma N */}
+      <NGlyph color="url(#nOrange)" />
     </Svg>
   );
 }
 
-function Wordmark({
-  size,
-  color,
-  prefix,
-}: {
-  size: number;
-  color: string;
-  prefix: string;
-}) {
+/**
+ * Solo la lettera N, in 3 tratti spessi a estremità arrotondate.
+ * I tratti stanno in un UNICO path: con un gradiente (objectBoundingBox) un
+ * path perfettamente verticale ha bounding-box di larghezza 0 e non verrebbe
+ * disegnato — tenendoli insieme il bounding-box è 2D e il gradiente si applica.
+ */
+function NGlyph({ color }: { color: string }) {
+  return (
+    <Path
+      d="M32 74 L32 30 M68 70 L68 26 M32 30 L68 70"
+      stroke={color}
+      strokeWidth={14}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill="none"
+    />
+  );
+}
+
+function Wordmark({ size, color }: { size: number; color: string }) {
   return (
     <Text
       style={{
         color,
         fontSize: size,
         fontWeight: "900",
-        letterSpacing: -size * 0.05,
+        letterSpacing: -size * 0.04,
         includeFontPadding: false,
       }}
     >
-      {prefix}vmcars
+      nvmcars
     </Text>
   );
 }

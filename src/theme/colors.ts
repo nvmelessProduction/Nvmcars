@@ -19,38 +19,44 @@ export type ThemeColors = {
   warning: string;
 };
 
+// =============================================================
+// Brand Nvmcars — "Performance / Automotive"
+// Nero profondo + arancio racing. L'accento arancio è il colore
+// guida di tutta l'app (pulsanti, link, badge, evidenziazioni).
+// =============================================================
+
 export const lightColors: ThemeColors = {
-  bg: "#F1F5F9",
+  bg: "#F4F4F5",
   bgElevated: "#FFFFFF",
-  bgHeader: "#0F172A",
-  border: "#E2E8F0",
-  text: "#0F172A",
-  textMuted: "#64748B",
+  bgHeader: "#111114",
+  border: "#E4E4E7",
+  text: "#18181B",
+  textMuted: "#71717A",
   textInverse: "#FFFFFF",
   onHeader: "#FFFFFF",
-  onHeaderMuted: "#CBD5E1",
-  scrim: "rgba(15, 23, 42, 0.55)",
-  accent: "#06B6D4",
-  accentSoft: "rgba(6, 182, 212, 0.12)",
-  success: "#10B981",
-  danger: "#EF4444",
-  warning: "#F59E0B",
+  onHeaderMuted: "#D4D4D8",
+  scrim: "rgba(9, 9, 11, 0.55)",
+  accent: "#EA580C",
+  accentSoft: "rgba(234, 88, 12, 0.12)",
+  success: "#16A34A",
+  danger: "#DC2626",
+  warning: "#D97706",
 };
 
 export const darkColors: ThemeColors = {
-  bg: "#020617",
-  bgElevated: "#0F172A",
-  bgHeader: "#020617",
-  border: "#1E293B",
-  text: "#F1F5F9",
-  textMuted: "#94A3B8",
-  textInverse: "#0F172A",
-  onHeader: "#F1F5F9",
-  onHeaderMuted: "#94A3B8",
-  scrim: "rgba(0, 0, 0, 0.65)",
-  accent: "#22D3EE",
-  accentSoft: "rgba(34, 211, 238, 0.18)",
-  success: "#34D399",
+  bg: "#0A0A0B",
+  bgElevated: "#161618",
+  bgHeader: "#0A0A0B",
+  border: "#27272A",
+  text: "#FAFAFA",
+  textMuted: "#A1A1AA",
+  textInverse: "#0A0A0B",
+  onHeader: "#FAFAFA",
+  onHeaderMuted: "#A1A1AA",
+  scrim: "rgba(0, 0, 0, 0.7)",
+  accent: "#FF7A1A",
+  accentSoft: "rgba(255, 122, 26, 0.16)",
+  success: "#22C55E",
   danger: "#F87171",
   warning: "#FBBF24",
 };

@@ -29,12 +29,12 @@ async function render(svgFile, outFile, width, height, background) {
 }
 
 (async () => {
-  // App icon iOS: niente trasparenza (sfondo cyan del marchio)
-  await render("logo-icon-app.svg", "icon.png", 1024, 1024, { r: 6, g: 182, b: 212 });
+  // App icon iOS: niente trasparenza (tile nero del marchio)
+  await render("logo-icon-app.svg", "icon.png", 1024, 1024, { r: 10, g: 10, b: 11 });
   // Adaptive Android: foreground su trasparente
   await render("logo-icon-app.svg", "icon-adaptive.png", 1024, 1024);
   // Splash completo
-  await render("splash.svg", "splash.png", 1242, 2688, { r: 15, g: 23, b: 42 });
+  await render("splash.svg", "splash.png", 1242, 2688, { r: 10, g: 10, b: 11 });
   // Notification icon
   await render("logo-mark.svg", "notification-icon.png", 96, 96);
   console.log("Fatto.");
