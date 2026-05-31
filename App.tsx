@@ -14,6 +14,7 @@ import { useNotificationsStore } from "@/store/useNotificationsStore";
 import { useFavoritesStore } from "@/store/useFavoritesStore";
 import { useSubscriptionStore } from "@/store/useSubscriptionStore";
 import { useDiyStore } from "@/store/useDiyStore";
+import { useQuoteStore } from "@/store/useQuoteStore";
 import * as authService from "@/services/auth";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { initSentry } from "@/lib/sentry";
@@ -71,6 +72,7 @@ function AppBootstrap({ children }: { children: React.ReactNode }) {
   const hydrateFavorites = useFavoritesStore((s) => s.hydrate);
   const hydrateSubscriptions = useSubscriptionStore((s) => s.hydrate);
   const hydrateDiy = useDiyStore((s) => s.hydrate);
+  const hydrateQuotes = useQuoteStore((s) => s.hydrate);
 
   // Init globali una volta
   useEffect(() => {
@@ -115,10 +117,14 @@ function AppBootstrap({ children }: { children: React.ReactNode }) {
         hydrateBookings({ customerId: user.id }).catch(() => undefined);
         hydrateConversations({ customerId: user.id }).catch(() => undefined);
         hydrateFavorites(user.id).catch(() => undefined);
+        hydrateQuotes({ customerId: user.id }).catch(() => undefined);
       } else if (user.role === "professional") {
         hydrateBookings({ workshopId: user.workshopId }).catch(() => undefined);
         hydrateConversations({ workshopId: user.workshopId }).catch(() => undefined);
-        if (user.workshopId) hydrateWorkshopById(user.workshopId).catch(() => undefined);
+        if (user.workshopId) {
+          hydrateWorkshopById(user.workshopId).catch(() => undefined);
+          hydrateQuotes({ workshopId: user.workshopId }).catch(() => undefined);
+        }
       }
       // admin: niente hydrate role-specific (visualizza solo)
     }
@@ -133,6 +139,7 @@ function AppBootstrap({ children }: { children: React.ReactNode }) {
     hydrateFavorites,
     hydrateSubscriptions,
     hydrateDiy,
+    hydrateQuotes,
   ]);
 
   return <>{children}</>;

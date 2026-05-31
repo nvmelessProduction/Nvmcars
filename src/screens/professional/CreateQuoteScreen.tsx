@@ -57,6 +57,7 @@ export function CreateQuoteScreen() {
   const [searchingForLine, setSearchingForLine] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<AutodocProduct[]>([]);
   const [searching, setSearching] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const startProductSearch = async (lineId: string, description: string) => {
     if (!description.trim()) {
@@ -123,7 +124,8 @@ export function CreateQuoteScreen() {
   const updateLine = (id: string, patch: Partial<DraftLine>) =>
     setLines((prev) => prev.map((l) => (l.id === id ? { ...l, ...patch } : l)));
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
+    if (submitting) return;
     if (!user || user.role !== "professional" || !conversation) return;
     if (!title.trim()) {
       Alert.alert(t.common.error, "Inserisci un titolo per il preventivo.");
@@ -142,24 +144,32 @@ export function CreateQuoteScreen() {
       return;
     }
 
-    const quote = create({
-      workshopId: conversation.workshopId,
-      customerId: conversation.customerId,
-      conversationId,
-      title: title.trim(),
-      notes: notes.trim() || undefined,
-      lineItems: cleanLines,
-    });
+    setSubmitting(true);
+    try {
+      // Salva il preventivo (anche su Supabase) e ottiene l'id DEFINITIVO,
+      // così il messaggio di chat lo referenzia con l'id corretto.
+      const quote = await create({
+        workshopId: conversation.workshopId,
+        customerId: conversation.customerId,
+        conversationId,
+        title: title.trim(),
+        notes: notes.trim() || undefined,
+        lineItems: cleanLines,
+      });
 
-    send({
-      conversationId,
-      senderId: user.id,
-      kind: "quote",
-      quoteId: quote.id,
-      text: `Preventivo: ${quote.title}`,
-    });
+      send({
+        conversationId,
+        senderId: user.id,
+        kind: "quote",
+        quoteId: quote.id,
+        text: `Preventivo: ${quote.title}`,
+      });
 
-    navigation.goBack();
+      navigation.goBack();
+    } catch {
+      Alert.alert(t.common.error, "Invio del preventivo non riuscito. Riprova.");
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -362,7 +372,11 @@ export function CreateQuoteScreen() {
             </Text>
           </Card>
 
-          <PrimaryButton label={t.quote.sendToCustomer} onPress={onSubmit} />
+          <PrimaryButton
+            label={submitting ? t.common.loading : t.quote.sendToCustomer}
+            onPress={onSubmit}
+            disabled={submitting}
+          />
       </KeyboardAwareScrollView>
     </ScreenContainer>
   );

@@ -9,7 +9,7 @@ import { useChatStore } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
-import { WORKSHOPS } from "@/data/workshops";
+import { useResolvedWorkshop } from "@/store/useWorkshopStore";
 import { trackAndOpen } from "@/services/autodoc";
 
 type Route = RouteProp<{ QuoteDetail: { quoteId: string } }, "QuoteDetail">;
@@ -23,6 +23,7 @@ export function QuoteDetailScreen() {
   const quote = useQuoteStore((s) => s.byId(route.params.quoteId));
   const setStatus = useQuoteStore((s) => s.setStatus);
   const sendMsg = useChatStore((s) => s.send);
+  const workshop = useResolvedWorkshop(quote?.workshopId);
 
   useLayoutEffect(() => {
     navigation.setOptions({ title: t.quote.quote });
@@ -65,7 +66,6 @@ export function QuoteDetailScreen() {
     );
   }
 
-  const workshop = WORKSHOPS.find((w) => w.id === quote.workshopId);
   const isCustomer = user?.id === quote.customerId;
   const isPro = user?.role === "professional";
   const canAct = isCustomer && quote.status === "pending";

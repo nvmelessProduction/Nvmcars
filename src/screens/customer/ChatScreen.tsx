@@ -18,7 +18,7 @@ import { useChatStore } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
-import { WORKSHOPS } from "@/data/workshops";
+import { useResolvedWorkshop } from "@/store/useWorkshopStore";
 import { buildChatItems } from "@/utils/chatThread";
 import { pickFromGallery, recordVideo, takePhoto } from "@/utils/mediaPicker";
 import { isSupabaseConfigured } from "@/lib/supabase";
@@ -42,7 +42,7 @@ export function ChatScreen() {
   const unsubscribe = useChatStore((s) => s.unsubscribeFromConversation);
   const allMessages = useChatStore((s) => s.messages);
   const conversations = useChatStore((s) => s.conversations);
-  const workshop = WORKSHOPS.find((w) => w.id === workshopId);
+  const workshop = useResolvedWorkshop(workshopId);
   const [text, setText] = useState("");
   const [attachOpen, setAttachOpen] = useState(false);
   const listRef = useRef<FlatList>(null);
@@ -96,7 +96,7 @@ export function ChatScreen() {
     [messages, t]
   );
 
-  if (!user || !workshop) return null;
+  if (!user) return null;
 
   const scrollEnd = () =>
     setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 50);

@@ -10,10 +10,9 @@ import { RatingStars } from "@/components/RatingStars";
 import { Card } from "@/components/Card";
 import { useReviewsStore } from "@/store/useReviewsStore";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useWorkshopStore } from "@/store/useWorkshopStore";
+import { useWorkshopStore, useResolvedWorkshop } from "@/store/useWorkshopStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
-import { WORKSHOPS } from "@/data/workshops";
 import type { HomeStackParamList } from "@/navigation/types";
 
 type Nav = NativeStackNavigationProp<HomeStackParamList, "AddReview">;
@@ -28,7 +27,7 @@ export function AddReviewScreen() {
   const user = useAuthStore((s) => s.user);
   const addReview = useReviewsStore((s) => s.add);
   const hydrateWorkshopById = useWorkshopStore((s) => s.hydrateById);
-  const workshop = WORKSHOPS.find((w) => w.id === workshopId);
+  const workshop = useResolvedWorkshop(workshopId);
 
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");

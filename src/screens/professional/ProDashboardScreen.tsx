@@ -11,7 +11,7 @@ import { useBookingsStore } from "@/store/useBookingsStore";
 import { useColors } from "@/store/useThemeStore";
 import { useReviewsStore } from "@/store/useReviewsStore";
 import { useT } from "@/i18n";
-import { WORKSHOPS } from "@/data/workshops";
+import { useResolvedWorkshop } from "@/store/useWorkshopStore";
 import type { ProDashboardStackParamList } from "@/navigation/types";
 
 type Nav = NativeStackNavigationProp<ProDashboardStackParamList, "ProDashboard">;
@@ -39,7 +39,15 @@ export function ProDashboardScreen() {
     [allReviewsRaw, workshopId]
   );
 
-  const workshop = workshopId ? WORKSHOPS.find((w) => w.id === workshopId) : null;
+  const workshop = useResolvedWorkshop(workshopId ?? undefined);
+
+  // Rating medio dalle recensioni reali; fallback al valore del profilo officina.
+  const avgRating = useMemo(() => {
+    if (reviews.length > 0) {
+      return reviews.reduce((s, r) => s + r.rating, 0) / reviews.length;
+    }
+    return workshop?.rating ?? null;
+  }, [reviews, workshop]);
 
   const pending = allBookings.filter(
     (b) => b.status === "pending" || b.status === "requested"
@@ -69,7 +77,7 @@ export function ProDashboardScreen() {
         <View style={{ flexDirection: "row", gap: 10 }}>
           <StatCard
             label={t.pro.averageRating}
-            value={workshop ? workshop.rating.toFixed(1) : "—"}
+            value={avgRating != null ? avgRating.toFixed(1) : "—"}
             emoji="⭐"
             delay={160}
           />

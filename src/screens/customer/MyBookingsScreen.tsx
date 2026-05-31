@@ -10,7 +10,7 @@ import { useBookingsStore } from "@/store/useBookingsStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
-import { WORKSHOPS } from "@/data/workshops";
+import { useResolvedWorkshop } from "@/store/useWorkshopStore";
 import { getServiceLabel, getServiceEmoji } from "@/data/services";
 import type { Booking } from "@/types";
 import type { BookingsStackParamList } from "@/navigation/types";
@@ -137,7 +137,7 @@ function BookingRow({
 }) {
   const colors = useColors();
   const t = useT();
-  const workshop = WORKSHOPS.find((w) => w.id === booking.workshopId);
+  const workshop = useResolvedWorkshop(booking.workshopId);
 
   return (
     <Animated.View entering={FadeInDown.delay(index * 50).duration(300)}>
