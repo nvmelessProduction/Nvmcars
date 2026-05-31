@@ -1,6 +1,8 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { AdminHomeScreen } from "@/screens/admin/AdminHomeScreen";
 import { AdminUsersScreen } from "@/screens/admin/AdminUsersScreen";
+import { AdminInviteCodesScreen } from "@/screens/admin/AdminInviteCodesScreen";
+import { AdminWorkshopsScreen } from "@/screens/admin/AdminWorkshopsScreen";
 import { useColors } from "@/store/useThemeStore";
 import type { AdminStackParamList } from "./types";
 
@@ -26,6 +28,16 @@ export function AdminNavigator() {
         name="AdminUsers"
         component={AdminUsersScreen}
         options={{ title: "Utenti reali" }}
+      />
+      <Stack.Screen
+        name="AdminInviteCodes"
+        component={AdminInviteCodesScreen}
+        options={{ title: "Codici invito" }}
+      />
+      <Stack.Screen
+        name="AdminWorkshops"
+        component={AdminWorkshopsScreen}
+        options={{ title: "Officine pubblicate" }}
       />
     </Stack.Navigator>
   );

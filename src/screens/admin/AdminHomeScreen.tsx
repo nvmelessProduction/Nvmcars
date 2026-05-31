@@ -1,7 +1,10 @@
 import { useMemo } from "react";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { ScreenContainer } from "@/components/ScreenContainer";
+import type { AdminStackParamList } from "@/navigation/types";
 import { Card } from "@/components/Card";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -15,8 +18,11 @@ import { useReviewsStore } from "@/store/useReviewsStore";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { ADMIN_EMAILS } from "@/data/admins";
 
+type Nav = NativeStackNavigationProp<AdminStackParamList, "AdminHome">;
+
 export function AdminHomeScreen() {
   const colors = useColors();
+  const navigation = useNavigation<Nav>();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const impersonateCustomer = useAuthStore((s) => s.impersonateCustomer);
@@ -108,10 +114,10 @@ export function AdminHomeScreen() {
           >
             <Text style={{ fontSize: 40 }}>👑</Text>
           </View>
-          <Text style={{ fontSize: 24, fontWeight: "800", color: colors.text }}>
+          <Text style={{ fontSize: 24, fontWeight: "800", color: colors.onHeader }}>
             Pannello Admin
           </Text>
-          <Text style={{ fontSize: 13, color: colors.textMuted, textAlign: "center" }}>
+          <Text style={{ fontSize: 13, color: colors.onHeaderMuted, textAlign: "center" }}>
             {user.email}
           </Text>
           <View
@@ -130,14 +136,14 @@ export function AdminHomeScreen() {
                 backgroundColor: isSupabaseConfigured ? colors.success : colors.warning,
               }}
             />
-            <Text style={{ fontSize: 11, color: colors.textMuted }}>
+            <Text style={{ fontSize: 11, color: colors.onHeaderMuted }}>
               {isSupabaseConfigured ? "Backend live (Supabase)" : "Backend offline (mock)"}
             </Text>
           </View>
         </View>
 
         {/* Impersona */}
-        <Text style={labelStyle(colors.textMuted)}>IMPERSONA UTENTE</Text>
+        <Text style={labelStyle(colors.onHeaderMuted)}>IMPERSONA UTENTE</Text>
 
         <Animated.View entering={FadeInDown.delay(60).duration(300)}>
           <Pressable onPress={impersonateCustomer}>
@@ -182,7 +188,7 @@ export function AdminHomeScreen() {
         </Animated.View>
 
         {/* KPI grandi */}
-        <Text style={labelStyle(colors.textMuted)}>PANORAMICA SISTEMA</Text>
+        <Text style={labelStyle(colors.onHeaderMuted)}>PANORAMICA SISTEMA</Text>
 
         <View style={{ flexDirection: "row", gap: 10 }}>
           <KpiCard
@@ -247,14 +253,14 @@ export function AdminHomeScreen() {
         </View>
 
         {/* Strumenti operativi */}
-        <Text style={labelStyle(colors.textMuted)}>STRUMENTI OPERATIVI</Text>
+        <Text style={labelStyle(colors.onHeaderMuted)}>STRUMENTI OPERATIVI</Text>
 
         <Card>
           <Row
             icon="🎫"
             title="Codici invito"
             subtitle="Crea/visualizza codici per registrare nuove officine"
-            onPress={() => Alert.alert("In arrivo", "Gestione codici invito disponibile a breve")}
+            onPress={() => navigation.navigate("AdminInviteCodes")}
             colors={colors}
           />
           <Divider colors={colors} />
@@ -262,15 +268,15 @@ export function AdminHomeScreen() {
             icon="🏪"
             title="Officine pubblicate"
             subtitle={`${stats.activeWorkshops} attive · ${stats.totalWorkshops - stats.activeWorkshops} in bozza`}
-            onPress={() => Alert.alert("In arrivo", "Elenco officine in arrivo")}
+            onPress={() => navigation.navigate("AdminWorkshops")}
             colors={colors}
           />
           <Divider colors={colors} />
           <Row
-            icon="📊"
-            title="Statistiche dettagliate"
-            subtitle="Trend, conversion, top servizi, geografia"
-            onPress={() => Alert.alert("In arrivo", "Dashboard analytics in arrivo")}
+            icon="👥"
+            title="Utenti reali"
+            subtitle="Elenco utenti registrati su Supabase"
+            onPress={() => navigation.navigate("AdminUsers")}
             colors={colors}
           />
           <Divider colors={colors} />
@@ -284,7 +290,7 @@ export function AdminHomeScreen() {
         </Card>
 
         {/* Info team */}
-        <Text style={labelStyle(colors.textMuted)}>TEAM ADMIN</Text>
+        <Text style={labelStyle(colors.onHeaderMuted)}>TEAM ADMIN</Text>
         <Card>
           {Array.from(ADMIN_EMAILS).map((email) => (
             <View
