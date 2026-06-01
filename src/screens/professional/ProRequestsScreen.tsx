@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { useBookingsStore } from "@/store/useBookingsStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useSubscriptionStore, isProActive, FREE_MONTHLY_REQUESTS_LIMIT } from "@/store/useSubscriptionStore";
+import { useProFeatureAllowed } from "@/components/ProFeatureGate";
 import { notifyEvent } from "@/store/useNotificationsStore";
 import { useServiceLogStore } from "@/store/useServiceLogStore";
 import { useResolvedWorkshop } from "@/store/useWorkshopStore";
@@ -48,7 +49,8 @@ export function ProRequestsScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const proTier = useSubscriptionStore((s) => s.proTier);
-  const proActive = isProActive(proTier);
+  // Admin: sblocco completo (richieste illimitate, niente limite mensile).
+  const proActive = useProFeatureAllowed("pro") || isProActive(proTier);
 
   const workshopId = user && user.role === "professional" ? user.workshopId : null;
 

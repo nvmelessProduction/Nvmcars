@@ -1,5 +1,30 @@
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
+/**
+ * Messaggio utente-friendly per quando un'operazione di pagamento fallisce
+ * perché Stripe non è ancora configurato (edge function non deployata,
+ * officina non onboarded, backend offline). Evita di mostrare errori tecnici.
+ */
+export const PAYMENTS_NOT_READY_TITLE = "Pagamenti non ancora attivi";
+export const PAYMENTS_NOT_READY_BODY =
+  "I pagamenti con carta verranno attivati prima della pubblicazione. Questa funzione sarà disponibile a breve.";
+
+const TECH_REASONS = [
+  "backend_not_configured",
+  "missing_url",
+  "non configurato",
+  "not onboarded",
+  "404",
+  "Failed to fetch",
+  "Network request failed",
+];
+
+/** True se il motivo d'errore è tecnico/di configurazione (non colpa utente). */
+export function isPaymentsNotReady(reason: string | undefined): boolean {
+  if (!reason) return true;
+  return TECH_REASONS.some((r) => reason.toLowerCase().includes(r.toLowerCase()));
+}
+
 export type PaymentIntentResult =
   | { ok: true; clientSecret: string; paymentIntentId: string }
   | { ok: false; reason: string };

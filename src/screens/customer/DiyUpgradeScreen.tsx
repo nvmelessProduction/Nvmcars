@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Alert, Linking, ScrollView, Text, View } from "react-native";
 import { ScreenContainer } from "@/components/ScreenContainer";
+import { isPaymentsNotReady, PAYMENTS_NOT_READY_TITLE, PAYMENTS_NOT_READY_BODY } from "@/services/payments";
 import { Card } from "@/components/Card";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { useColors } from "@/store/useThemeStore";
@@ -31,10 +32,16 @@ export function DiyUpgradeScreen() {
       track("subscription_started", { tier: "diy_pro" });
       const res = await startCheckout("diy_pro");
       if (!res.ok) {
-        Alert.alert("Errore", res.reason);
+        if (isPaymentsNotReady(res.reason)) {
+          Alert.alert(PAYMENTS_NOT_READY_TITLE, PAYMENTS_NOT_READY_BODY);
+        } else {
+          Alert.alert("Errore", res.reason);
+        }
         return;
       }
       await Linking.openURL(res.url);
+    } catch {
+      Alert.alert(PAYMENTS_NOT_READY_TITLE, PAYMENTS_NOT_READY_BODY);
     } finally {
       setBusy(false);
     }

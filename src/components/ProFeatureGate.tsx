@@ -5,6 +5,18 @@ import { Card } from "@/components/Card";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { useColors } from "@/store/useThemeStore";
 import { useSubscriptionStore, isProActive, isPremiumActive, isDiyProActive, SubscriptionTier } from "@/store/useSubscriptionStore";
+import { useAuthStore } from "@/store/useAuthStore";
+
+/**
+ * True se l'utente corrente ha privilegi admin: è admin, oppure è un admin che
+ * sta "visualizzando come" cliente/professionista (switchSnapshot admin).
+ * Gli admin vedono TUTTE le funzioni Pro/Premium sbloccate (niente paywall).
+ */
+function useAdminUnlock(): boolean {
+  const user = useAuthStore((s) => s.user);
+  const snapshot = useAuthStore((s) => s.switchSnapshot);
+  return user?.role === "admin" || snapshot?.role === "admin";
+}
 
 type Props = {
   /** Tier minimo richiesto. Default: pro. */
@@ -32,6 +44,7 @@ export function ProFeatureGate({
   const navigation = useNavigation<any>();
   const proTier = useSubscriptionStore((s) => s.proTier);
   const customerTier = useSubscriptionStore((s) => s.customerTier);
+  const adminUnlock = useAdminUnlock();
 
   const tier: SubscriptionTier = audience === "customer" ? customerTier : proTier;
 
@@ -40,7 +53,8 @@ export function ProFeatureGate({
   else if (requires === "premium") allowed = isPremiumActive(tier);
   else if (requires === "diy_pro") allowed = isDiyProActive(tier);
 
-  if (allowed) return <>{children}</>;
+  // Admin: accesso completo, nessun paywall.
+  if (adminUnlock || allowed) return <>{children}</>;
 
   return (
     <View style={{ padding: 16, gap: 14 }}>
@@ -76,6 +90,8 @@ export function useProFeatureAllowed(
 ): boolean {
   const proTier = useSubscriptionStore((s) => s.proTier);
   const customerTier = useSubscriptionStore((s) => s.customerTier);
+  const adminUnlock = useAdminUnlock();
+  if (adminUnlock) return true;
   if (requires === "diy_pro") return isDiyProActive(customerTier);
   if (requires === "premium") return isPremiumActive(proTier);
   return isProActive(proTier);

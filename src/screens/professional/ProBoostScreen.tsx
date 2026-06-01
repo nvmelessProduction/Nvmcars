@@ -45,10 +45,20 @@ export function ProBoostScreen() {
         body: { workshopId, planKey: plan.key },
       });
       if (error || !data?.checkoutUrl) {
-        Alert.alert("Errore", error?.message ?? "Impossibile creare il checkout.");
+        // Stripe non ancora configurato (edge function non deployata / officina
+        // non onboarded): messaggio chiaro invece dell'errore tecnico.
+        Alert.alert(
+          "Pagamenti non ancora attivi",
+          "L'acquisto dei boost sarà disponibile quando i pagamenti con carta verranno attivati (prima della pubblicazione). Riprova più avanti."
+        );
         return;
       }
       await Linking.openURL(data.checkoutUrl);
+    } catch {
+      Alert.alert(
+        "Pagamenti non ancora attivi",
+        "L'acquisto dei boost sarà disponibile quando i pagamenti con carta verranno attivati. Riprova più avanti."
+      );
     } finally {
       setBusy(null);
     }

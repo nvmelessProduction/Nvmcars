@@ -6,6 +6,7 @@ import { PrimaryButton } from "@/components/PrimaryButton";
 import { useColors } from "@/store/useThemeStore";
 import { useSubscriptionStore, SubscriptionTier } from "@/store/useSubscriptionStore";
 import { track } from "@/lib/analytics";
+import { isPaymentsNotReady, PAYMENTS_NOT_READY_TITLE, PAYMENTS_NOT_READY_BODY } from "@/services/payments";
 
 type Plan = {
   tier: Exclude<SubscriptionTier, "free" | "diy_pro">;
@@ -62,12 +63,16 @@ export function ProUpgradeScreen() {
       track("subscription_started", { tier });
       const res = await startCheckout(tier);
       if (!res.ok) {
-        Alert.alert("Errore", res.reason);
+        if (isPaymentsNotReady(res.reason)) {
+          Alert.alert(PAYMENTS_NOT_READY_TITLE, PAYMENTS_NOT_READY_BODY);
+        } else {
+          Alert.alert("Errore", res.reason);
+        }
         return;
       }
       await Linking.openURL(res.url);
-    } catch (e) {
-      Alert.alert("Errore", String(e));
+    } catch {
+      Alert.alert(PAYMENTS_NOT_READY_TITLE, PAYMENTS_NOT_READY_BODY);
     } finally {
       setBusy(null);
     }
