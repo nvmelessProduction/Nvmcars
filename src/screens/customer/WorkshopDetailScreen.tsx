@@ -294,7 +294,10 @@ export function WorkshopDetailScreen() {
               onPress={() =>
                 navigation.navigate("BookingForm", {
                   workshopId,
-                  service: service ?? SERVICES.find((s) => workshop.services[s.key])!.key,
+                  service:
+                    service ??
+                    SERVICES.find((s) => workshop.services[s.key])?.key ??
+                    SERVICES[0].key,
                 })
               }
             />
