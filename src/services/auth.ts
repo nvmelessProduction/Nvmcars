@@ -96,10 +96,21 @@ export async function signupCustomer(input: SignupCustomerInput): Promise<AuthRe
   });
   if (error) return { ok: false, reason: error.message };
   if (!data.user) return { ok: false, reason: "Signup failed" };
-  // trigger handle_new_user crea il profilo automaticamente
+  // trigger handle_new_user crea il profilo automaticamente.
+  // Se serve conferma email non c'è ancora sessione → get_my_profile torna
+  // vuoto: in quel caso uso i dati appena inviati (no "Profile not created").
   const profile = await fetchProfile(data.user.id);
-  if (!profile) return { ok: false, reason: "Profile not created" };
-  return { ok: true, user: profile, needsEmailVerification: !data.session };
+  if (profile && profile.role === "customer") {
+    return { ok: true, user: profile, needsEmailVerification: !data.session };
+  }
+  const fallback: CustomerUser = {
+    id: data.user.id,
+    role: "customer",
+    email: input.email,
+    name: input.name,
+    phone: input.phone,
+  };
+  return { ok: true, user: fallback, needsEmailVerification: !data.session };
 }
 
 export async function signupProfessional(
@@ -151,40 +162,38 @@ export async function signupProfessional(
   if (error) return { ok: false, reason: error.message };
   if (!data.user) return { ok: false, reason: "Signup failed" };
 
-  // Crea workshop draft + lega al profilo
-  let workshopId: string | null = invite.workshop_id ?? null;
-  if (!workshopId) {
-    const { data: created, error: wsErr } = await supabase
-      .from("workshops")
-      .insert({
-        owner_id: data.user.id,
-        name: "",
-        city: "",
-        address: "",
-        lat: 0,
-        lng: 0,
-        status: "draft",
-      })
-      .select("id")
-      .single();
-    if (wsErr || !created?.id) {
-      return { ok: false, reason: wsErr?.message ?? "Errore creazione officina" };
-    }
-    workshopId = created.id;
+  // L'officina viene creata AUTOMATICAMENTE dal trigger DB handle_new_user
+  // (migration 0016), che gira come security-definer e quindi funziona anche
+  // quando il signup richiede conferma email (nessuna sessione client). NON
+  // creiamo più l'officina lato client (la RLS la bloccherebbe senza sessione).
+  // Marca il codice invito come usato (best-effort; richiede sessione, se manca
+  // verrà gestito al primo login).
+  try {
+    await supabase.rpc("redeem_invite_code", { p_code: input.inviteCode });
+  } catch {
+    /* best-effort: se manca la sessione verrà gestito al primo login */
   }
 
-  const { error: updateErr } = await supabase
-    .from("profiles")
-    .update({ workshop_id: workshopId, vat_number: input.vatNumber, invite_code: input.inviteCode })
-    .eq("id", data.user.id);
-  if (updateErr) return { ok: false, reason: updateErr.message };
-
-  // Marca il codice come usato in modo atomico (RPC security definer).
-  await supabase.rpc("redeem_invite_code", { p_code: input.inviteCode });
-
+  // Se c'è una sessione (conferma email disattivata), leggo il profilo completo
+  // col workshop_id appena creato dal trigger.
   const profile = await fetchProfile(data.user.id);
-  if (!profile) return { ok: false, reason: "Profile not created" };
-  return { ok: true, user: profile, needsEmailVerification: !data.session };
+  if (profile && profile.role === "professional" && profile.workshopId) {
+    return { ok: true, user: profile, needsEmailVerification: !data.session };
+  }
+  // Caso: conferma email pendente → nessuna sessione, non possiamo ancora
+  // leggere il workshop_id (creato dal trigger). Resta vuoto QUI ma verrà
+  // popolato automaticamente da fetchProfile al primo login dopo la conferma.
+  const fallback: ProfessionalUser = {
+    id: data.user.id,
+    role: "professional",
+    email: input.email,
+    name: input.name,
+    phone: input.phone,
+    vatNumber: input.vatNumber,
+    workshopId: profile?.role === "professional" ? profile.workshopId : "",
+    inviteCode: input.inviteCode,
+  };
+  return { ok: true, user: fallback, needsEmailVerification: !data.session };
 }
 
 export async function login(input: LoginInput): Promise<AuthResult> {

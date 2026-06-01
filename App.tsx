@@ -1,9 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { RootNavigator } from "@/navigation/RootNavigator";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AdminBanner } from "@/components/AdminBanner";
+import { AnimatedSplash } from "@/components/AnimatedSplash";
 import { useIsDark } from "@/store/useThemeStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useCarStore } from "@/store/useCarStore";
@@ -33,6 +34,7 @@ try {
 const STRIPE_PUBLISHABLE = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "";
 
 export default function App() {
+  const [splashDone, setSplashDone] = useState(false);
   return (
     <ErrorBoundary>
       <SafeAreaProvider>
@@ -43,6 +45,7 @@ export default function App() {
             <AdminBanner />
           </StripeWrapper>
         </AppBootstrap>
+        {!splashDone ? <AnimatedSplash onDone={() => setSplashDone(true)} /> : null}
       </SafeAreaProvider>
     </ErrorBoundary>
   );
