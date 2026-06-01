@@ -49,7 +49,9 @@ export function OnboardingScreen() {
 
   const goNext = () => {
     if (index < SLIDES.length - 1) {
-      listRef.current?.scrollToIndex({ index: index + 1, animated: true });
+      const next = index + 1;
+      setIndex(next); // update immediately so FlatList scroll tracking isn't needed
+      listRef.current?.scrollToIndex({ index: next, animated: true });
     } else {
       finishOnboarding();
       navigation.replace("RoleSelection");

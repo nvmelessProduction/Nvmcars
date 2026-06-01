@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { Card } from "@/components/Card";
@@ -10,12 +8,8 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useColors } from "@/store/useThemeStore";
 import { listAllRealUsers, realUserToAuthUser, type RealUserListItem } from "@/services/adminUsers";
 import { isSupabaseConfigured } from "@/lib/supabase";
-import type { AdminStackParamList } from "@/navigation/types";
-
-type Nav = NativeStackNavigationProp<AdminStackParamList, "AdminUsers">;
 
 export function AdminUsersScreen() {
-  const navigation = useNavigation<Nav>();
   const colors = useColors();
   const impersonateRealUser = useAuthStore((s) => s.impersonateRealUser);
   const [users, setUsers] = useState<RealUserListItem[]>([]);

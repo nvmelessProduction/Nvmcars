@@ -25,7 +25,8 @@ export function ReferralScreen() {
   useEffect(() => {
     if (!user || !isSupabaseConfigured) return;
     loadStats();
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]); // loadStats not in deps to avoid adding useCallback overhead
 
   const loadStats = async () => {
     if (!user) return;

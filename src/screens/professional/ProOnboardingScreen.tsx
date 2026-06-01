@@ -224,50 +224,61 @@ export function ProOnboardingScreen() {
     setServicePrices((s) => ({ ...s, [k]: v.replace(/[^0-9]/g, "") }));
   };
 
-  const handlePublish = () => {
+  const [publishing, setPublishing] = useState(false);
+
+  const handlePublish = async () => {
     if (!workshopId) return;
-    setOwner(workshopId, { firstName, lastName, phone: ownerPhone });
-    setFiscal(workshopId, {
-      legalName,
-      vatNumber: vat,
-      taxCode,
-      sdiCode: sdi || undefined,
-      pec: pec || undefined,
-      ibanLast4: iban ? iban.slice(-4) : undefined,
-    });
-    setHours(workshopId, hours);
-    const finalServices: Partial<Record<ServiceKey, number>> = {};
-    for (const [k, v] of Object.entries(servicePrices)) {
-      if (v && parseInt(v, 10) > 0) finalServices[k as ServiceKey] = parseInt(v, 10);
-    }
-    setServices(workshopId, finalServices);
-    updateWorkshop(workshopId, {
-      name,
-      address,
-      cap,
-      city,
-      province,
-      phone: ownerPhone,
-      description,
-      photo: photos[0] ?? "",
-      photos,
-      lat: geoCoords?.lat ?? 0,
-      lng: geoCoords?.lng ?? 0,
-    });
-    setStatus(workshopId, "active");
-    // DAC7: replico i campi obbligatori nel profilo (utili per compliance UE)
-    if (user?.id) {
-      updateDac7Fields(user.id, {
-        taxId: taxCode,
+    setPublishing(true);
+    try {
+      setOwner(workshopId, { firstName, lastName, phone: ownerPhone });
+      setFiscal(workshopId, {
+        legalName,
         vatNumber: vat,
-        iban,
-        legalAddress: `${address}, ${cap} ${city} (${province})`.trim(),
-        countryCode: "ITA",
-      }).catch(() => undefined);
+        taxCode,
+        sdiCode: sdi || undefined,
+        pec: pec || undefined,
+        ibanLast4: iban ? iban.slice(-4) : undefined,
+      });
+      setHours(workshopId, hours);
+      const finalServices: Partial<Record<ServiceKey, number>> = {};
+      for (const [k, v] of Object.entries(servicePrices)) {
+        if (v && parseInt(v, 10) > 0) finalServices[k as ServiceKey] = parseInt(v, 10);
+      }
+      setServices(workshopId, finalServices);
+      const res = await updateWorkshop(workshopId, {
+        name,
+        address,
+        cap,
+        city,
+        province,
+        phone: ownerPhone,
+        description,
+        photo: photos[0] ?? "",
+        photos,
+        lat: geoCoords?.lat ?? 0,
+        lng: geoCoords?.lng ?? 0,
+      });
+      if (!res.ok) {
+        Alert.alert("Salvataggio non riuscito", res.reason ?? "Controlla la connessione e riprova.");
+        return;
+      }
+      setStatus(workshopId, "active");
+      // DAC7: replico i campi obbligatori nel profilo (utili per compliance UE)
+      if (user?.id) {
+        updateDac7Fields(user.id, {
+          taxId: taxCode,
+          vatNumber: vat,
+          iban,
+          legalAddress: `${address}, ${cap} ${city} (${province})`.trim(),
+          countryCode: "ITA",
+        }).catch(() => undefined);
+      }
+      Alert.alert(t.pro.publishedTitle, t.pro.publishedBody, [
+        { text: "OK", onPress: () => navigation.replace("ProProfile") },
+      ]);
+    } finally {
+      setPublishing(false);
     }
-    Alert.alert(t.pro.publishedTitle, t.pro.publishedBody, [
-      { text: "OK", onPress: () => navigation.replace("ProProfile") },
-    ]);
   };
 
   return (
@@ -883,7 +894,13 @@ export function ProOnboardingScreen() {
             </View>
           ) : (
             <View style={{ flex: 1 }}>
-              <PrimaryButton label={t.pro.submitProfile} icon="🚀" onPress={handlePublish} />
+              <PrimaryButton
+                label={publishing ? t.common.loading : t.pro.submitProfile}
+                icon="🚀"
+                onPress={handlePublish}
+                disabled={publishing}
+                loading={publishing}
+              />
             </View>
           )}
         </View>

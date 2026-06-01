@@ -5,12 +5,10 @@ import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
 import { useColors } from "@/store/useThemeStore";
 import { useCarStore } from "@/store/useCarStore";
-import { useAuthStore } from "@/store/useAuthStore";
 import { searchProducts, trackAndOpen, AutodocProduct } from "@/services/autodoc";
 
 export function PartsSearchScreen() {
   const colors = useColors();
-  const user = useAuthStore((s) => s.user);
   const cars = useCarStore((s) => s.cars);
   const myCar = cars[0]; // best guess: prima auto registrata
   const [query, setQuery] = useState("");

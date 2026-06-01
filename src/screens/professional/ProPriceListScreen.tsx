@@ -48,7 +48,8 @@ export function ProPriceListScreen() {
       if (v !== undefined) out[k] = String(v);
     }
     setPrices(out);
-  }, [workshop?.id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workshop?.id]); // intentional: reset prices only when a different workshop loads
 
   const togglePrice = (k: ServiceKey) =>
     setPrices((s) => {

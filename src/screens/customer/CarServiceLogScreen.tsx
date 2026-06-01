@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { useNavigation, useRoute, type RouteProp } from "@react-navigation/native";
+import { useRoute, type RouteProp } from "@react-navigation/native";
 import { FlatList, Text, View } from "react-native";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { Card } from "@/components/Card";
@@ -15,7 +15,6 @@ type Route = RouteProp<HomeStackParamList, "CarServiceLog">;
 
 export function CarServiceLogScreen() {
   const route = useRoute<Route>();
-  const navigation = useNavigation();
   const { carId } = route.params;
   const colors = useColors();
   const t = useT();

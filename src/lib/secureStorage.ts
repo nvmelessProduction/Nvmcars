@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform } from "react-native";
 
 // Adapter Supabase Auth → expo-secure-store con fallback AsyncStorage.
 //
@@ -10,11 +11,14 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 // stanno sotto, ma se il token cresce facciamo chunking trasparente (suffisso __N).
 // Su web o se la dep manca, fallback graceful ad AsyncStorage.
 
+// expo-secure-store non è disponibile su web: usa sempre AsyncStorage in quel caso.
 let SecureStore: typeof import("expo-secure-store") | null = null;
-try {
-  SecureStore = require("expo-secure-store");
-} catch {
-  SecureStore = null;
+if (Platform.OS !== "web") {
+  try {
+    SecureStore = require("expo-secure-store");
+  } catch {
+    SecureStore = null;
+  }
 }
 
 const CHUNK_SIZE = 1800; // < 2048 per stare comodi sotto al limite Android

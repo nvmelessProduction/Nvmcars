@@ -291,12 +291,12 @@ export function WorkshopDetailScreen() {
             <PrimaryButton
               label="Prenota"
               icon="✅"
-              onPress={() =>
-                navigation.navigate("BookingForm", {
-                  workshopId,
-                  service: service ?? SERVICES.find((s) => workshop.services[s.key])!.key,
-                })
-              }
+              onPress={() => {
+                const firstService =
+                  service ?? SERVICES.find((s) => workshop.services[s.key] !== undefined)?.key;
+                if (!firstService) return;
+                navigation.navigate("BookingForm", { workshopId, service: firstService });
+              }}
             />
           </View>
         </View>

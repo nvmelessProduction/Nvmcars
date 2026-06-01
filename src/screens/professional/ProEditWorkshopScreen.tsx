@@ -52,7 +52,8 @@ export function ProEditWorkshopScreen() {
     setPhone(workshop.phone ?? "");
     setDescription(workshop.description ?? "");
     setPhotos(workshop.photos ?? (workshop.photo ? [workshop.photo] : []));
-  }, [workshop?.id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workshop?.id]); // intentional: reset form only when a different workshop is loaded
 
   const handleSave = async () => {
     const checks: ({ ok: true } | { ok: false; reason: string })[] = [
