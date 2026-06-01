@@ -221,13 +221,23 @@ export async function resetPassword(email: string): Promise<{ ok: boolean; reaso
 
 export function onAuthChange(callback: (user: AuthUser | null) => void) {
   if (!isSupabaseConfigured) return () => undefined;
-  const { data } = supabase.auth.onAuthStateChange(async (_event, session) => {
+  const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+    // IMPORTANTE: questo callback gira DENTRO il lock interno di Supabase Auth.
+    // Fare `await` di altre chiamate Supabase (come fetchProfile → rpc/from)
+    // QUI dentro causa un deadlock: signInWithPassword/signUp non si concludono
+    // mai e la UI resta "in caricamento" all'infinito. È un caso esplicitamente
+    // sconsigliato dalla doc Supabase. Soluzione: rimandare il lavoro fuori dal
+    // lock con setTimeout(0), così il callback ritorna subito e il lock si libera.
     if (!session?.user) {
       callback(null);
       return;
     }
-    const profile = await fetchProfile(session.user.id);
-    callback(profile);
+    const userId = session.user.id;
+    setTimeout(() => {
+      fetchProfile(userId)
+        .then((profile) => callback(profile))
+        .catch(() => callback(null));
+    }, 0);
   });
   return () => data.subscription.unsubscribe();
 }

@@ -32,8 +32,12 @@ export function useMfaRequired(): boolean {
       }
     };
     check();
-    // re-check su auth state changes
-    const { data: sub } = supabase.auth.onAuthStateChange(() => check());
+    // re-check su auth state changes. NB: il callback gira dentro il lock di
+    // Supabase Auth — differiamo la chiamata async con setTimeout(0) per non
+    // causare deadlock (login/signup che non si concludono mai).
+    const { data: sub } = supabase.auth.onAuthStateChange(() => {
+      setTimeout(() => check(), 0);
+    });
     return () => {
       active = false;
       sub.subscription.unsubscribe();
