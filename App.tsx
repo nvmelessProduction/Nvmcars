@@ -17,6 +17,7 @@ import { useSubscriptionStore } from "@/store/useSubscriptionStore";
 import { useDiyStore } from "@/store/useDiyStore";
 import { useQuoteStore } from "@/store/useQuoteStore";
 import * as authService from "@/services/auth";
+import { ensureMyWorkshop } from "@/services/workshops";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { initSentry } from "@/lib/sentry";
 import { initAnalytics, identify, reset } from "@/lib/analytics";
@@ -122,11 +123,28 @@ function AppBootstrap({ children }: { children: React.ReactNode }) {
         hydrateFavorites(user.id).catch(() => undefined);
         hydrateQuotes({ customerId: user.id }).catch(() => undefined);
       } else if (user.role === "professional") {
-        hydrateBookings({ workshopId: user.workshopId }).catch(() => undefined);
-        hydrateConversations({ workshopId: user.workshopId }).catch(() => undefined);
-        if (user.workshopId) {
-          hydrateWorkshopById(user.workshopId).catch(() => undefined);
-          hydrateQuotes({ workshopId: user.workshopId }).catch(() => undefined);
+        const proUser = user;
+        const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        // AUTO-RIPARAZIONE all'avvio: se l'account pro non ha un'officina valida
+        // collegata (account creato prima del fix), la cerca/crea e la collega.
+        // Risolve da solo "Officina non trovata" senza azioni dell'utente.
+        if (!proUser.workshopId || !UUID_RE.test(proUser.workshopId)) {
+          ensureMyWorkshop(proUser.id)
+            .then((realId) => {
+              if (realId) {
+                setUser({ ...proUser, workshopId: realId });
+                hydrateWorkshopById(realId).catch(() => undefined);
+                hydrateBookings({ workshopId: realId }).catch(() => undefined);
+                hydrateConversations({ workshopId: realId }).catch(() => undefined);
+                hydrateQuotes({ workshopId: realId }).catch(() => undefined);
+              }
+            })
+            .catch(() => undefined);
+        } else {
+          hydrateBookings({ workshopId: proUser.workshopId }).catch(() => undefined);
+          hydrateConversations({ workshopId: proUser.workshopId }).catch(() => undefined);
+          hydrateWorkshopById(proUser.workshopId).catch(() => undefined);
+          hydrateQuotes({ workshopId: proUser.workshopId }).catch(() => undefined);
         }
       }
       // admin: niente hydrate role-specific (visualizza solo)
@@ -143,6 +161,7 @@ function AppBootstrap({ children }: { children: React.ReactNode }) {
     hydrateSubscriptions,
     hydrateDiy,
     hydrateQuotes,
+    setUser,
   ]);
 
   return <>{children}</>;

@@ -118,6 +118,41 @@ export async function getWorkshopById(id: string): Promise<Workshop | null> {
   return rowToWorkshop(wsRes.data, svcRes.data ?? [], ovRes.data ?? [], vacRes.data ?? []);
 }
 
+/**
+ * Garantisce che il professionista loggato abbia un'officina ESISTENTE e
+ * COLLEGATA al profilo. Auto-riparazione per gli account creati prima del fix
+ * (workshopId vuoto / officina mai creata) → risolve l'errore "Officina non
+ * trovata" al salvataggio. Ritorna l'id officina (UUID) o null.
+ * Richiede una sessione attiva (auth.uid()).
+ */
+export async function ensureMyWorkshop(userId: string): Promise<string | null> {
+  if (!isSupabaseConfigured) return null;
+
+  // 1) Cerca un'officina di cui sono già proprietario.
+  const existing = await supabase
+    .from("workshops")
+    .select("id")
+    .eq("owner_id", userId)
+    .limit(1)
+    .maybeSingle();
+  let workshopId: string | null = existing.data?.id ?? null;
+
+  // 2) Se non esiste, creala in bozza (la RLS lo consente: owner_id = auth.uid()).
+  if (!workshopId) {
+    const created = await supabase
+      .from("workshops")
+      .insert({ owner_id: userId, name: "", city: "", address: "", lat: 0, lng: 0, status: "draft" })
+      .select("id")
+      .single();
+    if (created.error || !created.data) return null;
+    workshopId = created.data.id;
+  }
+
+  // 3) Assicura il collegamento nel profilo.
+  await supabase.from("profiles").update({ workshop_id: workshopId }).eq("id", userId);
+  return workshopId;
+}
+
 export async function updateWorkshop(
   id: string,
   patch: Partial<Workshop>

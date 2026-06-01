@@ -18,19 +18,47 @@ import {
 } from "@/utils/validators";
 import { geocodeAddress } from "@/utils/geocode";
 import { pickFromGallery } from "@/utils/mediaPicker";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import { ensureMyWorkshop } from "@/services/workshops";
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function ProEditWorkshopScreen() {
   const t = useT();
   const colors = useColors();
   const user = useAuthStore((s) => s.user);
+  const setUser = useAuthStore((s) => s.setUser);
   const workshopId = user && user.role === "professional" ? user.workshopId : undefined;
   const workshop = useOwnWorkshop(workshopId);
   const ensureWorkshop = useWorkshopStore((s) => s.ensureWorkshop);
   const updateWorkshop = useWorkshopStore((s) => s.updateWorkshop);
+  const hydrateWorkshopById = useWorkshopStore((s) => s.hydrateById);
 
   useEffect(() => {
     if (workshopId) ensureWorkshop(workshopId, user?.id);
   }, [workshopId, ensureWorkshop, user?.id]);
+
+  // AUTO-RIPARAZIONE: se l'account pro non ha un'officina valida collegata
+  // (workshopId vuoto o non-UUID, tipico degli account creati prima del fix),
+  // la cerca/crea sul backend e aggiorna l'utente. Risolve da solo l'errore
+  // "Officina non trovata" senza che l'utente faccia nulla.
+  useEffect(() => {
+    if (!user || user.role !== "professional" || !isSupabaseConfigured) return;
+    if (workshopId && UUID_RE.test(workshopId)) return; // già a posto
+    const proUser = user; // narrowed to ProfessionalUser
+    let active = true;
+    ensureMyWorkshop(proUser.id)
+      .then((realId) => {
+        if (active && realId) {
+          setUser({ ...proUser, workshopId: realId });
+          hydrateWorkshopById(realId).catch(() => undefined);
+        }
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [user, workshopId, setUser, hydrateWorkshopById]);
 
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
@@ -75,26 +103,26 @@ export function ProEditWorkshopScreen() {
       Alert.alert(t.common.error, "Aggiungi almeno una foto dell'officina");
       return;
     }
-    if (!workshopId) {
-      Alert.alert(t.common.error, "Officina non trovata. Esci e rientra nel profilo.");
-      return;
+    setSaving(true);
+    // Risolvi un id officina VALIDO (UUID). Se manca o non è valido (account
+    // creato prima del fix), prova a ripararlo al volo cercando/creando
+    // l'officina sul backend e collegandola al profilo.
+    let targetId = workshopId && UUID_RE.test(workshopId) ? workshopId : null;
+    if (!targetId && user && user.role === "professional" && isSupabaseConfigured) {
+      targetId = await ensureMyWorkshop(user.id);
+      if (targetId) setUser({ ...user, workshopId: targetId });
     }
-    // L'id officina deve essere un UUID reale del database. Gli account DEMO
-    // (es. admin che "visualizza come professionista") hanno id finti come "w1"
-    // che Supabase rifiuta. Avvisiamo chiaramente invece di mostrare l'errore
-    // tecnico "invalid input syntax for type uuid".
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(workshopId);
-    if (!isUuid) {
+    if (!targetId) {
+      setSaving(false);
       Alert.alert(
-        "Profilo dimostrativo",
-        "Stai usando un account professionista DEMO (es. dalla modalità admin), che non può salvare sul database. Per modificare un'officina vera, registrati come professionista."
+        t.common.error,
+        "Officina non collegata al tuo account. Esci e rientra: verrà creata automaticamente."
       );
       return;
     }
     // Salva e ASPETTA l'esito reale del salvataggio su Supabase, così l'utente
     // vede un vero successo o un vero errore (prima mostrava sempre "salvato").
-    setSaving(true);
-    const res = await updateWorkshop(workshopId, {
+    const res = await updateWorkshop(targetId, {
       name,
       address,
       cap,
@@ -122,7 +150,7 @@ export function ProEditWorkshopScreen() {
     // cambiato, aggiorna lat/lng senza bloccare l'utente.
     geocodeAddress({ address, city, cap })
       .then((geo) => {
-        if (geo) updateWorkshop(workshopId, { lat: geo.lat, lng: geo.lng });
+        if (geo) updateWorkshop(targetId, { lat: geo.lat, lng: geo.lng });
       })
       .catch(() => undefined);
   };
