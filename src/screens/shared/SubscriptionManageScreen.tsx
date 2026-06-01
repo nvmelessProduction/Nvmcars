@@ -78,7 +78,21 @@ export function SubscriptionManageScreen() {
             <PrimaryButton
               label="Scopri i piani"
               icon="⚡"
-              onPress={() => navigation.navigate("ProUpgrade")}
+              onPress={() => {
+                // Navigazione difensiva: ProUpgrade vive nel ProProfileStack.
+                // Se la schermata è raggiunta da un contesto annidato diverso,
+                // un navigate diretto fallirebbe ("not handled"). Proviamo prima
+                // diretto, poi via tab pro, senza mai crashare.
+                try {
+                  navigation.navigate("ProUpgrade");
+                } catch {
+                  try {
+                    navigation.getParent()?.navigate("ProProfileTab", { screen: "ProUpgrade" });
+                  } catch {
+                    /* no-op */
+                  }
+                }
+              }}
             />
           </Card>
         ) : null}

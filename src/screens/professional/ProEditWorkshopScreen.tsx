@@ -79,6 +79,18 @@ export function ProEditWorkshopScreen() {
       Alert.alert(t.common.error, "Officina non trovata. Esci e rientra nel profilo.");
       return;
     }
+    // L'id officina deve essere un UUID reale del database. Gli account DEMO
+    // (es. admin che "visualizza come professionista") hanno id finti come "w1"
+    // che Supabase rifiuta. Avvisiamo chiaramente invece di mostrare l'errore
+    // tecnico "invalid input syntax for type uuid".
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(workshopId);
+    if (!isUuid) {
+      Alert.alert(
+        "Profilo dimostrativo",
+        "Stai usando un account professionista DEMO (es. dalla modalità admin), che non può salvare sul database. Per modificare un'officina vera, registrati come professionista."
+      );
+      return;
+    }
     // Salva e ASPETTA l'esito reale del salvataggio su Supabase, così l'utente
     // vede un vero successo o un vero errore (prima mostrava sempre "salvato").
     setSaving(true);
