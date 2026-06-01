@@ -14,6 +14,7 @@ function rowToQuote(row: any, items: any[] = []): Quote {
       description: i.description,
       quantity: i.quantity,
       unitPrice: Number(i.unit_price),
+      autodocProduct: i.autodoc_product ?? undefined,
     })),
     subtotal: Number(row.subtotal),
     commissionFeePct: Number(row.commission_fee_pct),
@@ -76,6 +77,7 @@ export async function createQuoteRemote(
         quantity: li.quantity,
         unit_price: li.unitPrice,
         position: i,
+        autodoc_product: li.autodocProduct ?? null,
       }))
     );
   }

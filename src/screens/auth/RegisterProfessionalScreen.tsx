@@ -96,7 +96,7 @@ export function RegisterProfessionalScreen() {
               💡 Per il test MVP usa uno di questi codici:
             </Text>
             <Text style={{ fontSize: 12, color: colors.textMuted, marginTop: 4 }}>
-              NVM-CRV-A4F9 · NVM-LAD-D33M
+              NVM-CRV-B72X · NVM-LAD-E55Q · NVMTEST001
             </Text>
           </Card>
 
