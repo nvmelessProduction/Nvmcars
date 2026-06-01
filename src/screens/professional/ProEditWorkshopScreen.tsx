@@ -40,6 +40,7 @@ export function ProEditWorkshopScreen() {
   const [phone, setPhone] = useState("");
   const [description, setDescription] = useState("");
   const [photos, setPhotos] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!workshop) return;
@@ -73,10 +74,14 @@ export function ProEditWorkshopScreen() {
       Alert.alert(t.common.error, "Aggiungi almeno una foto dell'officina");
       return;
     }
-    if (!workshopId) return;
-    // Salva SUBITO (con le coordinate esistenti): il salvataggio non deve mai
-    // restare bloccato in attesa del geocoding della rete.
-    updateWorkshop(workshopId, {
+    if (!workshopId) {
+      Alert.alert(t.common.error, "Officina non trovata. Esci e rientra nel profilo.");
+      return;
+    }
+    // Salva e ASPETTA l'esito reale del salvataggio su Supabase, così l'utente
+    // vede un vero successo o un vero errore (prima mostrava sempre "salvato").
+    setSaving(true);
+    const res = await updateWorkshop(workshopId, {
       name,
       address,
       cap,
@@ -89,6 +94,14 @@ export function ProEditWorkshopScreen() {
       lat: workshop?.lat ?? 0,
       lng: workshop?.lng ?? 0,
     });
+    setSaving(false);
+    if (!res.ok) {
+      Alert.alert(
+        "Salvataggio non riuscito",
+        res.reason ?? "Controlla la connessione e riprova."
+      );
+      return;
+    }
     Alert.alert("Profilo salvato", "Le modifiche sono visibili ai clienti.", [
       { text: t.common.ok },
     ]);
@@ -209,7 +222,13 @@ export function ProEditWorkshopScreen() {
           </Card>
 
           <View style={{ marginTop: 8 }}>
-            <PrimaryButton label={t.common.save} icon="💾" onPress={handleSave} />
+            <PrimaryButton
+              label={saving ? "Salvataggio…" : t.common.save}
+              icon="💾"
+              onPress={handleSave}
+              loading={saving}
+              disabled={saving}
+            />
           </View>
       </KeyboardAwareScrollView>
     </ScreenContainer>

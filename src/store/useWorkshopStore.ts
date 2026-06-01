@@ -63,7 +63,7 @@ type WorkshopState = {
   hydrateById: (workshopId: string) => Promise<void>;
   ensureWorkshop: (workshopId: string, ownerId?: string) => Workshop;
   getWorkshop: (workshopId: string) => Workshop | null;
-  updateWorkshop: (workshopId: string, patch: Partial<Workshop>) => void;
+  updateWorkshop: (workshopId: string, patch: Partial<Workshop>) => Promise<{ ok: boolean; reason?: string }>;
   setOwner: (workshopId: string, owner: WorkshopOwner) => void;
   setFiscal: (workshopId: string, fiscal: WorkshopFiscalData) => void;
   setHours: (workshopId: string, hours: WorkshopHours) => void;
@@ -127,12 +127,24 @@ export const useWorkshopStore = create<WorkshopState>()(
         return mock ?? null;
       },
 
-      updateWorkshop: (workshopId, patch) => {
-        const own = get().ownWorkshops[workshopId];
-        if (!own) return;
-        const next = { ...own, ...patch };
+      updateWorkshop: async (workshopId, patch) => {
+        if (!workshopId) {
+          return { ok: false, reason: "Officina non trovata (id mancante). Esci e rientra." };
+        }
+        // Se l'officina non è ancora nello store locale, la ricostruiamo: prima
+        // dai dati remoti già caricati, altrimenti da una bozza. Così "Salva"
+        // non esce più in silenzio quando ownWorkshops è vuoto (bug: cliccavi
+        // salva e non succedeva nulla).
+        const base =
+          get().ownWorkshops[workshopId] ??
+          get().remoteWorkshops.find((w) => w.id === workshopId) ??
+          buildDraftWorkshop(workshopId);
+        const next = { ...base, ...patch };
         set({ ownWorkshops: { ...get().ownWorkshops, [workshopId]: next } });
-        workshopsService.updateWorkshop(workshopId, patch).catch(() => undefined);
+        // Persistenza su Supabase con esito reale (così la UI può mostrare un
+        // vero successo/errore invece di un "salvato" sempre ottimistico).
+        const res = await workshopsService.updateWorkshop(workshopId, patch);
+        return res.ok ? { ok: true } : { ok: false, reason: res.reason };
       },
 
       setOwner: (workshopId, owner) => {
