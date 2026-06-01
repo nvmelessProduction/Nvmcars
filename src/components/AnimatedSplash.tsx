@@ -72,17 +72,17 @@ export function AnimatedSplash({ onDone }: { onDone: () => void }) {
           entering={carRun.duration(1500)}
           style={{ position: "absolute", alignItems: "center" }}
         >
-          {/* scie di velocità dietro la macchina */}
+          {/* scie di velocità sotto la macchina (movimento verso l'alto) */}
           <Animated.View
-            style={{ position: "absolute", top: 135, width: 10, height: 110, borderRadius: 5, backgroundColor: ORANGE_TOP, opacity: 0.85 }}
+            style={{ position: "absolute", top: 70, left: -28, width: 8, height: 120, borderRadius: 4, backgroundColor: ORANGE_TOP, opacity: 0.85 }}
           />
           <Animated.View
-            style={{ position: "absolute", top: 150, left: -34, width: 6, height: 80, borderRadius: 3, backgroundColor: ORANGE_BOT, opacity: 0.6 }}
+            style={{ position: "absolute", top: 80, width: 6, height: 95, borderRadius: 3, backgroundColor: ORANGE_BOT, opacity: 0.6 }}
           />
           <Animated.View
-            style={{ position: "absolute", top: 150, left: 28, width: 6, height: 80, borderRadius: 3, backgroundColor: ORANGE_BOT, opacity: 0.4 }}
+            style={{ position: "absolute", top: 80, left: 28, width: 6, height: 95, borderRadius: 3, backgroundColor: ORANGE_BOT, opacity: 0.45 }}
           />
-          <Ferrari width={150} />
+          <Ferrari width={230} />
         </Animated.View>
       ) : (
         <Animated.View entering={FadeIn.duration(300)} style={{ alignItems: "center" }}>
@@ -105,56 +105,67 @@ export function AnimatedSplash({ onDone }: { onDone: () => void }) {
   );
 }
 
-/** Ferrari stilizzata vista dall'alto (supercar rossa), punta verso l'alto. */
+/**
+ * Crossover sportivo rosso di profilo, stile "Purosangue" (SUV-coupé):
+ * tetto spiovente, cerchi neri grandi con pinza rossa, fascia rossa bassa.
+ * Disegnata di profilo (muso a destra). Nessun marchio.
+ */
 function Ferrari({ width }: { width: number }) {
-  const h = width * 1.6;
+  const h = width * 0.5;
   return (
-    <Svg width={width} height={h} viewBox="0 0 100 160">
+    <Svg width={width} height={h} viewBox="0 0 310 135">
       <Defs>
-        <LinearGradient id="ferRed" x1="0" y1="0" x2="1" y2="0">
-          <Stop offset="0" stopColor="#B11217" />
-          <Stop offset="0.5" stopColor="#FF1E27" />
-          <Stop offset="1" stopColor="#B11217" />
+        <LinearGradient id="ferBody" x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor="#FF353B" />
+          <Stop offset="0.45" stopColor="#D6080F" />
+          <Stop offset="1" stopColor="#7c0205" />
         </LinearGradient>
-        <LinearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor="#1a1a1f" />
-          <Stop offset="1" stopColor="#3a3a44" />
+        <LinearGradient id="ferShine" x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor="#ffffff" stopOpacity="0.5" />
+          <Stop offset="1" stopColor="#ffffff" stopOpacity="0" />
+        </LinearGradient>
+        <LinearGradient id="ferLower" x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor="#5a0103" />
+          <Stop offset="1" stopColor="#2a0001" />
+        </LinearGradient>
+        <LinearGradient id="ferGlass" x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor="#e6f4ff" />
+          <Stop offset="1" stopColor="#1c2730" />
+        </LinearGradient>
+        <LinearGradient id="ferRim" x1="0" y1="0" x2="1" y2="1">
+          <Stop offset="0" stopColor="#3a3a40" />
+          <Stop offset="0.55" stopColor="#1c1c20" />
+          <Stop offset="1" stopColor="#070708" />
         </LinearGradient>
       </Defs>
 
-      {/* ombra */}
-      <Ellipse cx="50" cy="150" rx="30" ry="8" fill="#000000" opacity="0.35" />
+      <Ellipse cx="155" cy="112" rx="135" ry="9" fill="#000000" opacity="0.45" />
 
-      {/* corpo auto (vista dall'alto, muso in alto) */}
+      {/* corpo SUV-coupé */}
       <Path
-        d="M50 4
-           C40 4 33 14 31 28
-           C20 32 14 42 14 62
-           C14 92 16 120 22 138
-           C26 150 38 154 50 154
-           C62 154 74 150 78 138
-           C84 120 86 92 86 62
-           C86 42 80 32 69 28
-           C67 14 60 4 50 4 Z"
-        fill="url(#ferRed)"
+        d="M296 74 C302 72 302 64 296 62 L274 58 C266 50 254 45 240 43 C232 33 214 27 188 27 C158 26 140 31 126 40 C108 27 86 24 66 27 C46 30 32 40 26 54 L18 60 C10 63 8 70 12 78 C14 84 20 87 30 87 L284 87 C292 87 296 81 296 74 Z"
+        fill="url(#ferBody)"
       />
-      {/* parabrezza */}
-      <Path d="M38 50 C42 46 58 46 62 50 C64 60 64 70 60 78 C54 74 46 74 40 78 C36 70 36 60 38 50 Z" fill="url(#glass)" />
-      {/* cofano posteriore / vetro dietro */}
-      <Path d="M40 96 C46 92 54 92 60 96 C61 104 61 114 58 122 C53 119 47 119 42 122 C39 114 39 104 40 96 Z" fill="url(#glass)" opacity="0.85" />
-      {/* riga centrale */}
-      <Path d="M50 30 L50 150" stroke="#7a0c10" strokeWidth="1.4" opacity="0.5" />
+      <Path d="M150 33 C188 28 226 33 262 52 L262 58 C228 44 190 41 150 44 Z" fill="url(#ferShine)" opacity="0.45" />
+      {/* vetri */}
+      <Path d="M70 35 C92 26 116 24 140 25 C170 26 196 32 220 46 L196 47 L96 49 C84 49 76 44 70 35 Z" fill="url(#ferGlass)" />
+      <Path d="M70 35 C64 40 60 47 60 55 L78 53 L96 49 Z" fill="url(#ferBody)" />
+      {/* minigonna + fascia rossa */}
+      <Path d="M30 87 L284 87 C292 87 296 81 296 74 L286 75 L40 79 C30 80 24 84 30 87 Z" fill="url(#ferLower)" />
+      <Path d="M44 80 L260 77" stroke="#ff2d32" strokeWidth="2" opacity="0.8" />
+      {/* presa d'aria */}
+      <Path d="M160 60 L196 55 L202 66 L166 70 Z" fill="#150203" />
+      {/* fari */}
+      <Path d="M262 62 L280 64 L279 70 L262 68 Z" fill="#FFF0C4" />
+      <Circle cx="22" cy="66" r="3.2" fill="#ff5050" />
+      <Circle cx="22" cy="74" r="3.2" fill="#cc2222" />
       {/* ruote */}
-      <Path d="M10 44 h10 v26 h-10 z" fill="#141417" />
-      <Path d="M80 44 h10 v26 h-10 z" fill="#141417" />
-      <Path d="M9 104 h11 v28 h-11 z" fill="#141417" />
-      <Path d="M80 104 h11 v28 h-11 z" fill="#141417" />
-      {/* fari anteriori */}
-      <Circle cx="40" cy="16" r="3" fill="#FFE9B0" />
-      <Circle cx="60" cy="16" r="3" fill="#FFE9B0" />
-      {/* fanali posteriori */}
-      <Path d="M34 146 h12 v4 h-12 z" fill="#ff5a5a" />
-      <Path d="M54 146 h12 v4 h-12 z" fill="#ff5a5a" />
+      <Circle cx="88" cy="88" r="26" fill="#0a0a0c" />
+      <Circle cx="88" cy="88" r="14.5" fill="url(#ferRim)" />
+      <Circle cx="88" cy="88" r="3.6" fill="#e10911" />
+      <Circle cx="240" cy="88" r="26" fill="#0a0a0c" />
+      <Circle cx="240" cy="88" r="14.5" fill="url(#ferRim)" />
+      <Circle cx="240" cy="88" r="3.6" fill="#e10911" />
     </Svg>
   );
 }
