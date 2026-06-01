@@ -55,6 +55,24 @@ export function buildDraftWorkshop(workshopId: string, ownerId?: string): Worksh
   };
 }
 
+/**
+ * Ricava l'officina base per un update: prima da ownWorkshops, poi da
+ * remoteWorkshops (idratata dal DB), infine una bozza. Evita che i salvataggi
+ * (owner, fiscal, hours, services, status) escano in silenzio quando l'officina
+ * non è ancora nello store locale — bug che faceva perdere la P.IVA in onboarding.
+ */
+function resolveBase(
+  get: () => { ownWorkshops: Record<string, Workshop>; remoteWorkshops: Workshop[] },
+  workshopId: string
+): Workshop | null {
+  if (!workshopId) return null;
+  return (
+    get().ownWorkshops[workshopId] ??
+    get().remoteWorkshops.find((w) => w.id === workshopId) ??
+    buildDraftWorkshop(workshopId)
+  );
+}
+
 type WorkshopState = {
   ownWorkshops: Record<string, Workshop>;
   remoteWorkshops: Workshop[]; // fetched from Supabase
@@ -148,30 +166,30 @@ export const useWorkshopStore = create<WorkshopState>()(
       },
 
       setOwner: (workshopId, owner) => {
-        const own = get().ownWorkshops[workshopId];
-        if (!own) return;
-        set({ ownWorkshops: { ...get().ownWorkshops, [workshopId]: { ...own, owner } } });
+        const base = resolveBase(get, workshopId);
+        if (!base) return;
+        set({ ownWorkshops: { ...get().ownWorkshops, [workshopId]: { ...base, owner } } });
         workshopsService.setOwner(workshopId, owner).catch(() => undefined);
       },
 
       setFiscal: (workshopId, fiscalData) => {
-        const own = get().ownWorkshops[workshopId];
-        if (!own) return;
-        set({ ownWorkshops: { ...get().ownWorkshops, [workshopId]: { ...own, fiscalData } } });
+        const base = resolveBase(get, workshopId);
+        if (!base) return;
+        set({ ownWorkshops: { ...get().ownWorkshops, [workshopId]: { ...base, fiscalData } } });
         workshopsService.setFiscal(workshopId, fiscalData).catch(() => undefined);
       },
 
       setHours: (workshopId, hours) => {
-        const own = get().ownWorkshops[workshopId];
-        if (!own) return;
-        set({ ownWorkshops: { ...get().ownWorkshops, [workshopId]: { ...own, hours } } });
+        const base = resolveBase(get, workshopId);
+        if (!base) return;
+        set({ ownWorkshops: { ...get().ownWorkshops, [workshopId]: { ...base, hours } } });
         workshopsService.setHours(workshopId, hours).catch(() => undefined);
       },
 
       setServices: (workshopId, services) => {
-        const own = get().ownWorkshops[workshopId];
-        if (!own) return;
-        set({ ownWorkshops: { ...get().ownWorkshops, [workshopId]: { ...own, services } } });
+        const base = resolveBase(get, workshopId);
+        if (!base) return;
+        set({ ownWorkshops: { ...get().ownWorkshops, [workshopId]: { ...base, services } } });
         workshopsService.setServices(workshopId, services).catch(() => undefined);
       },
 
@@ -269,7 +287,7 @@ export const useWorkshopStore = create<WorkshopState>()(
       },
 
       setStatus: (workshopId, status) => {
-        const own = get().ownWorkshops[workshopId];
+        const own = resolveBase(get, workshopId);
         if (!own) return;
         set({
           ownWorkshops: { ...get().ownWorkshops, [workshopId]: { ...own, status } },
