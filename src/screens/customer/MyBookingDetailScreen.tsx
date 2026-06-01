@@ -6,7 +6,7 @@ import { Card } from "@/components/Card";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { useBookingsStore } from "@/store/useBookingsStore";
 import { useColors } from "@/store/useThemeStore";
-import { useT } from "@/i18n";
+import { useT, useLocaleStr } from "@/i18n";
 import { useResolvedWorkshop } from "@/store/useWorkshopStore";
 import { getServiceLabel, getServiceEmoji } from "@/data/services";
 import { openWhatsApp } from "@/utils/whatsapp";
@@ -24,6 +24,7 @@ export function MyBookingDetailScreen() {
   const { bookingId } = route.params;
   const colors = useColors();
   const t = useT();
+  const localeStr = useLocaleStr();
   const user = useAuthStore((s) => s.user);
   const booking = useBookingsStore((s) => s.bookings.find((b) => b.id === bookingId));
   const selectSlot = useBookingsStore((s) => s.selectSlot);
@@ -70,7 +71,7 @@ export function MyBookingDetailScreen() {
     if (!slot) return;
     Alert.alert(
       t.bookings.confirmSlot,
-      `${new Date(slot.startAt).toLocaleString("it-IT", {
+      `${new Date(slot.startAt).toLocaleString(localeStr, {
         weekday: "long",
         day: "2-digit",
         month: "long",
@@ -100,7 +101,7 @@ export function MyBookingDetailScreen() {
                 title: t.bookings.bookingConfirmed,
                 body: t.bookings.bookingConfirmedHint.replace(
                   "{date}",
-                  new Date(slot.startAt).toLocaleString("it-IT", {
+                  new Date(slot.startAt).toLocaleString(localeStr, {
                     day: "2-digit",
                     month: "short",
                     hour: "2-digit",
@@ -188,7 +189,7 @@ export function MyBookingDetailScreen() {
                 >
                   <View style={{ flex: 1 }}>
                     <Text style={{ fontSize: 15, fontWeight: "700", color: colors.text }}>
-                      {new Date(slot.startAt).toLocaleDateString("it-IT", {
+                      {new Date(slot.startAt).toLocaleDateString(localeStr, {
                         weekday: "long",
                         day: "2-digit",
                         month: "long",
@@ -196,7 +197,7 @@ export function MyBookingDetailScreen() {
                     </Text>
                     <Text style={{ fontSize: 13, color: colors.textMuted, marginTop: 2 }}>
                       ore{" "}
-                      {new Date(slot.startAt).toLocaleTimeString("it-IT", {
+                      {new Date(slot.startAt).toLocaleTimeString(localeStr, {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}{" "}
@@ -221,7 +222,7 @@ export function MyBookingDetailScreen() {
               <Text style={{ fontSize: 13, color: colors.textMuted, marginTop: 6 }}>
                 {t.bookings.bookingConfirmedHint.replace(
                   "{date}",
-                  new Date(booking.scheduledAt).toLocaleString("it-IT", {
+                  new Date(booking.scheduledAt).toLocaleString(localeStr, {
                     weekday: "long",
                     day: "2-digit",
                     month: "long",
@@ -270,7 +271,7 @@ export function MyBookingDetailScreen() {
           />
           <Row
             label={t.bookings.requestedAt}
-            value={new Date(booking.createdAt).toLocaleString("it-IT")}
+            value={new Date(booking.createdAt).toLocaleString(localeStr)}
             colors={colors}
           />
         </Card>

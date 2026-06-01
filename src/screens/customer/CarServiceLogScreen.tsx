@@ -5,7 +5,7 @@ import { ScreenContainer } from "@/components/ScreenContainer";
 import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
 import { useColors } from "@/store/useThemeStore";
-import { useT } from "@/i18n";
+import { useT, useLocaleStr } from "@/i18n";
 import { useCarStore } from "@/store/useCarStore";
 import { useServiceLogStore } from "@/store/useServiceLogStore";
 import { getServiceLabel, getServiceEmoji } from "@/data/services";
@@ -18,6 +18,7 @@ export function CarServiceLogScreen() {
   const { carId } = route.params;
   const colors = useColors();
   const t = useT();
+  const localeStr = useLocaleStr();
   const car = useCarStore((s) => s.cars.find((c) => c.id === carId));
   const entries = useServiceLogStore((s) => s.entries);
   const reminders = useServiceLogStore((s) => s.reminders);
@@ -72,7 +73,7 @@ export function CarServiceLogScreen() {
               </Text>
               {car.km ? (
                 <Text style={{ fontSize: 13, color: colors.textMuted, marginTop: 2 }}>
-                  📊 {car.km.toLocaleString("it-IT")} km
+                  📊 {car.km.toLocaleString(localeStr)} km
                 </Text>
               ) : null}
             </Card>
@@ -109,7 +110,7 @@ export function CarServiceLogScreen() {
                         </Text>
                         <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 2 }}>
                           {t.car.reminderDueDate}:{" "}
-                          {dueDate.toLocaleDateString("it-IT", {
+                          {dueDate.toLocaleDateString(localeStr, {
                             day: "2-digit",
                             month: "long",
                             year: "numeric",
@@ -145,7 +146,7 @@ export function CarServiceLogScreen() {
                   </Text>
                   <Text style={{ fontSize: 12, color: colors.textMuted, marginTop: 2 }}>
                     {item.workshopName ?? "Officina"} ·{" "}
-                    {new Date(item.performedAt).toLocaleDateString("it-IT", {
+                    {new Date(item.performedAt).toLocaleDateString(localeStr, {
                       day: "2-digit",
                       month: "short",
                       year: "numeric",
@@ -165,7 +166,7 @@ export function CarServiceLogScreen() {
                       ) : null}
                       {item.km !== undefined ? (
                         <Text style={{ fontSize: 13, color: colors.textMuted }}>
-                          {item.km.toLocaleString("it-IT")} km
+                          {item.km.toLocaleString(localeStr)} km
                         </Text>
                       ) : null}
                     </View>

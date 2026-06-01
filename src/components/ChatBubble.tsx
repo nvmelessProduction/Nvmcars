@@ -2,7 +2,7 @@ import { Image, Pressable, Text, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { useColors } from "@/store/useThemeStore";
 import { useQuoteStore } from "@/store/useQuoteStore";
-import { useT } from "@/i18n";
+import { useT, useLocaleStr } from "@/i18n";
 import { hitSlop, withOpacity } from "@/theme/tokens";
 import type { ChatMessage } from "@/types";
 
@@ -16,11 +16,12 @@ type Props = {
 export function ChatBubble({ message, mine, onPressQuote, onPressMedia }: Props) {
   const colors = useColors();
   const t = useT();
+  const localeStr = useLocaleStr();
   const quote = useQuoteStore((s) =>
     message.quoteId ? s.byId(message.quoteId) : undefined
   );
 
-  const time = new Date(message.createdAt).toLocaleTimeString("it-IT", {
+  const time = new Date(message.createdAt).toLocaleTimeString(localeStr, {
     hour: "2-digit",
     minute: "2-digit",
   });

@@ -8,7 +8,7 @@ import { useQuoteStore } from "@/store/useQuoteStore";
 import { useChatStore } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useColors } from "@/store/useThemeStore";
-import { useT } from "@/i18n";
+import { useT, useLocaleStr } from "@/i18n";
 import { useResolvedWorkshop } from "@/store/useWorkshopStore";
 import { trackAndOpen } from "@/services/autodoc";
 
@@ -19,6 +19,7 @@ export function QuoteDetailScreen() {
   const route = useRoute<Route>();
   const colors = useColors();
   const t = useT();
+  const localeStr = useLocaleStr();
   const user = useAuthStore((s) => s.user);
   const quote = useQuoteStore((s) => s.byId(route.params.quoteId));
   const setStatus = useQuoteStore((s) => s.setStatus);
@@ -241,7 +242,7 @@ export function QuoteDetailScreen() {
 
         <Text style={{ fontSize: 12, color: colors.textMuted, textAlign: "center" }}>
           {t.quote.validUntil}:{" "}
-          {new Date(quote.validUntil).toLocaleDateString("it-IT", {
+          {new Date(quote.validUntil).toLocaleDateString(localeStr, {
             day: "2-digit",
             month: "long",
             year: "numeric",

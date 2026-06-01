@@ -9,7 +9,7 @@ import { KAV } from "@/components/KAV";
 import { useBookingsStore } from "@/store/useBookingsStore";
 import { notifyEvent } from "@/store/useNotificationsStore";
 import { useColors } from "@/store/useThemeStore";
-import { useT } from "@/i18n";
+import { useT, getLocaleStr } from "@/i18n";
 import { getServiceLabel } from "@/data/services";
 import type { BookingSlot } from "@/types";
 import type { ProRequestsStackParamList } from "@/navigation/types";
@@ -38,12 +38,12 @@ const TIMES = [
   "15:30", "16:00", "16:30", "17:00", "17:30", "18:00",
 ];
 
-function formatDateChip(daysOffset: number): string {
+function formatDateChip(daysOffset: number, today: string, tomorrow: string): string {
   const d = new Date();
   d.setDate(d.getDate() + daysOffset);
-  if (daysOffset === 0) return "Oggi";
-  if (daysOffset === 1) return "Domani";
-  return d.toLocaleDateString("it-IT", { weekday: "short", day: "2-digit", month: "short" });
+  if (daysOffset === 0) return today;
+  if (daysOffset === 1) return tomorrow;
+  return d.toLocaleDateString(getLocaleStr(), { weekday: "short", day: "2-digit", month: "short" });
 }
 
 function combineDateTime(daysOffset: number, time: string): number {
@@ -171,7 +171,7 @@ export function ProProposeSlotsScreen() {
                         fontSize: 13,
                       }}
                     >
-                      {formatDateChip(d)}
+                      {formatDateChip(d, t.common.today, t.common.tomorrow)}
                     </Text>
                   </Pressable>
                 ))}
@@ -295,7 +295,7 @@ export function ProProposeSlotsScreen() {
                   >
                     <View style={{ flex: 1 }}>
                       <Text style={{ color: colors.text, fontWeight: "700", fontSize: 14 }}>
-                        {formatDateChip(s.date)} ore {s.time}
+                        {formatDateChip(s.date, t.common.today, t.common.tomorrow)} ore {s.time}
                       </Text>
                       <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 2 }}>
                         Durata: {DURATIONS.find((d) => d.v === s.duration)?.label}

@@ -6,7 +6,7 @@ import { Card } from "@/components/Card";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { useColors } from "@/store/useThemeStore";
 import { useSubscriptionStore, Subscription } from "@/store/useSubscriptionStore";
-import { useT } from "@/i18n";
+import { useT, getLocaleStr } from "@/i18n";
 
 const TIER_LABEL: Record<Subscription["tier"], string> = {
   free: "Free",
@@ -146,5 +146,5 @@ export function SubscriptionManageScreen() {
 function formatDate(iso: string | null): string {
   if (!iso) return "—";
   const d = new Date(iso);
-  return d.toLocaleDateString("it-IT", { day: "2-digit", month: "long", year: "numeric" });
+  return d.toLocaleDateString(getLocaleStr(), { day: "2-digit", month: "long", year: "numeric" });
 }

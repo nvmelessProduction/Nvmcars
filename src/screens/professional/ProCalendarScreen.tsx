@@ -6,7 +6,7 @@ import { PrimaryButton } from "@/components/PrimaryButton";
 import { ProFeatureGate } from "@/components/ProFeatureGate";
 import { useColors } from "@/store/useThemeStore";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useT } from "@/i18n";
+import { useT, useLocaleStr } from "@/i18n";
 import { useWorkshopStore, useOwnWorkshop } from "@/store/useWorkshopStore";
 
 const DAYS_OF_WEEK = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"];
@@ -54,6 +54,7 @@ export function ProCalendarScreen() {
 function ProCalendarContent() {
   const colors = useColors();
   const t = useT();
+  const localeStr = useLocaleStr();
   const user = useAuthStore((s) => s.user);
   const workshopId = user && user.role === "professional" ? user.workshopId : undefined;
   const workshop = useOwnWorkshop(workshopId);
@@ -73,7 +74,7 @@ function ProCalendarContent() {
   const vacations = workshop?.vacations ?? [];
 
   const matrix = useMemo(() => getMonthMatrix(year, month), [year, month]);
-  const monthName = new Date(year, month, 1).toLocaleDateString("it-IT", {
+  const monthName = new Date(year, month, 1).toLocaleDateString(localeStr, {
     month: "long",
     year: "numeric",
   });
@@ -242,15 +243,15 @@ function ProCalendarContent() {
                     <View style={{ flex: 1 }}>
                       <Text style={{ color: colors.text, fontWeight: "700", fontSize: 14 }}>
                         {v.fromDate === v.toDate
-                          ? parseISODate(v.fromDate).toLocaleDateString("it-IT", {
+                          ? parseISODate(v.fromDate).toLocaleDateString(localeStr, {
                               weekday: "long",
                               day: "2-digit",
                               month: "long",
                             })
-                          : `${parseISODate(v.fromDate).toLocaleDateString("it-IT", {
+                          : `${parseISODate(v.fromDate).toLocaleDateString(localeStr, {
                               day: "2-digit",
                               month: "short",
-                            })} → ${parseISODate(v.toDate).toLocaleDateString("it-IT", {
+                            })} → ${parseISODate(v.toDate).toLocaleDateString(localeStr, {
                               day: "2-digit",
                               month: "short",
                             })}`}

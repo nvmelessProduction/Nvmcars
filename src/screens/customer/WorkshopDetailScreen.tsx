@@ -12,7 +12,7 @@ import { useFavoritesStore } from "@/store/useFavoritesStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useActiveCar } from "@/store/useCarStore";
 import { useColors } from "@/store/useThemeStore";
-import { useT } from "@/i18n";
+import { useT, useLocaleStr } from "@/i18n";
 import { formatWeeklyHours, isOpenNow } from "@/data/workshops";
 import { SERVICES } from "@/data/services";
 import { useResolvedWorkshop } from "@/store/useWorkshopStore";
@@ -28,6 +28,7 @@ export function WorkshopDetailScreen() {
   const { workshopId, service } = route.params;
   const colors = useColors();
   const t = useT();
+  const localeStr = useLocaleStr();
   const car = useActiveCar();
   const favoriteIds = useFavoritesStore((s) => s.ids);
   const toggleFavorite = useFavoritesStore((s) => s.toggle);
@@ -255,7 +256,7 @@ export function WorkshopDetailScreen() {
                       {r.comment}
                     </Text>
                     <Text style={{ fontSize: 11, color: colors.textMuted, marginTop: 4 }}>
-                      {new Date(r.createdAt).toLocaleDateString("it-IT")}
+                      {new Date(r.createdAt).toLocaleDateString(localeStr)}
                     </Text>
                   </View>
                 ))}

@@ -6,11 +6,13 @@ import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useColors } from "@/store/useThemeStore";
+import { useLocaleStr } from "@/i18n";
 import { listAllRealUsers, realUserToAuthUser, type RealUserListItem } from "@/services/adminUsers";
 import { isSupabaseConfigured } from "@/lib/supabase";
 
 export function AdminUsersScreen() {
   const colors = useColors();
+  const localeStr = useLocaleStr();
   const impersonateRealUser = useAuthStore((s) => s.impersonateRealUser);
   const [users, setUsers] = useState<RealUserListItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -167,7 +169,7 @@ export function AdminUsersScreen() {
                       ) : null}
                       <Text style={{ fontSize: 10, color: colors.textMuted, marginTop: 4 }}>
                         Registrato{" "}
-                        {new Date(item.createdAt).toLocaleDateString("it-IT", {
+                        {new Date(item.createdAt).toLocaleDateString(localeStr, {
                           day: "2-digit",
                           month: "short",
                           year: "numeric",

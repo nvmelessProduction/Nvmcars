@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { FlatList, Modal, Pressable, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/store/useThemeStore";
+import { useT } from "@/i18n";
 
 type Props = {
   visible: boolean;
@@ -23,6 +24,7 @@ export function PickerSheet({
   onClose,
 }: Props) {
   const colors = useColors();
+  const t = useT();
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState("");
 
@@ -81,7 +83,7 @@ export function PickerSheet({
           </Text>
           <Pressable onPress={onClose} hitSlop={8}>
             <Text style={{ color: colors.accent, fontWeight: "700", fontSize: 15 }}>
-              Chiudi
+              {t.common.close}
             </Text>
           </Pressable>
         </View>

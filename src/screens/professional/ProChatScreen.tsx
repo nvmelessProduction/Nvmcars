@@ -17,7 +17,7 @@ import { AttachSheet } from "@/components/AttachSheet";
 import { useChatStore } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useColors } from "@/store/useThemeStore";
-import { useT } from "@/i18n";
+import { useT, useLocaleStr } from "@/i18n";
 import { buildChatItems } from "@/utils/chatThread";
 import { pickFromGallery, recordVideo, takePhoto } from "@/utils/mediaPicker";
 import type { ProRequestsStackParamList } from "@/navigation/types";
@@ -31,6 +31,7 @@ export function ProChatScreen() {
   const { conversationId } = route.params;
   const colors = useColors();
   const t = useT();
+  const localeStr = useLocaleStr();
   const user = useAuthStore((s) => s.user);
   const allMessages = useChatStore((s) => s.messages);
   const send = useChatStore((s) => s.send);
@@ -64,8 +65,8 @@ export function ProChatScreen() {
     [allMessages, conversationId]
   );
   const items = useMemo(
-    () => buildChatItems(messages, Date.now(), { today: t.chat.today, yesterday: t.chat.yesterday }),
-    [messages, t]
+    () => buildChatItems(messages, Date.now(), { today: t.chat.today, yesterday: t.chat.yesterday }, localeStr),
+    [messages, t, localeStr]
   );
   const [text, setText] = useState("");
   const [attachOpen, setAttachOpen] = useState(false);
