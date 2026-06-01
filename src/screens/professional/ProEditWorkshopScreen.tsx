@@ -48,10 +48,10 @@ export function ProEditWorkshopScreen() {
     const proUser = user; // narrowed to ProfessionalUser
     let active = true;
     ensureMyWorkshop(proUser.id)
-      .then((realId) => {
-        if (active && realId) {
-          setUser({ ...proUser, workshopId: realId });
-          hydrateWorkshopById(realId).catch(() => undefined);
+      .then((res) => {
+        if (active && res.id) {
+          setUser({ ...proUser, workshopId: res.id });
+          hydrateWorkshopById(res.id).catch(() => undefined);
         }
       })
       .catch(() => undefined);
@@ -109,8 +109,15 @@ export function ProEditWorkshopScreen() {
     // l'officina sul backend e collegandola al profilo.
     let targetId = workshopId && UUID_RE.test(workshopId) ? workshopId : null;
     if (!targetId && user && user.role === "professional" && isSupabaseConfigured) {
-      targetId = await ensureMyWorkshop(user.id);
-      if (targetId) setUser({ ...user, workshopId: targetId });
+      const rep = await ensureMyWorkshop(user.id);
+      if (rep.id) {
+        targetId = rep.id;
+        setUser({ ...user, workshopId: rep.id });
+      } else {
+        setSaving(false);
+        Alert.alert("Salvataggio non riuscito", rep.reason ?? "Officina non collegata.");
+        return;
+      }
     }
     if (!targetId) {
       setSaving(false);

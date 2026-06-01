@@ -130,7 +130,8 @@ function AppBootstrap({ children }: { children: React.ReactNode }) {
         // Risolve da solo "Officina non trovata" senza azioni dell'utente.
         if (!proUser.workshopId || !UUID_RE.test(proUser.workshopId)) {
           ensureMyWorkshop(proUser.id)
-            .then((realId) => {
+            .then((res) => {
+              const realId = res.id;
               if (realId) {
                 setUser({ ...proUser, workshopId: realId });
                 hydrateWorkshopById(realId).catch(() => undefined);

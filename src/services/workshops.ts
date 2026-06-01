@@ -125,32 +125,44 @@ export async function getWorkshopById(id: string): Promise<Workshop | null> {
  * trovata" al salvataggio. Ritorna l'id officina (UUID) o null.
  * Richiede una sessione attiva (auth.uid()).
  */
-export async function ensureMyWorkshop(userId: string): Promise<string | null> {
-  if (!isSupabaseConfigured) return null;
+export async function ensureMyWorkshop(
+  userId: string
+): Promise<{ id: string | null; reason?: string }> {
+  if (!isSupabaseConfigured) return { id: null, reason: "backend non configurato" };
+
+  // 0) Verifica che ci sia davvero una sessione attiva (auth.uid()): senza,
+  // la RLS rifiuta insert/update e la riparazione non può funzionare.
+  const sess = await supabase.auth.getUser();
+  const authId = sess.data.user?.id;
+  if (!authId) return { id: null, reason: "sessione assente (rifai login)" };
 
   // 1) Cerca un'officina di cui sono già proprietario.
   const existing = await supabase
     .from("workshops")
     .select("id")
-    .eq("owner_id", userId)
+    .eq("owner_id", authId)
     .limit(1)
     .maybeSingle();
+  if (existing.error) return { id: null, reason: `lettura: ${existing.error.message}` };
   let workshopId: string | null = existing.data?.id ?? null;
 
-  // 2) Se non esiste, creala in bozza (la RLS lo consente: owner_id = auth.uid()).
+  // 2) Se non esiste, creala in bozza (RLS: owner_id = auth.uid()).
   if (!workshopId) {
     const created = await supabase
       .from("workshops")
-      .insert({ owner_id: userId, name: "", city: "", address: "", lat: 0, lng: 0, status: "draft" })
+      .insert({ owner_id: authId, name: "", city: "", address: "", lat: 0, lng: 0, status: "draft" })
       .select("id")
       .single();
-    if (created.error || !created.data) return null;
+    if (created.error || !created.data) {
+      return { id: null, reason: `creazione: ${created.error?.message ?? "sconosciuto"}` };
+    }
     workshopId = created.data.id;
   }
 
-  // 3) Assicura il collegamento nel profilo.
-  await supabase.from("profiles").update({ workshop_id: workshopId }).eq("id", userId);
-  return workshopId;
+  // 3) Collega l'officina al profilo.
+  const upd = await supabase.from("profiles").update({ workshop_id: workshopId }).eq("id", authId);
+  if (upd.error) return { id: workshopId, reason: `collegamento: ${upd.error.message}` };
+  return { id: workshopId };
 }
 
 export async function updateWorkshop(
