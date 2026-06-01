@@ -17,8 +17,6 @@ type AuthState = {
   loginAs: (user: AuthUser) => void;
   setUser: (user: AuthUser | null) => void;
   loginAsAdmin: () => void;
-  impersonateCustomer: () => void;
-  impersonatePro: () => void;
   /** Impersona un utente REALE (record dal DB). Salva l'admin in switchSnapshot. */
   impersonateRealUser: (user: AuthUser) => void;
   restoreAdmin: () => void;
@@ -49,25 +47,6 @@ type AuthState = {
 
 const generateId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-const DEMO_CUSTOMER: CustomerUser = {
-  id: "demo-customer",
-  role: "customer",
-  email: "demo@cliente.it",
-  name: "Marco Cliente",
-  phone: "+393331110000",
-};
-
-const DEMO_PRO: ProfessionalUser = {
-  id: "demo-pro",
-  role: "professional",
-  email: "demo@pro.it",
-  name: "Officina Demo",
-  phone: "+393331110001",
-  vatNumber: "12345678901",
-  workshopId: "w1",
-  inviteCode: "NVM-CRV-A4F9",
-};
-
 const DEMO_ADMIN: AdminUser = {
   id: "demo-admin",
   role: "admin",
@@ -86,16 +65,6 @@ export const useAuthStore = create<AuthState>()(
       loginAs: (user) => set({ user, switchSnapshot: null }),
       setUser: (user) => set({ user }),
       loginAsAdmin: () => set({ user: DEMO_ADMIN, switchSnapshot: null }),
-      impersonateCustomer: () => {
-        const current = get().user;
-        const snapshot = current?.role === "admin" ? current : get().switchSnapshot;
-        set({ user: DEMO_CUSTOMER, switchSnapshot: snapshot });
-      },
-      impersonatePro: () => {
-        const current = get().user;
-        const snapshot = current?.role === "admin" ? current : get().switchSnapshot;
-        set({ user: DEMO_PRO, switchSnapshot: snapshot });
-      },
       impersonateRealUser: (target) => {
         const current = get().user;
         const snapshot = current?.role === "admin" ? current : get().switchSnapshot;

@@ -25,8 +25,6 @@ export function AdminHomeScreen() {
   const navigation = useNavigation<Nav>();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
-  const impersonateCustomer = useAuthStore((s) => s.impersonateCustomer);
-  const impersonatePro = useAuthStore((s) => s.impersonatePro);
 
   const bookings = useBookingsStore((s) => s.bookings);
   const ownWorkshops = useWorkshopStore((s) => s.ownWorkshops);
@@ -142,43 +140,22 @@ export function AdminHomeScreen() {
           </View>
         </View>
 
-        {/* Impersona */}
-        <Text style={labelStyle(colors.onHeaderMuted)}>IMPERSONA UTENTE</Text>
+        {/* Visualizza come utente REALE (niente account demo) */}
+        <Text style={labelStyle(colors.onHeaderMuted)}>VISUALIZZA COME UTENTE</Text>
 
         <Animated.View entering={FadeInDown.delay(60).duration(300)}>
-          <Pressable onPress={impersonateCustomer}>
+          <Pressable onPress={() => navigation.navigate("AdminUsers")}>
             <Card padding={18}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
                 <View style={iconCircleStyle(colors.accentSoft)}>
-                  <Text style={{ fontSize: 30 }}>👤</Text>
+                  <Text style={{ fontSize: 30 }}>👁️</Text>
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 17, fontWeight: "800", color: colors.text }}>
-                    Visualizza come Cliente
+                    Visualizza come utente reale
                   </Text>
                   <Text style={{ fontSize: 12, color: colors.textMuted, marginTop: 2 }}>
-                    Marco Cliente · cerca officine, prenota, paga, recensisci
-                  </Text>
-                </View>
-                <Text style={{ fontSize: 22, color: colors.textMuted }}>›</Text>
-              </View>
-            </Card>
-          </Pressable>
-        </Animated.View>
-
-        <Animated.View entering={FadeInDown.delay(120).duration(300)}>
-          <Pressable onPress={impersonatePro}>
-            <Card padding={18}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
-                <View style={iconCircleStyle(colors.accentSoft)}>
-                  <Text style={{ fontSize: 30 }}>🔧</Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 17, fontWeight: "800", color: colors.text }}>
-                    Visualizza come Professionista
-                  </Text>
-                  <Text style={{ fontSize: 12, color: colors.textMuted, marginTop: 2 }}>
-                    Officina Demo · gestisci richieste, listino, chat
+                    Scegli un cliente o un'officina registrati e vedi l'app dal loro punto di vista
                   </Text>
                 </View>
                 <Text style={{ fontSize: 22, color: colors.textMuted }}>›</Text>

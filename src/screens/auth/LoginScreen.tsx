@@ -10,7 +10,6 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useColors } from "@/store/useThemeStore";
 import { useT } from "@/i18n";
 import { isSupabaseConfigured } from "@/lib/supabase";
-import { isAdminEmail } from "@/data/admins";
 import type { AuthStackParamList } from "@/navigation/types";
 
 type Nav = NativeStackNavigationProp<AuthStackParamList, "Login">;
@@ -19,7 +18,6 @@ export function LoginScreen() {
   const navigation = useNavigation<Nav>();
   const t = useT();
   const colors = useColors();
-  const loginAs = useAuthStore((s) => s.loginAs);
   const loginWithPassword = useAuthStore((s) => s.loginWithPassword);
   const authLoading = useAuthStore((s) => s.authLoading);
   const [email, setEmail] = useState("");
@@ -30,46 +28,16 @@ export function LoginScreen() {
       Alert.alert(t.common.error, t.auth.emailPasswordRequired);
       return;
     }
-    // Email admin: passa SEMPRE per loginWithPassword (anche in mock mode);
-    // lo store rileva isAdminEmail() e promuove al ruolo admin in modo invisibile.
-    if (isSupabaseConfigured || isAdminEmail(email)) {
-      const res = await loginWithPassword(email.trim(), password);
-      if (!res.ok) Alert.alert(t.common.error, res.reason);
+    // Login reale via Supabase. Niente account demo.
+    if (!isSupabaseConfigured) {
+      Alert.alert(
+        "Backend non configurato",
+        "Le credenziali Supabase non sono impostate. Configura il file .env per accedere."
+      );
       return;
     }
-    // Modalità offline non-admin: scelta demo
-    Alert.alert(
-      t.auth.demoModeTitle,
-      t.auth.demoModeBody,
-      [
-        {
-          text: t.auth.demoCustomer,
-          onPress: () =>
-            loginAs({
-              id: "demo-customer",
-              role: "customer",
-              email,
-              name: "Marco Cliente",
-              phone: "+393331110000",
-            }),
-        },
-        {
-          text: t.auth.demoPro,
-          onPress: () =>
-            loginAs({
-              id: "demo-pro",
-              role: "professional",
-              email,
-              name: "Officina Demo",
-              phone: "+393331110001",
-              vatNumber: "12345678901",
-              workshopId: "w1",
-              inviteCode: "NVM-CRV-A4F9",
-            }),
-        },
-        { text: t.common.cancel, style: "cancel" },
-      ]
-    );
+    const res = await loginWithPassword(email.trim(), password);
+    if (!res.ok) Alert.alert(t.common.error, res.reason);
   };
 
   return (
