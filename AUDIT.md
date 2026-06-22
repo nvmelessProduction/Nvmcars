@@ -67,6 +67,21 @@ Stato build: `typecheck` 0 errori · `lint` **0 errori, 0 warning** · **50 test
   documentati con motivazione).
 - **Onboarding** — aggiunto `onScrollToIndexFailed` + `getItemLayout`: niente crash se la slide
   target non è ancora montata.
+- **#5 autodoc_clicks con user_id** — l'insert ora setta `user_id` dalla sessione, così il
+  trigger DB di rate-limit per-utente scatta (prima i click anonimi lo bypassavano).
+- **#12 Service-log sincronizzato col backend** — lo store ora ha `hydrate(carId)` (caricato da
+  `CarServiceLogScreen`) e scrive su Supabase in add/remove voce, set/remove promemoria, con
+  riconciliazione dell'id. Aggiunta `removeLogEntryRemote` al service.
+- **#16 Impersonation admin stabile** — `onAuthChange`/`getCurrentUser` non sovrascrivono più
+  l'utente impersonato durante un refresh token (guard `isImpersonating()`).
+
+### Restano da fare SUL BACKEND LIVE (richiedono Supabase reale + test, non applicabili alla cieca)
+- **#1/#3 PII officine & lista admin** — hardening RLS / view pubblica / edge function service-role.
+- **#2 Self-assign ruolo pro** — va cambiato insieme `handle_new_user` (forza `customer`) +
+  `redeem_invite_code` (eleva a `professional` e linka il workshop) + client. Tocca il signup
+  professionista: **da testare sul flusso auth reale prima del deploy**.
+- **#7 Stato "in elaborazione" pagamento** — richiede nuovo stato quote + migration + UI.
+- **#10 autodoc_product nelle quote_items** — additivo (colonna jsonb + insert/read), solo lato remoto.
 
 ---
 

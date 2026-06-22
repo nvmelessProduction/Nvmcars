@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useRoute, type RouteProp } from "@react-navigation/native";
 import { FlatList, Text, View } from "react-native";
 import { ScreenContainer } from "@/components/ScreenContainer";
@@ -21,6 +21,11 @@ export function CarServiceLogScreen() {
   const car = useCarStore((s) => s.cars.find((c) => c.id === carId));
   const entries = useServiceLogStore((s) => s.entries);
   const reminders = useServiceLogStore((s) => s.reminders);
+  const hydrate = useServiceLogStore((s) => s.hydrate);
+
+  useEffect(() => {
+    hydrate(carId).catch(() => undefined);
+  }, [carId, hydrate]);
 
   const log = useMemo(
     () =>
