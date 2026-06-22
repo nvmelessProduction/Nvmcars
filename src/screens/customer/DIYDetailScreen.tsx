@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Linking, Pressable, ScrollView, Text, View } from "react-native";
-import { useRoute, RouteProp, useNavigation } from "@react-navigation/native";
+import { useRoute, RouteProp } from "@react-navigation/native";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { Card } from "@/components/Card";
 import { ProFeatureGate } from "@/components/ProFeatureGate";
@@ -13,7 +13,6 @@ type Params = { slug: string };
 
 export function DIYDetailScreen() {
   const colors = useColors();
-  const navigation = useNavigation<any>();
   const route = useRoute<RouteProp<{ DiyDetail: Params }, "DiyDetail">>();
   const { slug } = route.params;
   const guide = useDiyStore((s) => s.bySlug(slug));

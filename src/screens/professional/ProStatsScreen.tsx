@@ -7,7 +7,6 @@ import { ProFeatureGate } from "@/components/ProFeatureGate";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useBookingsStore } from "@/store/useBookingsStore";
 import { useColors } from "@/store/useThemeStore";
-import { useT } from "@/i18n";
 import { getServiceLabel } from "@/data/services";
 
 export function ProStatsScreen() {
@@ -26,7 +25,6 @@ export function ProStatsScreen() {
 
 function ProStatsContent() {
   const colors = useColors();
-  const t = useT();
   const user = useAuthStore((s) => s.user);
   const bookingsRaw = useBookingsStore((s) => s.bookings);
   const workshopId = user && user.role === "professional" ? user.workshopId : null;

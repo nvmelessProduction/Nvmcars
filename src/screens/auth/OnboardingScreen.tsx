@@ -89,6 +89,13 @@ export function OnboardingScreen() {
           showsHorizontalScrollIndicator={false}
           onScroll={handleScroll}
           scrollEventThrottle={16}
+          getItemLayout={(_, index) => ({ length: width, offset: width * index, index })}
+          onScrollToIndexFailed={({ index }) => {
+            // Evita il crash se la slide target non è ancora montata: riprova al frame dopo.
+            setTimeout(() => {
+              listRef.current?.scrollToIndex({ index, animated: true });
+            }, 50);
+          }}
           renderItem={({ item }) => (
             <View style={{ width, paddingHorizontal: 28, alignItems: "center", justifyContent: "center" }}>
               <Animated.Text entering={FadeIn.duration(450)} style={{ fontSize: 110 }}>

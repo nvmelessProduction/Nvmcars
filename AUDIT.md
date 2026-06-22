@@ -44,6 +44,32 @@ Stato build a fine pass: `lint` 0 errori · `typecheck` 0 errori · **50 test** 
 
 ---
 
+## ✅ Corretto nel pass "redesign-from-scratch" (build-verified)
+
+Stato build: `typecheck` 0 errori · `lint` **0 errori, 0 warning** · **50 test** verdi · `expo export` (iOS, 1502 moduli) OK.
+
+- **#6 Quote ora persistite sul backend** — `useQuoteStore.create` chiama `createQuoteRemote` e
+  riconcilia l'id locale (`q-...`) con l'UUID del DB, aggiornando anche il `quoteId` del messaggio
+  chat (`useChatStore.remapQuoteId`). `setStatus` propaga lo stato via `updateQuoteStatusRemote`.
+  Così il `PaymentIntent` reale trova la quote (prima ripiegava sempre sul mock). Path offline invariato.
+- **#8 "Paga in officina" non più ri-pagabile** — la quote resta `accepted` ma con `paymentRef`
+  (marcatore di prenotazione conclusa); `QuoteDetail` mostra una card dedicata e nasconde il
+  bottone di pagamento; `PaymentScreen` blocca il ri-pagamento.
+- **#9 Quote scadute non pagabili** — guard su `validUntil` in `QuoteDetail` e `PaymentScreen`
+  con messaggio dedicato (i18n it/en).
+- **#13 `setServices` ora price-safe** — upsert dei servizi attivi (onConflict
+  `workshop_id,service_key`) e solo dopo delete dei disattivati: un errore non azzera più il listino.
+- **#14 Subscription realtime chiuse al logout** — `useNotificationsStore.teardown` e
+  `useChatStore.teardownRealtime` invocate in `logout` prima del clear degli store.
+- **#15 Favorites robusti agli errori di rete** — `listMyFavorites` ritorna `null` su errore;
+  l'hydrate non azzera più i preferiti locali quando la lettura remota fallisce.
+- **Lint** — azzerati tutti gli 8 warning (variabili/import inutilizzati + 3 `exhaustive-deps`
+  documentati con motivazione).
+- **Onboarding** — aggiunto `onScrollToIndexFailed` + `getItemLayout`: niente crash se la slide
+  target non è ancora montata.
+
+---
+
 ## ⚠️ Da completare (richiede backend live / scelte di prodotto)
 
 Questi sono bug reali individuati ma **non auto-applicati** perché invasivi e non verificabili

@@ -25,6 +25,8 @@ export function ReferralScreen() {
   useEffect(() => {
     if (!user || !isSupabaseConfigured) return;
     loadStats();
+    // loadStats dipende solo da `user`: ricarichiamo quando l'utente diventa disponibile.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const loadStats = async () => {

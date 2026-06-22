@@ -1,12 +1,17 @@
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
-export async function listMyFavorites(userId: string): Promise<string[]> {
-  if (!isSupabaseConfigured) return [];
+/**
+ * Ritorna gli id officina preferiti, oppure `null` se la lettura remota fallisce.
+ * Distinguere "nessun preferito" (`[]`) da "errore" (`null`) evita che un errore
+ * di rete azzeri i preferiti già presenti in locale durante l'hydrate.
+ */
+export async function listMyFavorites(userId: string): Promise<string[] | null> {
+  if (!isSupabaseConfigured) return null;
   const { data, error } = await supabase
     .from("favorites")
     .select("workshop_id")
     .eq("user_id", userId);
-  if (error || !data) return [];
+  if (error || !data) return null;
   return data.map((r) => r.workshop_id);
 }
 

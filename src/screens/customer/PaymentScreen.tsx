@@ -48,6 +48,27 @@ export function PaymentScreen() {
     );
   }
 
+  // Quote già conclusa (pagata o prenotata in officina) o scaduta: non ripagabile.
+  const alreadySettled = quote.status === "paid" || Boolean(quote.paymentRef);
+  const expired = quote.validUntil < Date.now() && quote.status !== "paid";
+  if (alreadySettled || expired) {
+    return (
+      <ScreenContainer>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24, gap: 8 }}>
+          <Text style={{ fontSize: 17, fontWeight: "800", color: colors.text, textAlign: "center" }}>
+            {alreadySettled ? t.quote.customerPaid : t.quote.expiredTitle}
+          </Text>
+          <Text style={{ color: colors.textMuted, textAlign: "center", lineHeight: 20 }}>
+            {alreadySettled ? t.payment.alreadyPaidBody : t.quote.expiredBody}
+          </Text>
+          <Pressable onPress={() => navigation.popToTop()} style={{ marginTop: 12 }}>
+            <Text style={{ color: colors.accent, fontWeight: "700" }}>{t.common.back}</Text>
+          </Pressable>
+        </View>
+      </ScreenContainer>
+    );
+  }
+
   const formatCardNumber = (raw: string) =>
     raw
       .replace(/[^0-9]/g, "")
@@ -80,7 +101,9 @@ export function PaymentScreen() {
           text: t.common.confirm,
           onPress: () => {
             const paymentRef = `IN-SHOP-${Date.now().toString(36).toUpperCase()}`;
-            setStatus(quote.id, "accepted", { acceptedAt: Date.now() });
+            // paymentRef marca la quote come "prenotata, si paga in officina":
+            // QuoteDetail la tratta come conclusa e non ne permette il ri-pagamento.
+            setStatus(quote.id, "accepted", { acceptedAt: Date.now(), paymentRef });
             sendMsg({
               conversationId: quote.conversationId,
               senderId: quote.customerId,

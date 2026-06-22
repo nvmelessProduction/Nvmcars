@@ -48,6 +48,8 @@ export function ProPriceListScreen() {
       if (v !== undefined) out[k] = String(v);
     }
     setPrices(out);
+    // Seed dei prezzi allo switch di officina, non a ogni keystroke sull'input.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workshop?.id]);
 
   const togglePrice = (k: ServiceKey) =>

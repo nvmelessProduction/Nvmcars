@@ -9,6 +9,8 @@ type NotificationsState = {
   notifications: Notification[];
   realtimeUnsub: (() => void) | null;
   hydrate: (userId: string) => Promise<void>;
+  /** Chiude la subscription realtime (da chiamare al logout per evitare leak). */
+  teardown: () => void;
   unreadCount: (userId: string) => number;
   markRead: (id: string) => void;
   markAllRead: (userId: string) => void;
@@ -79,6 +81,10 @@ export const useNotificationsStore = create<NotificationsState>()(
           if (!exists) set({ notifications: [n, ...get().notifications] });
         });
         set({ realtimeUnsub: unsub });
+      },
+      teardown: () => {
+        get().realtimeUnsub?.();
+        set({ realtimeUnsub: null });
       },
       unreadCount: (userId) =>
         get().notifications.filter((n) => n.userId === userId && !n.read).length,

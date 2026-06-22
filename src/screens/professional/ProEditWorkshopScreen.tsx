@@ -51,6 +51,9 @@ export function ProEditWorkshopScreen() {
     setPhone(workshop.phone ?? "");
     setDescription(workshop.description ?? "");
     setPhotos(workshop.photos ?? (workshop.photo ? [workshop.photo] : []));
+    // Seed del form una sola volta per officina: sincronizziamo allo switch di id,
+    // non a ogni modifica dei campi (che farebbe ripartire l'editing dell'utente).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workshop?.id]);
 
   const handleSave = async () => {
