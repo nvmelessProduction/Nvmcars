@@ -48,6 +48,8 @@ export function ProPriceListScreen() {
       if (v !== undefined) out[k] = String(v);
     }
     setPrices(out);
+    // Idem ProEditWorkshop: si idrata il form una sola volta per id officina.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workshop?.id]);
 
   const togglePrice = (k: ServiceKey) =>

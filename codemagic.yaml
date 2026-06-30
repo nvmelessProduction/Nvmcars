@@ -1,0 +1,136 @@
+# =============================================================================
+# Nvmcars — Codemagic CI/CD
+# Build iOS (Expo "managed") → TestFlight
+#
+# Questo file definisce la pipeline. La parte "segreta" (chiave App Store
+# Connect, variabili Supabase) NON va qui: si configura una volta nella UI di
+# Codemagic. Guida passo-passo in CODEMAGIC.md.
+# =============================================================================
+
+workflows:
+  # ---------------------------------------------------------------------------
+  # Workflow principale: build firmata + upload automatico su TestFlight
+  # ---------------------------------------------------------------------------
+  ios-testflight:
+    name: Nvmcars iOS · TestFlight
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+
+    # Integrazione App Store Connect: il NOME qui sotto deve combaciare con
+    # quello che crei in Codemagic (Teams/App → Integrations → App Store Connect).
+    # Vedi CODEMAGIC.md §2.
+    integrations:
+      app_store_connect: Nvmcars ASC Key
+
+    environment:
+      # Firma automatica: Codemagic scarica/crea il provisioning profile di
+      # distribuzione "App Store" per questo bundle id usando la chiave ASC.
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.nvmcars.app
+
+      # Gruppo di variabili sicure da creare in Codemagic (vedi CODEMAGIC.md §3).
+      # Deve contenere: EXPO_PUBLIC_SUPABASE_URL, EXPO_PUBLIC_SUPABASE_ANON_KEY
+      # e (opzionale) EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY.
+      # Queste variabili vengono "inlinate" nel bundle JS durante la build,
+      # quindi DEVONO essere presenti qui o l'app parte in modalità mock.
+      groups:
+        - nvmcars_env
+
+      vars:
+        XCODE_WORKSPACE: "Nvmcars.xcworkspace"
+        XCODE_SCHEME: "Nvmcars"
+        BUNDLE_ID: "com.nvmcars.app"
+
+      node: 20.18.0
+      xcode: latest
+      cocoapods: default
+
+    cache:
+      cache_paths:
+        - $HOME/.npm
+        - $HOME/Library/Caches/CocoaPods
+
+    scripts:
+      - name: Installa dipendenze npm
+        script: |
+          npm ci
+
+      - name: Quality gate (lint + typecheck + test)
+        script: |
+          npm run lint
+          npm run typecheck
+          npm test
+
+      - name: Expo prebuild (genera il progetto iOS nativo)
+        # L'app è Expo managed: la cartella ios/ non è nel repo, va rigenerata.
+        script: |
+          npx expo prebuild --platform ios --clean --non-interactive
+
+      - name: Installa pod CocoaPods
+        script: |
+          cd ios && pod install
+
+      - name: Applica i profili di firma
+        script: |
+          xcode-project use-profiles
+
+      - name: Imposta il build number
+        # Usa il contatore build di Codemagic (sempre crescente). Evita il
+        # problema "primo build" di get-latest-testflight-build-number.
+        script: |
+          cd ios
+          agvtool new-version -all "$BUILD_NUMBER"
+
+      - name: Compila l'IPA firmata
+        script: |
+          xcode-project build-ipa \
+            --workspace "ios/$XCODE_WORKSPACE" \
+            --scheme "$XCODE_SCHEME"
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.app
+
+    publishing:
+      app_store_connect:
+        auth: integration
+        # Carica su TestFlight ma NON invia alla review dello Store (vuoi solo
+        # testare). submit_to_app_store resta false di proposito.
+        submit_to_testflight: true
+        submit_to_app_store: false
+        # Per assegnare automaticamente a un gruppo di beta tester, decommenta
+        # e crea il gruppo in App Store Connect → TestFlight con lo stesso nome:
+        # beta_groups:
+        #   - Tester interni
+
+      email:
+        recipients:
+          - nvmcarshelp@gmail.com
+        notify:
+          success: true
+          failure: true
+
+  # ---------------------------------------------------------------------------
+  # Workflow opzionale: solo verifica codice su ogni push (no build nativa).
+  # Veloce ed economico, gira su Linux. Utile come gate prima del build iOS.
+  # ---------------------------------------------------------------------------
+  checks:
+    name: Nvmcars · Quality checks
+    max_build_duration: 30
+    instance_type: linux_x2
+    environment:
+      node: 20.18.0
+    cache:
+      cache_paths:
+        - $HOME/.npm
+    scripts:
+      - name: Installa dipendenze
+        script: npm ci
+      - name: Lint
+        script: npm run lint
+      - name: Typecheck
+        script: npm run typecheck
+      - name: Test
+        script: npm test
