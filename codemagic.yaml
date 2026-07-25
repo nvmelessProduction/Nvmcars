@@ -23,11 +23,11 @@ workflows:
       app_store_connect: Nvmcars ASC Key
 
     environment:
-      # Firma automatica: Codemagic scarica/crea il provisioning profile di
-      # distribuzione "App Store" per questo bundle id usando la chiave ASC.
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.nvmcars.app
+      # NB: NIENTE blocco `ios_signing` qui. Quel blocco attiva la "firma
+      # automatica" di Codemagic che gira PRIMA degli script e, se non trova
+      # già un profilo, fallisce subito con "No matching profiles found".
+      # Facciamo invece la firma nello script "Firma iOS" più sotto, con
+      # --create, così certificato e profilo vengono CREATI se non esistono.
 
       # Gruppo di variabili sicure da creare in Codemagic (vedi CODEMAGIC.md §3).
       # Deve contenere: EXPO_PUBLIC_SUPABASE_URL, EXPO_PUBLIC_SUPABASE_ANON_KEY
