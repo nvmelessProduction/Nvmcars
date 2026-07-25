@@ -71,8 +71,17 @@ workflows:
         script: |
           cd ios && pod install
 
-      - name: Applica i profili di firma
+      - name: Firma iOS (crea/scarica certificato + provisioning profile)
+        # NB: fetch-signing-files con --create CREA il profilo (e il certificato
+        # di distribuzione, e l'App ID se manca) usando la chiave App Store
+        # Connect. Senza --create Codemagic dà "No matching profiles found".
+        # Richiede che la chiave ASC abbia ruolo App Manager o Admin.
         script: |
+          keychain initialize
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+          keychain add-certificates
           xcode-project use-profiles
 
       - name: Imposta il build number

@@ -141,7 +141,7 @@ Se cambi la versione "marketing" (es. 1.0.0 → 1.1.0), modificala in
 
 | Sintomo | Causa / Fix |
 |---|---|
-| `No matching profiles found` | Bundle id non registrato o chiave ASC senza permessi App Manager. Rifai §1/§2. |
+| `No matching profiles found for bundle identifier "com.nvmcars.app"` | La pipeline ora crea il profilo da sola (`fetch-signing-files --create`). Se l'errore resta: (a) la chiave ASC deve avere ruolo **App Manager** o **Admin** (con ruolo Developer non può creare profili) → rigenerala in §2; (b) verifica che l'integrazione in Codemagic si chiami **esattamente** `Nvmcars ASC Key`; (c) il primo build può volerci 1 min per propagare l'App ID appena creato: rilancia. |
 | L'app si apre ma "non vede" i dati | Gruppo `nvmcars_env` mancante o variabili sbagliate (§3). |
 | Build fallita su `pod install` | Quasi sempre cache: in Codemagic, **Start new build** con *Clear cache*. |
 | `xcode: latest` dà errore | Fissa una versione nota in `codemagic.yaml`, es. `xcode: 16.2`. |
