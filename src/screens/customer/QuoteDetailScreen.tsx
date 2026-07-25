@@ -68,7 +68,12 @@ export function QuoteDetailScreen() {
   const workshop = WORKSHOPS.find((w) => w.id === quote.workshopId);
   const isCustomer = user?.id === quote.customerId;
   const isPro = user?.role === "professional";
-  const canAct = isCustomer && quote.status === "pending";
+  // Scaduta: oltre validUntil e non ancora pagata → non più accettabile/pagabile.
+  const isExpired = quote.validUntil < Date.now() && quote.status !== "paid";
+  // "Pago in officina" lascia la quote in stato accepted ma con un paymentRef:
+  // è una prenotazione conclusa, non va ri-pagata online.
+  const isReservedInShop = quote.status === "accepted" && Boolean(quote.paymentRef);
+  const canAct = isCustomer && quote.status === "pending" && !isExpired;
 
   const handleOpenAutodoc = async (url: string) => {
     const finalUrl = await trackAndOpen({
@@ -255,13 +260,35 @@ export function QuoteDetailScreen() {
           </View>
         ) : null}
 
-        {quote.status === "accepted" && isCustomer ? (
+        {isExpired && (quote.status === "pending" || quote.status === "accepted") ? (
+          <Card padding={16}>
+            <Text style={{ color: colors.warning, fontWeight: "800", fontSize: 15 }}>
+              ⏳ {t.quote.expiredTitle}
+            </Text>
+            <Text style={{ color: colors.textMuted, marginTop: 4, fontSize: 13 }}>
+              {t.quote.expiredBody}
+            </Text>
+          </Card>
+        ) : null}
+
+        {quote.status === "accepted" && isCustomer && !isReservedInShop && !isExpired ? (
           <View style={{ marginTop: 6 }}>
             <PrimaryButton
               label={t.quote.acceptAndPay}
               onPress={() => navigation.navigate("Payment", { quoteId: quote.id })}
             />
           </View>
+        ) : null}
+
+        {isReservedInShop && isCustomer ? (
+          <Card padding={16}>
+            <Text style={{ color: colors.success, fontWeight: "800", fontSize: 15 }}>
+              ✓ {t.quote.reservedInShopTitle}
+            </Text>
+            <Text style={{ color: colors.textMuted, marginTop: 4, fontSize: 13 }}>
+              {t.quote.reservedInShopBody}
+            </Text>
+          </Card>
         ) : null}
 
         {quote.status === "paid" ? (

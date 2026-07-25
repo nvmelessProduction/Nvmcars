@@ -24,6 +24,10 @@ type ChatState = {
   hydrateMessages: (conversationId: string) => Promise<void>;
   subscribeToConversation: (conversationId: string) => void;
   unsubscribeFromConversation: (conversationId: string) => void;
+  /** Chiude tutte le subscription realtime (da chiamare al logout). */
+  teardownRealtime: () => void;
+  /** Rimappa il quoteId di un messaggio dopo la persistenza remota della quote. */
+  remapQuoteId: (localId: string, remoteId: string) => void;
   ensureConversation: (customerId: string, workshopId: string) => Conversation;
   send: (input: SendInput) => ChatMessage;
   sendText: (conversationId: string, senderId: string, text: string) => ChatMessage;
@@ -133,6 +137,26 @@ export const useChatStore = create<ChatState>()(
           delete next[convId];
           set({ realtimeSubs: next });
         }
+      },
+
+      teardownRealtime: () => {
+        Object.values(get().realtimeSubs).forEach((u) => {
+          try {
+            u();
+          } catch {
+            // sottoscrizione già chiusa: ignora
+          }
+        });
+        set({ realtimeSubs: {} });
+      },
+
+      remapQuoteId: (localId, remoteId) => {
+        if (localId === remoteId) return;
+        set({
+          messages: get().messages.map((m) =>
+            m.quoteId === localId ? { ...m, quoteId: remoteId } : m
+          ),
+        });
       },
 
       ensureConversation: (customerId, workshopId) => {

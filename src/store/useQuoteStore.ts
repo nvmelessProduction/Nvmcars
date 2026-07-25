@@ -2,6 +2,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { Quote, QuoteLineItem, QuoteStatus } from "@/types";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import * as quotesService from "@/services/quotes";
+import { useChatStore } from "@/store/useChatStore";
 
 export const COMMISSION_PCT = 0.05;
 
@@ -61,6 +64,38 @@ export const useQuoteStore = create<QuoteState>()(
           validUntil: Date.now() + validForDays * 24 * 60 * 60 * 1000,
         };
         set({ quotes: [...get().quotes, q] });
+        // Persistenza remota: il DB genera un UUID, quindi riconciliamo l'id
+        // locale (q-...) con quello remoto e aggiorniamo il messaggio chat che
+        // referenzia la quote. Senza questo, il pagamento reale non trova la
+        // quote sul backend e ripiega sul mock. In modalità offline resta locale.
+        if (isSupabaseConfigured) {
+          quotesService
+            .createQuoteRemote({
+              workshopId: q.workshopId,
+              customerId: q.customerId,
+              conversationId: q.conversationId,
+              title: q.title,
+              notes: q.notes,
+              lineItems: q.lineItems,
+              subtotal: q.subtotal,
+              commissionFeePct: q.commissionFeePct,
+              commissionFee: q.commissionFee,
+              total: q.total,
+              status: q.status,
+              validUntil: q.validUntil,
+            })
+            .then((remote) => {
+              if (remote && remote.id !== q.id) {
+                set({
+                  quotes: get().quotes.map((x) =>
+                    x.id === q.id ? { ...x, id: remote.id } : x
+                  ),
+                });
+                useChatStore.getState().remapQuoteId(q.id, remote.id);
+              }
+            })
+            .catch(() => undefined);
+        }
         return q;
       },
       byId: (id) => get().quotes.find((q) => q.id === id),
@@ -70,6 +105,15 @@ export const useQuoteStore = create<QuoteState>()(
             q.id === id ? { ...q, status, ...extra } : q
           ),
         });
+        if (isSupabaseConfigured) {
+          quotesService
+            .updateQuoteStatusRemote(id, status, {
+              acceptedAt: extra?.acceptedAt,
+              paidAt: extra?.paidAt,
+              paymentRef: extra?.paymentRef,
+            })
+            .catch(() => undefined);
+        }
       },
     }),
     {

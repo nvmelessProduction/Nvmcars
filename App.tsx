@@ -92,11 +92,14 @@ function AppBootstrap({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isSupabaseConfigured) return;
     const unsub = authService.onAuthChange((u) => {
+      // Durante l'impersonation admin, un refresh token NON deve sovrascrivere
+      // l'utente impersonato con l'account admin reale.
+      if (useAuthStore.getState().isImpersonating()) return;
       setUser(u);
     });
     // hydrate initial user
     authService.getCurrentUser().then((u) => {
-      if (u) setUser(u);
+      if (u && !useAuthStore.getState().isImpersonating()) setUser(u);
     });
     return () => unsub();
   }, [setUser]);

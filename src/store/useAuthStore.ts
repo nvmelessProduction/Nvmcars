@@ -223,6 +223,12 @@ export const useAuthStore = create<AuthState>()(
         // Pulisce tutti i dati locali per evitare leak fra utenti che condividono il device.
         // Import dinamici per evitare cicli di dipendenze fra store.
         try {
+          // Chiude le subscription realtime aperte, altrimenti i canali Supabase
+          // restano attivi (e continuano a ricevere eventi) dopo il logout.
+          const { useNotificationsStore } = await import("@/store/useNotificationsStore");
+          useNotificationsStore.getState().teardown();
+          const { useChatStore } = await import("@/store/useChatStore");
+          useChatStore.getState().teardownRealtime();
           const { clearAllUserStores } = await import("@/lib/clearStores");
           await clearAllUserStores();
         } catch (e) {

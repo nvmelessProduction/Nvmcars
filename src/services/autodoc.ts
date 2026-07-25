@@ -83,7 +83,11 @@ export async function trackAndOpen(opts: {
 
   if (isSupabaseConfigured) {
     try {
+      // Impostiamo user_id dalla sessione: senza, il trigger di rate-limit
+      // per-utente non scatta (i click anonimi sono limitati solo lato edge).
+      const { data: auth } = await supabase.auth.getUser();
       await supabase.from("autodoc_clicks").insert({
+        user_id: auth.user?.id ?? null,
         context: opts.context,
         context_id: opts.contextId ?? null,
         product_id: opts.product?.id ?? null,

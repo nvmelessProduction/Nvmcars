@@ -8,7 +8,6 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useColors } from "@/store/useThemeStore";
 import { listAllRealUsers, realUserToAuthUser, type RealUserListItem } from "@/services/adminUsers";
 import { isSupabaseConfigured } from "@/lib/supabase";
-
 export function AdminUsersScreen() {
   const colors = useColors();
   const impersonateRealUser = useAuthStore((s) => s.impersonateRealUser);

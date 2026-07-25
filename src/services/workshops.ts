@@ -165,17 +165,29 @@ export async function setServices(
   services: Partial<Record<ServiceKey, number>>
 ) {
   if (!isSupabaseConfigured) return { ok: true };
-  await supabase.from("workshop_services").delete().eq("workshop_id", workshopId);
-  const rows = Object.entries(services)
-    .filter(([, v]) => v && v > 0)
-    .map(([k, v]) => ({
-      workshop_id: workshopId,
-      service_key: k,
-      base_price: v,
-    }));
-  if (rows.length === 0) return { ok: true };
-  const { error } = await supabase.from("workshop_services").insert(rows);
-  if (error) return { ok: false, reason: error.message };
+  const active = Object.entries(services).filter(([, v]) => v && v > 0);
+  const rows = active.map(([k, v]) => ({
+    workshop_id: workshopId,
+    service_key: k,
+    base_price: v,
+  }));
+  // Prima scriviamo (upsert) i servizi attivi: se questo fallisce non perdiamo
+  // i prezzi esistenti. Solo dopo rimuoviamo i servizi disattivati. L'ordine
+  // garantisce che un errore non azzeri mai il listino (a differenza del
+  // vecchio delete+insert non atomico).
+  if (rows.length > 0) {
+    const { error } = await supabase
+      .from("workshop_services")
+      .upsert(rows, { onConflict: "workshop_id,service_key" });
+    if (error) return { ok: false, reason: error.message };
+  }
+  const activeKeys = active.map(([k]) => k);
+  let del = supabase.from("workshop_services").delete().eq("workshop_id", workshopId);
+  if (activeKeys.length > 0) {
+    del = del.not("service_key", "in", `(${activeKeys.join(",")})`);
+  }
+  const { error: delError } = await del;
+  if (delError) return { ok: false, reason: delError.message };
   return { ok: true };
 }
 

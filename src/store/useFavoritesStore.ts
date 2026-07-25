@@ -16,7 +16,9 @@ export const useFavoritesStore = create<FavoritesState>()(
       ids: [],
       hydrate: async (userId) => {
         const remote = await favoritesService.listMyFavorites(userId);
-        if (remote.length > 0 || get().ids.length === 0) {
+        // `null` = lettura fallita: tieni lo stato locale. Una lista (anche vuota)
+        // è la verità del server e sostituisce quella locale.
+        if (remote !== null) {
           set({ ids: remote });
         }
       },

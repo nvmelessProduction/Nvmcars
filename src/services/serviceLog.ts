@@ -57,6 +57,11 @@ export async function addLogEntryRemote(
   return rowToEntry(data);
 }
 
+export async function removeLogEntryRemote(id: string) {
+  if (!isSupabaseConfigured) return;
+  await supabase.from("service_log_entries").delete().eq("id", id);
+}
+
 export async function listRemindersForCar(carId: string): Promise<CarReminder[]> {
   if (!isSupabaseConfigured) return [];
   const { data } = await supabase

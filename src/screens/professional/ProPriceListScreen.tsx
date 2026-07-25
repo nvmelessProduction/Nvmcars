@@ -48,7 +48,7 @@ export function ProPriceListScreen() {
       if (v !== undefined) out[k] = String(v);
     }
     setPrices(out);
-    // Idem ProEditWorkshop: si idrata il form una sola volta per id officina.
+    // Seed dei prezzi allo switch di officina, non a ogni keystroke sull'input.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workshop?.id]);
 

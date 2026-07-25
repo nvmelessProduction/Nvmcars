@@ -51,8 +51,8 @@ export function ProEditWorkshopScreen() {
     setPhone(workshop.phone ?? "");
     setDescription(workshop.description ?? "");
     setPhotos(workshop.photos ?? (workshop.photo ? [workshop.photo] : []));
-    // Carica i campi del form solo quando cambia l'officina (per id), non a ogni
-    // mutazione dello store: includere `workshop` resetterebbe l'input mentre si scrive.
+    // Seed del form una sola volta per officina: sincronizziamo allo switch di id,
+    // non a ogni modifica dei campi (che farebbe ripartire l'editing dell'utente).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workshop?.id]);
 
