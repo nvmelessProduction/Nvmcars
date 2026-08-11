@@ -26,14 +26,33 @@ Quattro account (3 gratis, 1 Apple a €99/anno):
 ### 1.2 Esegui le migrazioni
 Nel pannello Supabase del tuo progetto:
 1. Sidebar sinistra → **SQL Editor** → **New query**
-2. Apri `supabase/migrations/0001_initial_schema.sql` (in questo repo)
+2. Apri **`supabase/SETUP_COMPLETO.sql`** (in questo repo)
 3. Copia tutto, incolla nell'editor, **Run** (in basso a destra)
-4. Ripeti con `supabase/migrations/0002_rls_policies.sql`
-5. Ripeti con `supabase/migrations/0003_storage_buckets.sql`
-6. Ripeti con `supabase/migrations/0004_round3_extensions.sql` ← estensioni (vacations, override prezzi, dati fiscali, stati booking nuovi, libretto auto, reminders)
-7. Ripeti con `supabase/migrations/0005_round3_rls.sql` ← RLS per le nuove tabelle
 
-Dovresti vedere "Success. No rows returned." dopo ognuno.
+Fine: è un unico file che contiene **tutte e 14 le migrazioni** nell'ordine
+corretto. Ci mette ~10 secondi e alla fine deve dire "Success".
+
+> **Puoi rilanciarlo senza paura**: il file è idempotente, se qualcosa va storto
+> a metà lo riesegui e basta.
+
+> ⚠️ **Non eseguire i file di `migrations/` a mano uno per uno.** Le migrazioni
+> sono 14, non 5: saltarne anche una lascia il database a metà (per esempio,
+> senza `0006` la registrazione delle officine fallisce perché mancano i codici
+> invito, e senza `0012`-`0014` la chat non si sincronizza in tempo reale).
+> `SETUP_COMPLETO.sql` le include tutte ed è rigenerabile con
+> `node scripts/gen-setup-sql.js`.
+
+### 1.2b Verifica che sia andato tutto bene
+Sempre nel SQL Editor, esegui:
+
+```sql
+select table_name from information_schema.tables
+  where table_schema = 'public' order by table_name;
+```
+
+Devi vedere una ventina di tabelle (`profiles`, `workshops`, `bookings`,
+`messages`, `notifications`, `quotes`, `cars`, …). Se ne vedi 2-3, il setup
+non è andato: rilancia `SETUP_COMPLETO.sql`.
 
 ### 1.3 Recupera le chiavi
 Sidebar → **Project Settings** → **API**. Copia:
